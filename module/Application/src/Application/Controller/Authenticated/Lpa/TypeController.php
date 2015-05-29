@@ -10,9 +10,7 @@
 namespace Application\Controller\Authenticated\Lpa;
 
 use Application\Controller\AbstractLpaController;
-use Application\Form\Lpa\TypeForm;
 use Zend\View\Model\ViewModel;
-use Opg\Lpa\DataModel\Lpa\Lpa;
 use Opg\Lpa\DataModel\Lpa\Document\Document;
 
 class TypeController extends AbstractLpaController
@@ -22,11 +20,7 @@ class TypeController extends AbstractLpaController
     
     public function indexAction()
     {
-        $form = new TypeForm();
-        
-        if(($this->getLpa() instanceof Lpa) && ($this->getLpa()->document instanceof Document)) {
-            $form->bind($this->getLpa()->document);
-        }
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\TypeForm');
         
         if($this->request->isPost()) {
             $postData = $this->request->getPost();
@@ -36,17 +30,27 @@ class TypeController extends AbstractLpaController
             
             if($form->isValid()) {
                 
-                $lpaId = $this->getEvent()->getRouteMatch()->getParam('lpa-id');
+                $lpaId = $this->getLpa()->id;
+                $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
                 
                 // persist data
-                if(!$this->lpaService->setType($lpaId, $form->get('type')->getValue())) {
+                if(!$this->getLpaApplicationService()->setType($lpaId, $form->get('type')->getValue())) {
                     throw new \RuntimeException('API client failed to set LPA type for id: '.$lpaId);
                 }
                 
-                $this->redirect()->toRoute('lpa/donor', ['lpa-id' => $lpaId]);
+                return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+            }
+        }
+        else {
+            if($this->getLpa()->document instanceof Document) {
+                $form->bind($this->getLpa()->document->flatten());
             }
         }
         
-        return new ViewModel(['form'=>$form]);
+        return new ViewModel([
+                'form'=>$form, 
+                'cloneUrl'=>$this->url()->fromRoute('user/dashboard/create-lpa', ['lpa-id'=>$this->getLpa()->id]),
+                'nextUrl'=>$this->url()->fromRoute('lpa/donor', ['lpa-id'=>$this->getLpa()->id]),
+        ]);
     }
 }

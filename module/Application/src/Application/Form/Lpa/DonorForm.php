@@ -1,116 +1,130 @@
 <?php
 namespace Application\Form\Lpa;
 
+use Zend\Validator;
 use Opg\Lpa\DataModel\Lpa\Document\Donor;
 
-class DonorForm extends AbstractForm
+class DonorForm extends AbstractActorForm
 {
-    protected $formElements = [
+    protected $formElements;
+    
+    public function init ()
+    {
+        $this->formElements = [
             'name-title' => [
-                    'type' => 'Zend\Form\Element\Select',
-                    'options' => [
-                            'label' => 'Title',
-                            'empty_option' => 'Please choose your title',
-                            'value_options' => [
-                                    'Mr'   => 'Mr',
-                                    'Mrs'  => 'Mrs',
-                                    'Ms'   => 'Ms',
-                                    'Miss' => 'Miss',
-                                    'Sir'  => 'Sir'
-                            ],
-                    ],
+                    'type' => 'Text',
             ],
             'name-first' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'First names'
-                    ],
             ],
             'name-last' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'Last name'
-                    ],
             ],
             'otherNames' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'Other names'
+            ],
+            'dob-date-day' => [
+                    'type' => 'Text',
+                    'required' => true,
+                    'filters' => [
+                            ['name' => 'Zend\Filter\Int'],
+                    ],
+                    'validators' => [
+                        [
+                            'name'    => 'Between',
+                            'options' => [
+                                'min' => 1, 'max' => 31,
+                                'messages' => [
+                                    Validator\Between::NOT_BETWEEN => "must be between %min% and %max%",
+                                ],
+                            ],
+                        ],
                     ],
             ],
-            'dob-date' => [
-                    'type' => 'Date',
-                    'options' => [
-                            'label' => 'Date of birth'
+            'dob-date-month' => [
+                    'type' => 'Text',
+                    'required' => true,
+                    'filters' => [
+                            ['name' => 'Zend\Filter\Int'],
+                    ],
+                    'validators' => [
+                        [
+                            'name'    => 'Between',
+                            'options' => [
+                                'min' => 1, 'max' => 12,
+                                'messages' => [
+                                    Validator\Between::NOT_BETWEEN => "must be between %min% and %max%",
+                                ],
+                            ],
+                        ],
+                    ],
+            ],
+            'dob-date-year' => [
+                    'type' => 'Text',
+                    'required' => true,
+                    'filters' => [
+                            ['name' => 'Zend\Filter\Int'],
+                    ],
+                    'validators' => [
+                        [
+                            'name'    => 'Between',
+                            'options' => [
+                                'min' => (int)date('Y') - 150, 'max' => (int)date('Y'),
+                                'messages' => [
+                                    Validator\Between::NOT_BETWEEN => "must be between %min% and %max%",
+                                ],
+                            ],
+                        ],
                     ],
             ],
             'email-address' => [
-                    'type' => 'Email',
-                    'options' => [
-                            'label' => 'Email address'
+                    'type' => 'Text',
+                    'validators' => [
+                        [
+                            'name'    => 'EmailAddress',
+                        ],
                     ],
             ],
             'address-address1' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'Address line 1'
-                    ],
             ],
             'address-address2' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'Address line 2'
-                    ],
             ],
             'address-address3' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'Address line 3'
-                    ],
             ],
             'address-postcode' => [
                     'type' => 'Text',
-                    'options' => [
-                            'label' => 'Postcode'
-                    ],
                     
             ],
             'canSign' => [
                     'type' => 'CheckBox',
                     'options' => [
-                            'label' => 'Donor is able to sign on the form'
+                            'checked_value' => false,
+                            'unchecked_value' => true,
                     ],
             ],
             'submit' => [
                     'type' => 'Zend\Form\Element\Submit',
-                    'attributes' => [
-                            'value' => 'Save and continue'
-                    ],
                     
             ],
-    ];
-    
-    public function __construct ($formName = 'donor')
-    {
+        ];
         
-        parent::__construct($formName);
+        $this->setName('donor');
         
+        parent::init();
     }
     
-    public function modelValidation()
+   /**
+    * Validate form input data through model validators.
+    * 
+    * @return [isValid => bool, messages => [<formElementName> => string, ..]]
+    */
+    public function validateByModel()
     {
-        $donor = new Donor($this->unflattenForModel($this->data));
+        $this->actorModel = new Donor();
         
-        $validation = $donor->validate();
-        
-        if(count($validation) == 0) {
-            return ['isValid'=>true, 'messages' => []];
-        }
-        else {
-            return [
-                    'isValid'=>false,
-                    'messages' => $this->modelValidationMessageConverter($validation),
-            ];
-        }
+        return parent::validateByModel();
     }
 }

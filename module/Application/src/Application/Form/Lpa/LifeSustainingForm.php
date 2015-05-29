@@ -6,12 +6,17 @@ use Opg\Lpa\DataModel\Lpa\Document\Decisions\PrimaryAttorneyDecisions;
 class LifeSustainingForm extends AbstractForm
 {
     protected $formElements = [
-            'lifeSustaining' => [
-                    'type' => 'Zend\Form\Element\Radio',
-                    'options' => [
+            'canSustainLife' => [
+                    'type'      => 'Zend\Form\Element\Radio',
+                    'required'  => true,
+                    'options'   => [
                             'value_options' => [
-                                    true => "Option A: Yes. I want to give my attorneys authority to give or refuse consent to life-sustaining treatment on my behalf",
-                                    false => "Option B: No. I don’t want to give my attorneys authority to give or refuse consent to life-sustaining treatment on my behalf",
+                                    true => [
+                                            'value' => '1',
+                                    ],
+                                    false => [
+                                            'value' => '0',
+                                    ],
                             ],
                     ],
             ],
@@ -24,18 +29,23 @@ class LifeSustainingForm extends AbstractForm
             ],
     ];
         
-    public function __construct ($formName = 'lifeSustaining')
+    public function init ()
     {
+        $this->setName('life-sustaining');
         
-        parent::__construct($formName);
-        
+        parent::init();
     }
     
-    public function modelValidation()
+   /**
+    * Validate form input data through model validators.
+    * 
+    * @return [isValid => bool, messages => [<formElementName> => string, ..]]
+    */
+    public function validateByModel()
     {
-        $decisions = new PrimaryAttorneyDecisions($this->unflattenForModel($this->data));
+        $decisions = new PrimaryAttorneyDecisions($this->convertFormDataForModel($this->data));
         
-        $validation = $decisions->validate();
+        $validation = $decisions->validate(['canSustainLife']);
         
         if(count($validation) == 0) {
             return ['isValid'=>true, 'messages' => []];

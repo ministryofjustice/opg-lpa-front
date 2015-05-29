@@ -3,6 +3,7 @@
 namespace Application\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
+use Opg\Lpa\Logger\Logger;
 
 abstract class AbstractBaseController extends AbstractActionController {
 
@@ -74,12 +75,51 @@ abstract class AbstractBaseController extends AbstractActionController {
     } // function
 
     /**
+     * Checks if a user is logged in and redirects them to the dashboard if they are.
+     *
+     * This is used to prevent signed in users accessing pages they should not.
+     *
+     * e.g. login, register, etc.
+     *
+     * @return bool|\Zend\Http\Response
+     */
+    protected function preventAuthenticatedUser(){
+
+        $identity = $this->getServiceLocator()->get('AuthenticationService')->getIdentity();
+
+        if( !is_null($identity) ){
+            return $this->redirect()->toRoute( 'user/dashboard' );
+        }
+
+        return true;
+
+    } // function
+
+    /**
      * Returns the global config.
      *
      * @return array
      */
     protected function config(){
         return $this->getServiceLocator()->get('Config');
+    }
+    
+    /**
+     * Returns the cache object.
+     *
+     * @return array
+     */
+    protected function cache(){
+        return $this->getServiceLocator()->get('Cache');
+    }
+    
+    /**
+     * Returns the logger.
+     *
+     * @return Logger
+     */
+    protected function log(){
+        return $this->getServiceLocator()->get('Logger');
     }
 
 } // class

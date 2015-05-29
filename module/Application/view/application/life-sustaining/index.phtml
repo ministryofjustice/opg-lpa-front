@@ -1,14 +1,43 @@
 <?php
-    $title          = 'LPA Type';
-    $this->headTitle($title);
-    $form           = $this->form;
-    $whenLpaStarts = $form->get('lifeSustaining');
+    $form = $this->formErrorTextExchange($this->form, [
+        'canSustainLife' => [
+            "Value is required and can't be empty" => 'Please select either option A or option B',
+        ],
+    ]);
+    
+    $form->setAttribute('class', 'form');
+    $csrf           = $form->get('secret');
+    $canSustainLife = $form->get('canSustainLife');
+    
+    $canSustainLifeValueOptions = $canSustainLife->getOptions()['value_options'];
+    $canSustainLifeValueOptions[true]['label'] = "Option A: Yes. I want to give my attorneys authority to give or refuse consent to life-sustaining treatment on my behalf";
+    $canSustainLifeValueOptions[false]['label'] = "Option B: No. I don’t want to give my attorneys authority to give or refuse consent to life-sustaining treatment on my behalf";
+    
+    $canSustainLifeValueOptions[true] += [
+            'label_attributes' => [
+                    'for' => 'can-sustain-life-true'
+            ],
+            'attributes' => [
+                    'id' => 'can-sustain-life-true'
+            ],
+    ];
+    $canSustainLifeValueOptions[false] += [
+            'label_attributes' => [
+                    'for' => 'can-sustain-life-false'
+            ],
+            'attributes' => [
+                    'id' => 'can-sustain-life-false'
+            ],
+    ];
+    $canSustainLife->setOptions(['value_options'=>$canSustainLifeValueOptions]);
+    
     $submit         = $form->get('submit');
+    $submit->setAttributes(['class'=>'button gotonextpart', 'value'=>'Save and continue']);
     
     $formLabel      = $this->plugin('formLabel');
     $form->prepare();
 ?>
-<section id="life-sustaining">
+<section id="life-sustaining" class="section current">
 	
 	<h2 class="accordion-header"><?= $this->accordionIdx($this->lpa); ?>. Can your attorneys give or refuse consent to life-sustaining treatment?</h2>
 
@@ -31,30 +60,26 @@
     
         <?= $this->form()->openTag($form); ?>
         
-        <div class="form_element">
+        <?= $this->formElement($csrf) ?>
         
-            <?= $formLabel->openTag() . $whenLpaStarts->getOption('label'); ?>
-            
-            <?= $this->formRadio($whenLpaStarts) ?>
+        <?= $this->formErrorList(); ?>
+        
+        <div class="emphasised option group">
+            <?= $this->formElement($canSustainLife) ?>
             
             <p class='form-element-errors'>
-                <?= $this->formElementErrors($whenLpaStarts) ?>
+                <?= $this->formElementErrors($canSustainLife) ?>
             </p>
-            
-            <?= $formLabel->closeTag() ?>
-        
         </div>
         
+        <p>Later on, you’ll need to sign and date the option you’ve chosen on your printed LPA document. Your signature must be witnessed.</p>
         
-        <div class="form_element">
-        
-            <?= $this->formInput($submit) ?>
-        
+        <div class="accordion-actions">
+			<p>
+                <input type="submit" name="save" value="Save and continue" class="button gotonextpart">
+            </p>
         </div>
-        
-        
-        <?= $this->formElement($form->get('secret')) ?>
-        
+                
         <?= $this->form()->closeTag(); ?>
     
     </div>

@@ -7,35 +7,40 @@ class TypeForm extends AbstractForm
 {
     protected $formElements = [
             'type' => [
-                    'type' => 'Zend\Form\Element\Radio',
-                    'options' => [
+                    'type'      => 'Zend\Form\Element\Radio',
+                    'required'  => true,
+                    'options'   => [
                             'value_options' => [
-                                    Document::LPA_TYPE_PF => 'Property and financial affairs',
-                                    Document::LPA_TYPE_HW => 'Health and welfare',
+                                    'property-and-financial' => [
+                                            'value' => 'property-and-financial',
+                                    ],
+                                    'health-and-welfare' => [
+                                            'value' => 'health-and-welfare',
+                                    ]
                             ],
                     ],
             ],
             'submit' => [
                     'type' => 'Zend\Form\Element\Submit',
-                    'attributes' => [
-                            'value' => 'Save and continue'
-                    ],
-                    
             ],
     ];
     
-    public function __construct ($formName = 'type')
+    public function init()
     {
-        
-        parent::__construct($formName);
-        
+        $this->setName('type');
+        parent::init();
     }
     
-    public function modelValidation()
+   /**
+    * Validate form input data through model validators.
+    * 
+    * @return [isValid => bool, messages => [<formElementName> => string, ..]]
+    */
+    public function validateByModel()
     {
-        $document = new Document($this->unflattenForModel($this->data));
+        $document = new Document($this->data);
         
-        $validation = $document->validate();
+        $validation = $document->validate(['type']);
         
         if(count($validation) == 0) {
             return ['isValid'=>true, 'messages' => []];

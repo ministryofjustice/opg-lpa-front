@@ -2752,9 +2752,9 @@ return isNaN(e)?d:e},f=p(u[0]),m=Math.max(f,p(u[1]||"")),f=s?Math.max(f,s.getFul
         return;
       }
       if (this.options.placement === 'after') {
-        this.$spinElement.after($('<img src="/static/images/ajax-loader.gif" alt="Loading spinner" class="spinner" />'));
+        this.$spinElement.after($('<img src="/assets/v1/images/ajax-loader.gif" alt="Loading spinner" class="spinner" />'));
       } else if (this.options.placement === 'before') {
-        this.$spinElement.before($('<img src="/static/images/ajax-loader.gif" alt="Loading spinner" class="spinner" />'));
+        this.$spinElement.before($('<img src="/assets/v1/images/ajax-loader.gif" alt="Loading spinner" class="spinner" />'));
       }
       this.disable();
     },
@@ -3046,7 +3046,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<div class=\"loading\">\n  <p><img src=\"/static/images/ajax/ajax-loader.gif\" class=\"spinner\"> Loading</p>\n</div>\n";
+  return "<div class=\"loading\">\n  <p><img src=\"/assets/v1/images/ajax/ajax-loader.gif\" class=\"spinner\"> Loading</p>\n</div>\n";
   });
 // Popup module for LPA
 // Dependencies: moj, jQuery
@@ -3232,7 +3232,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
   HelpSystem.prototype = {
     defaults: {
-      guidancePath: 'help',
+      guidancePath: 'guide',
       selector: 'a.js-guidance',
       overlayIdent: 'help-system',
       overlaySource: '#content',
@@ -3495,6 +3495,10 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
           moj.Events.trigger('PersonForm.render', {wrap: '#popup'});
         }
       });
+      
+      // hide use button and switch button
+      $('#seed-details-picker, #correspondent-selector').find('input[type=submit]').hide();
+
     },
 
     submitForm: function (e) {
@@ -3570,7 +3574,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   'use strict';
 
   moj.Modules.TitleSwitch = {
-    selector: '[name="title"]',
+    selector: '[name="name-title"]',
 
     options: {
       'Mr': 'Mr',
@@ -3674,7 +3678,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
 (function () {
   'use strict';
-
+  var selected;
   moj.Modules.Reusables = {
     selector: '.js-reusable',
     message: 'This will replace the information which you have already entered, are you sure?',
@@ -3683,7 +3687,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
       _.bindAll(this, 'linkClicked', 'selectChanged');
       this.bindEvents();
     },
-
+    
     bindEvents: function () {
       $('body')
         .on('click.moj.Modules.Reusables', 'a' + this.selector, this.linkClicked)
@@ -3712,13 +3716,29 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     selectChanged: function (e, params) {
       var $el = $(e.target),
           $form = $el.closest('form'),
-          url = $el.val(),
-          proceed = this.isFormClean($form) ? true : confirm(this.message),
+          url = $form.attr('action'),
+          postData,
           _this = this;
-
+      
+      if(($el.val()==='')||($el.val()===selected)) {
+    	  return;
+      }
+      
+      var proceed = this.isFormClean($form.next('form')) ? true : confirm(this.message);
+      
       if (proceed) {
         $el.spinner();
-        $.get(url, function (data) {
+        
+        selected = $el.val();
+        
+        if($form.find('[name=switch-to-type]').length == 0) {
+        	postData = {'secret':$form.find('[name=secret]').val(), 'pick-details':$form.find('[name=pick-details]').val()};
+        }
+        else {
+        	postData = {'secret':$form.find('[name=secret]').val(), 'switch-to-type':$form.find('[name=switch-to-type]').val(), 'switcher-submit':$form.find('[name=switcher-submit]').val()};
+        }
+        
+        $.post(url, postData, function (data) {
           $el.spinner('off');
           if (proceed) {
             _this.populateForm(data);
@@ -3741,7 +3761,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
       // loop over data and change values
       _(data).each(function (value, key) {
         // set el
-        $el = $('#' + key);
+        $el = $('[name=' + key+']');
         // if value is null, set to empty string
         value = (value === null) ? '' : value;
         // make sure the element exists && that new value doesn't match current value
@@ -3749,10 +3769,18 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
           // increment counter
           i += 1;
           // change the value of the element
-          $el.val(value).change();
+          if(key=='canSign') {
+        	  //for donor canSign checkbox
+        	  if((value === false)) {
+        		  $el.filter('[type=checkbox]').attr('checked', 'checked');
+        	  }
+          }
+          else {
+        	  $el.val(value).change();
+          }
           // if first element changed, save the el
           if (i === 1) {
-            $focus = $('[name*="' + key + '"]');
+            $focus = $('[name="' + key + '"]');
           }
         }
       });
@@ -3766,8 +3794,8 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
     isFormClean: function (form) {
       var clean = true;
-      $('input[type="text"], select:not([name*="country"], .js-reusable), textarea', form).each(function () {
-        if ($(this).val() !== '' && $(this).filter('[name*="title"]').val() !== 'Mr') {
+      $('input[type="text"], select:not(.js-reusable), textarea', form).each(function () {
+        if ($(this).val() !== '' && $(this).filter('[name*="name-title"]').val() !== 'Mr') {
           clean = false;
         }
       });
@@ -3792,18 +3820,14 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
   PostcodeLookup.prototype = {
     settings: {
-      postcodeSearchUrl: '/postcode/lookup',
-      addressSearchUrl: '/address/lookup',
+      postcodeSearchUrl: '/address-lookup',
+      addressSearchUrl: '/address-lookup',
       // used to populate fields
       // key is the key name sent in response and value is name of app's field
       fieldMappings: {
-        lineOne: 'addr1',
-        lineTwo: 'addr2',
-        lineThree: 'addr3',
-        lineFour: 'addr4',
-        lineFive: 'addr5',
-        city: 'town',
-        county: 'county',
+        line1: 'address-address1',
+        line2: 'address-address2',
+        line3: 'address-address3',
         postcode: 'postcode'
       }
     },
@@ -4201,7 +4225,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
       self.timeout = setTimeout(function () {
         // TODO: possibly redirect to a different 'timed out' page rather than standard logout?
-        window.location = '/user/timeout';
+        window.location = '/login/timeout';
       }, self.gracePeriod);
     },
 
@@ -4220,12 +4244,12 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
             this.timeout = setTimeout(this.warning, this.timeoutDuration - (this.time() - startTime));
           } else {
             // redirect tp login if no longer logged in
-            window.location = '/user/timeout';
+            window.location = '/login/timeout';
           }
         },
         error: function () {
           // if any errors occur, attempt logout
-          window.location = '/user/timeout';
+          window.location = '/login/timeout';
         }
       });
     },
@@ -4332,8 +4356,8 @@ lpa.updateSelectbox = function (el, value) {
   }
 
   // Apply the correct value
-  // As the field changes to a text box we loose it's reference,
-  // so we need to re-slect the element.
+  // As the field changes to a text box we lose its reference,
+  // so we need to reselect the element.
   form.find('[name=' + field + ']').val(value); // use the name attr as it's unique & will always exist
 };
 
@@ -4359,15 +4383,6 @@ $(document).ready(function () {
 
   $('html').addClass($.fn.details.support ? 'details' : 'no-details');
   $('details').details();
-
-  // ====================================================================================
-  // Register - view docs page
-
-  $('.js-clonewarning').click(function () {
-    alert("You've chosen to make an LPA based on a previous LPA.\n\n" +
-      "When you come to enter personal details for the donor, attorney and other roles, there'll be a drop-down menu at the top of each form. You can select any name from this menu and their information will be filled in automatically.\n\n" +
-      "Please note: If you close the browser window or log out while making the new LPA, you won't be able to use this feature when you return. You can still finish making the new LPA, but the drop-down menus won't appear.")
-  });
 
   // ====================================================================================
   // FORM VALIDATION
@@ -4433,8 +4448,8 @@ $(document).ready(function () {
   }
 
   $('[name="certificateProviderStatementType"]').hasConditionalContent();
-  $('[name="howAttorneysAct"]').hasConditionalContent();
-  $('[name="howReplacementAttorneysStepIn"]').hasConditionalContent();
+  $('[name="how"]').hasConditionalContent();
+  $('[name="when"]').hasConditionalContent();
 
 
   // Who is applying to register?
@@ -4507,29 +4522,14 @@ $(document).ready(function () {
 
   $allRevisedFees = $('.revised-fee').hide();
 
-  $('#claimBenefits, #receiveUniversalCredit, #hasLowIncome').change(function(){
-    var $cheque = $('#pay-by-cheque');
-
-    var showChequeOption = function (option) {
-      if (option) {
-        $cheque.show();
-      } else {
-        $cheque.hide();
-        $cheque.find('#payByCheque').prop('checked', false);
-      }
-    };
+  $("input[name=reductionOptions]").change(function(){
 
     $allRevisedFees.hide();
-    showChequeOption(true);
 
-    if ($('#claimBenefits').is(':checked')) {
+    if ($('#reducedFeeReceivesBenefits').is(':checked')) {
       $revisedFee = $('#revised-fee-0').show();
-      showChequeOption(false);
-    } else if ($('#receiveUniversalCredit').is(':checked')) {
+    } else if ($('#reducedFeeUniversalCredit').is(':checked')) {
       $revisedFee = $('#revised-fee-uc').show();
-      showChequeOption(false);
-    } else if ($('#hasLowIncome').is(':checked')) {
-      $revisedFee = $('#revised-fee-65').show();
     }
   });
 
@@ -4591,41 +4591,6 @@ $(document).ready(function () {
     var url=$(this).attr('href');
     if(confirm("Do you want to remove this person?")) {
       window.location.href=url;
-    }
-  });
-
-
-  // Correspondents list
-
-  body.on('change', 'select#correspondentList', function () {
-    var url = $(this).val();
-    if(url == '') {
-      $(this).closest('form').find(':text').val('');
-    }
-    else {
-      $(this).closest('form').find(':text, #email').each(function(){
-    	  $(this).val('');
-      });
-
-      $.ajax({
-        url: url,
-        dataType:'json',
-        success: function(resp) {
-
-          for(var elmId in resp) {
-            var field = $('#' + elmId),
-                value = resp[elmId];
-
-            // Insert each returned value into matching fields
-            if (elmId === 'title') {
-              lpa.updateSelectbox(field, value);
-            } else {
-              field.val(value).change();
-            }
-          }
-        }
-
-      });
     }
   });
 

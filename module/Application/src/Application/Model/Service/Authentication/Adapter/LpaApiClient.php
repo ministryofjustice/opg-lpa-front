@@ -6,10 +6,9 @@ use DateTime;
 use Opg\Lpa\Api\Client\Client as ApiClient;
 
 use Zend\Authentication\Result;
-use Zend\Authentication\Adapter\AdapterInterface;
 use Zend\Authentication\Adapter\Exception\RuntimeException;
 
-use Application\Model\Library\Authentication\Identity\User;
+use Application\Model\Service\Authentication\Identity\User;
 
 /**
  * Performs email address & password authentication with the LPA API Client.
@@ -31,16 +30,31 @@ class LpaApiClient implements AdapterInterface {
         $this->client = $client;
     }
 
+    //---
+
     /**
-     * Set the credentials to attempt authentication with.
+     * Set the email address credential to attempt authentication with.
      *
      * @param $email
-     * @param $password
+     * @return $this
      */
-    public function setCredentials( $email, $password ){
-        $this->email = strtolower($email);
-        $this->password = $password;
+    public function setEmail( $email ){
+        $this->email = trim(strtolower($email));
+        return $this;
     }
+
+    /**
+     * Set the password credential to attempt authentication with.
+     *
+     * @param $password
+     * @return $this
+     */
+    public function setPassword( $password ){
+        $this->password = $password;
+        return $this;
+    }
+
+    //---
 
     /**
      * Attempt to authenticate the user with the set credentials, via the LPA API Client.
@@ -64,7 +78,7 @@ class LpaApiClient implements AdapterInterface {
         //---
 
         if( !$response->isAuthenticated() ){
-            return new Result( Result::FAILURE, null );
+            return new Result( Result::FAILURE, null, [ $response->getErrorDescription() ] );
         }
 
         $identity = new User(

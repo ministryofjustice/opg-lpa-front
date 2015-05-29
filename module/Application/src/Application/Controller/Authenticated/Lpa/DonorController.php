@@ -9,38 +9,101 @@
 
 namespace Application\Controller\Authenticated\Lpa;
 
-use Application\Controller\AbstractLpaController;
+use Application\Controller\AbstractLpaActorController;
 use Zend\View\Model\ViewModel;
-use Application\Form\Lpa\DonorForm;
+use Opg\Lpa\DataModel\Lpa\Document\Donor;
+use Zend\View\Model\JsonModel;
 
-class DonorController extends AbstractLpaController
+class DonorController extends AbstractLpaActorController
 {
     
     protected $contentHeader = 'creation-partial.phtml';
     
     public function indexAction()
     {
-        return new ViewModel();
+        $viewModel = new ViewModel();
+        $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        
+        $lpaId = $this->getLpa()->id;
+        
+        $donor = $this->getLpa()->document->donor;
+        if( $donor instanceof Donor ) {
+            
+            return new ViewModel([
+                    'donor'         => [
+                            'name'  => $donor->name,
+                            'address' => $donor->address,
+                    ],
+                    'editDonorUrl'  => $this->url()->fromRoute( $currentRouteName.'/edit', ['lpa-id'=>$lpaId] ),
+                    'nextRoute'     => $this->url()->fromRoute( $this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id'=>$lpaId] )
+            ]);
+        }
+        else {
+            return new ViewModel([ 'addRoute' => $this->url()->fromRoute( $currentRouteName.'/add', ['lpa-id'=>$lpaId] ) ]);
+        }
+        
     }
     
     public function addAction()
     {
-        $form = new DonorForm();
+        $lpaId = $this->getLpa()->id;
+        $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        
+        if( $this->getLpa()->document->donor instanceof Donor ) {
+            return $this->redirect()->toRoute('lpa/donor', ['lpa-id'=>$lpaId]);
+        }
+        
+        $viewModel = new ViewModel();
+        $viewModel->setTemplate('application/donor/form.phtml');
+        if ( $this->getRequest()->isXmlHttpRequest() ) {
+            $viewModel->setTerminal(true);
+        }
+        
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\DonorForm');
+        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
+        
+        $seedSelection = $this->seedDataSelector($viewModel, $form);
+        if($seedSelection instanceof JsonModel) {
+            return $seedSelection;
+        }
         
         if($this->request->isPost()) {
             $postData = $this->request->getPost();
             
-            $form->setData($postData);
-            
-            if($form->isValid()) {
+            // received POST from donor form submission
+            if(!$postData->offsetExists('pick-details')) {
                 
-//                 $this->redirect('lpa/donor', ['lpa-id'=>$this->request->getPost('lpa-id')]);
+                // handle donor form submission
+                $form->setData($postData);
+                if($form->isValid()) {
+                    
+                    // persist data
+                    $donor = new Donor($form->getModelDataFromValidatedForm());
+                    if(!$this->getLpaApplicationService()->setDonor($lpaId, $donor)) {
+                        throw new \RuntimeException('API client failed to save LPA donor for id: '.$lpaId);
+                    }
+                    
+                    if ( $this->getRequest()->isXmlHttpRequest() ) {
+                        return new JsonModel(['success' => true]);
+                    }
+                    else {
+                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+                    }
+                }
+            }
+        }
+        else {
+            // load user's details into the form
+            if($this->params()->fromQuery('use-my-details')) {
+                $form->bind($this->getUserDetailsAsArray());
             }
         }
         
-        $viewModel = new ViewModel(['form'=>$form]);
-        if ( $this->getRequest()->isXmlHttpRequest() ) {
-            $viewModel->setTerminal(true);
+        $viewModel->form = $form;
+        
+        // show user my details link (if the link has not been clicked and seed dropdown is not set in the view)
+        if(($viewModel->seedDetailsPickerForm==null) && !$this->params()->fromQuery('use-my-details')) {
+            $viewModel->useMyDetailsRoute = $this->url()->fromRoute('lpa/donor/add', ['lpa-id' => $lpaId]) . '?use-my-details=1';
         }
         
         return $viewModel;
@@ -48,25 +111,54 @@ class DonorController extends AbstractLpaController
     
     public function editAction()
     {
-        $form = new DonorForm();
+        $routeMatch = $this->getEvent()->getRouteMatch();
+        $viewModel = new ViewModel(['routeMatch' => $routeMatch]);
         
-        $form->bind($this->getLpa()->document->donor);
+        $viewModel->setTemplate('application/donor/form.phtml');
+        
+        if ( $this->getRequest()->isXmlHttpRequest() ) {
+            $viewModel->setTerminal(true);
+        }
+        
+        $lpaId = $this->getLpa()->id;
+        $currentRouteName = $routeMatch->getMatchedRouteName();
+        
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\DonorForm');
+        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
         
         if($this->request->isPost()) {
-            
             $postData = $this->request->getPost();
+            $postData['canSign'] = (bool) $postData['canSign'];
             
             $form->setData($postData);
             
             if($form->isValid()) {
-//                 $this->redirect('lpa/donor', ['lpa-id'=>$this->request->getPost('lpa-id')]);
+                
+                // persist data
+                $donor = new Donor($form->getModelDataFromValidatedForm());
+                
+                if(!$this->getLpaApplicationService()->setDonor($lpaId, $donor)) {
+                    throw new \RuntimeException('API client failed to update LPA donor for id: '.$lpaId);
+                }
+                
+                if ( $this->getRequest()->isXmlHttpRequest() ) {
+                    return new JsonModel(['success' => true]);
+                }
+                else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+                }
             }
         }
-        
-        $viewModel = new ViewModel(['form'=>$form]);
-        if ( $this->getRequest()->isXmlHttpRequest() ) {
-            $viewModel->setTerminal(true);
+        else {
+            $donor = $this->getLpa()->document->donor->flatten();
+            $dob = $this->getLpa()->document->donor->dob->date;
+            $donor['dob-date-day'] = $dob->format('d');
+            $donor['dob-date-month'] = $dob->format('m');
+            $donor['dob-date-year'] = $dob->format('Y');
+            $form->bind($donor);
         }
+        
+        $viewModel->form = $form;
         
         return $viewModel;
     }

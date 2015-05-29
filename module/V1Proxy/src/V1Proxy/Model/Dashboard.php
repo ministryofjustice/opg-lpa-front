@@ -14,9 +14,64 @@ class Dashboard implements ServiceLocatorAwareInterface {
      * Namespace used to cache the fact that
      * a given user has no v1 LPAs in their account.
      */
-    const USER_HAS_NO_V1_LAPS = 'no-laps:';
+    const USER_HAS_NO_V1_LPAS = 'no-lpas:';
 
-    public function getLpas(){
+    //---
+
+
+    public function deleteAllLpasAndAccount(){
+
+        $lpas = $this->getLpas( false );
+
+        //---
+
+        $client = $this->getServiceLocator()->get('ProxyOldApiClient');
+
+        // Delete each LPA...
+        foreach( $lpas as $lpa ){
+
+            // Zero-pad the id...
+            $id = sprintf("%010d", $lpa->id);
+
+            $client->delete( "http://api.local/applications/{$id}" );
+
+        }
+
+        //----------------------------------------------------
+        // Delete the user form the account server.
+
+        // Get the user's email address...
+        $detailsContainer = $this->getServiceLocator()->get('UserDetailsSession');
+        $emailAddress = (string)$detailsContainer->user->email;
+
+
+        // Find their account service ID...
+        $response = $client->get( "http://accounts.local/query?email=".$emailAddress );
+        $response = $response->json();
+
+        // If we have the id...
+        if( isset($response['id']) ){
+
+            $client->delete( "http://accounts.local/account/".$response['id'] );
+
+        }
+
+        return true;
+
+    } // function
+
+    public function searchLpas( $query ){
+        return $this->getLpas( false, $query );
+    }
+
+    /**
+     * Return a list of laps
+     *
+     * @return array|mixed
+     */
+    public function getLpas( $useCache = true, $query = null ){
+
+        $config = $this->getServiceLocator()->get('Config')['v1proxy'];
 
         $hashedUserId = $this->getHashedUserId();
 
@@ -28,14 +83,14 @@ class Dashboard implements ServiceLocatorAwareInterface {
         $cache = $this->getServiceLocator()->get('ProxyCache');
 
         // If we've cached that the user has no v1 LPAs...
-        if( (bool)$cache->getItem( self::USER_HAS_NO_V1_LAPS . $hashedUserId ) === true ){
+        if( $useCache && (bool)$cache->getItem( self::USER_HAS_NO_V1_LPAS . $hashedUserId ) === true ){
             return array();
         }
 
         //--------------------------------------------------------------
         // Check if we've cached a list of v1 LPAs
 
-        if( isset($session->lpas) && is_array($session->lpas) ){
+        if( $useCache && isset($session->lpas) && is_array($session->lpas) ){
             return $session->lpas;
         }
 
@@ -44,7 +99,17 @@ class Dashboard implements ServiceLocatorAwareInterface {
 
         $client = $this->getServiceLocator()->get('ProxyOldApiClient');
 
-        $response = $client->get( 'http://api.local/summary' );
+        if( isset($query) ){
+
+            $response = $client->get( 'http://api.local/summary/search', [
+                'query' => [ 'freeText' => $query ]
+            ]);
+
+        } else {
+
+            $response = $client->get( 'http://api.local/summary' );
+
+        }
 
         if( $response->getStatusCode() != 200 ){
             throw new \RuntimeException( 'Error accessing v1 API' );
@@ -58,7 +123,11 @@ class Dashboard implements ServiceLocatorAwareInterface {
 
         // If no LPAs were found, cache that fact...
         if( !isset($array['lpa']) || count($array['lpa']) == 0 ){
-            $cache->setItem( self::USER_HAS_NO_V1_LAPS . $hashedUserId, true );
+
+            if( $config['cache-no-lpas'] ){
+                $cache->setItem( self::USER_HAS_NO_V1_LPAS . $hashedUserId, true );
+            }
+
             return array();
         }
 
@@ -156,13 +225,13 @@ class Dashboard implements ServiceLocatorAwareInterface {
 
     /**
      * Clears any cached LPA details for the current user.
-     * This should be called when any amends are made to any v1 LAP.
+     * This should be called when any amends are made to any v1 LPA.
      */
     public function clearLpaCacheForUser(){
 
         $session = $this->getSession();
 
-        unset($session->laps);
+        unset($session->lpas);
 
     }
 

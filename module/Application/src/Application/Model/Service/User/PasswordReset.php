@@ -15,11 +15,11 @@ class PasswordReset implements ServiceLocatorAwareInterface {
 
     //---
 
-    public function requestPasswordResetEmail( $email, callable $routeCallback ){
+    public function requestPasswordResetEmail( $email, callable $fpRouteCallback, callable $activateRouteCallback ){
 
         $client = $this->getServiceLocator()->get('ApiClient');
 
-        $resetToken = $client->requestPasswordReset( $email );
+        $resetToken = $client->requestPasswordReset( strtolower( $email ) );
 
         // A successful response is a string...
         if( !is_string($resetToken) ){
@@ -27,57 +27,29 @@ class PasswordReset implements ServiceLocatorAwareInterface {
             // Error...
             $body = $client->getLastContent();
 
-            if( isset($body['reason']) ){
-                var_dump($body['reason']); exit();
+            if( $body['reason'] == 'ACCOUNT_NOT_ACTIVE' && isset($body['id']) ){
+
+                // If they have not yet activated their account, we re-send them the activation link.
+                return $this->sendActivateEmail( $email, $activateRouteCallback( $body['id'] ) );
+
+            }elseif( isset($body['reason']) ){
+
+                return trim( $body['reason'] );
+
             }
 
-            # TODO - else we don't know what went wrong...
+            return "unknown-error";
 
         } // if
 
         //-------------------------------
         // Send the email
 
-        $message = new MailMessage();
+        $this->sendResetEmail( $email, $fpRouteCallback( $resetToken ) );
 
-        $message->addFrom('opg@lastingpowerofattorney.service.gov.uk', 'Office of the Public Guardian');
-
-        $message->addTo( $email );
-
-        $message->setSubject( 'Password reset request' );
-
-        //---
-
-        $message->addCategory('opg');
-        $message->addCategory('opg-lpa');
-        $message->addCategory('opg-lpa-passwordreset');
-
-        //---
-
-        // Load the content from the view and merge in our variables...
-        $content = $this->getServiceLocator()->get('EmailPhpRenderer')->render('password-reset', [
-            // Use the passed callback to load the URL (the model should not be aware of how this is generated)
-            'callback' => $routeCallback( $resetToken ),
-        ]);
-
-        //---
-
-        $html = new MimePart( $content );
-        $html->type = "text/html";
-
-        $body = new MimeMessage();
-        $body->setParts([$html]);
-
-        $message->setBody($body);
-
-        //--------------------
-
-        try {
-            $this->getServiceLocator()->get('MailTransport')->send($message);
-        } catch ( \Exception $e ){
-
-        }
-
+        $this->getServiceLocator()->get('Logger')->info('Password reset email sent to ' . $email);
+        
+        return true;
 
     } // function
 
@@ -118,7 +90,16 @@ class PasswordReset implements ServiceLocatorAwareInterface {
         //---
 
         if( $result !== true ){
-            // error
+
+            // Error...
+            $body = $client->getLastContent();
+
+            if( isset($body['error_description']) ){
+                return $body['error_description'];
+            }
+
+            return "unknown-error";
+
         }
 
         //---
@@ -140,5 +121,114 @@ class PasswordReset implements ServiceLocatorAwareInterface {
         return $this->getServiceLocator()->get('ApiClient')->requestPasswordResetAuthToken( $restToken );
 
     }  // function
+
+    //----------------------------------------------------
+    // Send Emails
+
+    private function sendResetEmail( $email, $callbackUrl ){
+
+        $message = new MailMessage();
+
+        $message->addFrom('opg@lastingpowerofattorney.service.gov.uk', 'Office of the Public Guardian');
+
+        $message->addTo( $email );
+
+        $message->setSubject( 'Password reset request' );
+
+        //---
+
+        $message->addCategory('opg');
+        $message->addCategory('opg-lpa');
+        $message->addCategory('opg-lpa-passwordreset');
+        $message->addCategory('opg-lpa-passwordreset-normal');
+
+        //---
+
+        // Load the content from the view and merge in our variables...
+        $viewModel = new \Zend\View\Model\ViewModel();
+        $viewModel->setTemplate( 'email/password-reset.phtml' )->setVariables([
+            'callback' => $callbackUrl,
+        ]);
+
+        $content = $this->getServiceLocator()->get('ViewRenderer')->render( $viewModel );
+
+        //---
+
+        $html = new MimePart( $content );
+        $html->type = "text/html";
+
+        $body = new MimeMessage();
+        $body->setParts([$html]);
+
+        $message->setBody($body);
+
+        //--------------------
+
+        try {
+
+            $this->getServiceLocator()->get('MailTransport')->send($message);
+
+        } catch ( \Exception $e ){
+
+            return "failed-sending-email";
+
+        }
+
+        return true;
+
+    } // function
+
+    private function sendActivateEmail( $email, $callbackUrl ){
+
+        $message = new MailMessage();
+
+        $message->addFrom('opg@lastingpowerofattorney.service.gov.uk', 'Office of the Public Guardian');
+
+        $message->addTo( $email );
+
+        $message->setSubject( 'Password reset request' );
+
+        //---
+
+        $message->addCategory('opg');
+        $message->addCategory('opg-lpa');
+        $message->addCategory('opg-lpa-passwordreset');
+        $message->addCategory('opg-lpa-passwordreset-activate');
+
+        //---
+
+        // Load the content from the view and merge in our variables...
+        $viewModel = new \Zend\View\Model\ViewModel();
+        $viewModel->setTemplate( 'email/password-reset-not-active.phtml' )->setVariables([
+            'callback' => $callbackUrl,
+        ]);
+
+        $content = $this->getServiceLocator()->get('ViewRenderer')->render( $viewModel );
+
+        //---
+
+        $html = new MimePart( $content );
+        $html->type = "text/html";
+
+        $body = new MimeMessage();
+        $body->setParts([$html]);
+
+        $message->setBody($body);
+
+        //--------------------
+
+        try {
+
+            $this->getServiceLocator()->get('MailTransport')->send($message);
+
+        } catch ( \Exception $e ){
+
+            return "failed-sending-email";
+
+        }
+
+        return true;
+
+    } // function
 
 } // class

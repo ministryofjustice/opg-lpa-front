@@ -30,6 +30,17 @@ return [
                 ],
             ], // home
 
+            'terms' => [
+                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'options' => [
+                    'route'    => '/terms-and-conditions',
+                    'defaults' => [
+                        'controller' => 'General\HomeController',
+                        'action'     => 'terms',
+                    ],
+                ],
+            ], // terms
+
             'forgot-password' => [
                 'type' => 'Segment',
                 'options' => [
@@ -46,7 +57,7 @@ return [
                         'options' => [
                             'route'    => '/reset/:token',
                             'constraints' => [
-                                'token' => '[a-zA-Z0-9]+',
+                                'token' => '[a-f0-9]+',
                             ],
                             'defaults' => [
                                 'action'     => 'reset-password',
@@ -56,17 +67,25 @@ return [
                 ],
             ], // forgot-password
 
+            'send-feedback' => [
+                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'options' => [
+                    'route'    => '/send-feedback',
+                    'defaults' => [
+                        'controller' => 'General\FeedbackController',
+                        'action'     => 'index',
+                    ],
+                ],
+            ], // send-feedback
+            
             'guidance' => [
                 'type' => 'Zend\Mvc\Router\Http\Segment',
                 'options' => [
-                    'route'    => '/guidance[/:section]',
+                    'route'    => '/guide[/:section]',
                     'defaults' => [
                         'controller' => 'General\GuidanceController',
                         'action'     => 'index',
                         'section'    => '',
-                    ],
-                    'constraints' => [
-                        'section' => '[\#0-9a-zA-Z\-]*',
                     ],
                 ],
             ], // guidance
@@ -83,9 +102,9 @@ return [
             ], // enable-cookie
 
             'login' => [
-                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'type' => 'Zend\Mvc\Router\Http\Segment',
                 'options' => [
-                    'route'    => '/login',
+                    'route'    => '/login[/:state]',
                     'defaults' => [
                         'controller' => 'General\AuthController',
                         'action'     => 'index',
@@ -104,13 +123,39 @@ return [
                 ],
             ], // logout
 
+            'deleted' => [
+                'type'    => 'Literal',
+                'options' => [
+                    'route'    => '/deleted',
+                    'defaults' => [
+                        'controller' => 'General\AuthController',
+                        'action'     => 'deleted',
+                    ],
+                ],
+            ], // deleted
+
             'register' => [
-                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'type' => 'Segment',
                 'options' => [
                     'route'    => '/signup',
                     'defaults' => [
                         'controller' => 'General\RegisterController',
                         'action'     => 'index',
+                    ],
+                ],
+                'may_terminate' => true,
+                'child_routes' => [
+                    'callback' => [
+                        'type'    => 'Segment',
+                        'options' => [
+                            'route'    => '/confirm/:token',
+                            'constraints' => [
+                                'token' => '[a-f0-9]+',
+                            ],
+                            'defaults' => [
+                                'action'     => 'confirm',
+                            ],
+                        ],
                     ],
                 ],
             ], // register
@@ -125,7 +170,6 @@ return [
                     ],
                 ],
             ], // stats
-
             'status' => [
                 'type' => 'Zend\Mvc\Router\Http\Literal',
                 'options' => [
@@ -162,11 +206,22 @@ return [
                     ],
                 ],
             ],
+            
+            'admin-system-message' => [
+                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'options' => [
+                    'route'    => '/admin/system-message',
+                    'defaults' => [
+                        'controller' => 'Authenticated\AdminController',
+                        'action'     => 'system-message',
+                    ],
+                ],
+            ],
 
             'postcode' => [
                 'type'    => 'Zend\Mvc\Router\Http\Literal',
                 'options' => [
-                    'route'    => '/postcode',
+                    'route'    => '/address-lookup',
                     'defaults' => [
                         'controller' => 'Authenticated\PostcodeController',
                         'action'     => 'index',
@@ -183,8 +238,9 @@ return [
                 ],
                 'may_terminate' => false,
                 'child_routes' => [
+
                     'about-you' => [
-                        'type'    => 'Literal',
+                        'type'    => 'Segment',
                         'options' => [
                             'route'    => '/about-you',
                             'defaults' => [
@@ -192,7 +248,20 @@ return [
                                 'action'     => 'index',
                             ],
                         ],
-                    ],
+                        'may_terminate' => true,
+                        'child_routes' => [
+                            'new' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/new',
+                                    'defaults' => [
+                                        'action'     => 'new',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ], // about-you
+
                     'change-email-address' => [
                         'type'    => 'Literal',
                         'options' => [
@@ -202,7 +271,8 @@ return [
                                 'action'     => 'index',
                             ],
                         ],
-                    ],
+                    ], // change-email-address
+
                     'change-password' => [
                         'type'    => 'Literal',
                         'options' => [
@@ -212,9 +282,10 @@ return [
                                 'action'     => 'index',
                             ],
                         ],
-                    ],
+                    ], // change-password
+
                     'dashboard' => [
-                        'type'    => 'Literal',
+                        'type'    => 'Segment',
                         'options' => [
                             'route'    => '/dashboard',
                             'defaults' => [
@@ -224,6 +295,18 @@ return [
                         ],
                         'may_terminate' => true,
                         'child_routes' => [
+                            'pagination' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/page/:page',
+                                    'constraints' => [
+                                        'page' => '[0-9]+',
+                                    ],
+                                    'defaults' => [
+                                            'page' => 1
+                                    ],
+                                ],
+                            ],
                             'create-lpa' => [
                                 'type'    => 'Segment',
                                 'options' => [
@@ -248,18 +331,28 @@ return [
                                     ],
                                 ],
                             ],
+                            'terms-changed' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/new-terms',
+                                    'defaults' => [
+                                        'action'     => 'terms',
+                                    ],
+                                ],
+                            ],
                         ],
-                    ],
+                    ], // dashboard
+
                     'delete' => [
-                        'type'    => 'Literal',
+                        'type'    => 'Segment',
                         'options' => [
-                            'route'    => '/delete',
+                            'route'    => '/delete[/:action]',
                             'defaults' => [
                                 'controller' => 'Authenticated\DeleteController',
                                 'action'     => 'index',
                             ],
                         ],
-                    ],
+                    ], // delete
                 ],
             ], // user
 
@@ -274,9 +367,11 @@ return [
                         'lpa-id' => '[0-9]+',
                     ],
                     'defaults' => [
+                            'controller' => 'Authenticated\Lpa\IndexController',
+                            'action'     => 'index',
                     ],
                 ],
-                'may_terminate' => false,
+                'may_terminate' => true,
                 'child_routes' => [
                     'applicant' => [
                         'type' => 'Literal',
@@ -284,6 +379,16 @@ return [
                             'route'    => '/applicant',
                             'defaults' => [
                                 'controller' => 'Authenticated\Lpa\ApplicantController',
+                                'action'     => 'index',
+                            ],
+                        ],
+                    ],
+                    'benefits' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/benefits',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\BenefitsController',
                                 'action'     => 'index',
                             ],
                         ],
@@ -361,6 +466,16 @@ return [
                             ],
                         ],
                     ],
+                    'date-check' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/date-check',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\DateCheckController',
+                                'action'     => 'index',
+                            ],
+                        ],
+                    ],
                     'donor' => [
                         'type' => 'Literal',
                         'options' => [
@@ -395,9 +510,9 @@ return [
                     'download' => [
                         'type' => 'Segment',
                         'options' => [
-                            'route'    => '/download/:pdf_type',
+                            'route'    => '/download/:pdf-type',
                             'constraints' => [
-                                'pdf_type' => 'lp1|lp3|lpa120',
+                                'pdf-type' => 'lp1|lp3|lpa120',
                             ],
                             'defaults' => [
                                 'controller' => 'Authenticated\Lpa\DownloadController',
@@ -441,6 +556,16 @@ return [
                             'route'    => '/how-replacement-attorneys-make-decision',
                             'defaults' => [
                                 'controller' => 'Authenticated\Lpa\HowReplacementAttorneysMakeDecisionController',
+                                'action'     => 'index',
+                            ],
+                        ],
+                    ],
+                    'income-and-universal-credit' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/income-and-universal-credit',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\IncomeAndUniversalCreditController',
                                 'action'     => 'index',
                             ],
                         ],
@@ -546,9 +671,9 @@ return [
                             'edit' => [
                                 'type'    => 'Segment',
                                 'options' => [
-                                    'route'    => '/edit/:person_index',
+                                    'route'    => '/edit/:idx',
                                     'constraints' => [
-                                        'person_index' => '[0-9]+',
+                                        'idx' => '[0-9]+',
                                     ],
                                     'defaults' => [
                                         'action' => 'edit',
@@ -558,9 +683,9 @@ return [
                             'delete' => [
                                 'type'    => 'Segment',
                                 'options' => [
-                                    'route'    => '/delete/:person_index',
+                                    'route'    => '/delete/:idx',
                                     'constraints' => [
-                                        'person_index' => '[0-9]+',
+                                        'idx' => '[0-9]+',
                                     ],
                                     'defaults' => [
                                         'action' => 'delete',
@@ -592,9 +717,9 @@ return [
                             'edit' => [
                                 'type'    => 'Segment',
                                 'options' => [
-                                    'route'    => '/edit/:person_index',
+                                    'route'    => '/edit/:idx',
                                     'constraints' => [
-                                        'person_index' => '[0-9]+',
+                                        'idx' => '[0-9]+',
                                     ],
                                     'defaults' => [
                                         'action' => 'edit',
@@ -604,9 +729,9 @@ return [
                             'delete' => [
                                 'type'    => 'Segment',
                                 'options' => [
-                                    'route'    => '/delete/:person_index',
+                                    'route'    => '/delete/:idx',
                                     'constraints' => [
-                                        'person_index' => '[0-9]+',
+                                        'idx' => '[0-9]+',
                                     ],
                                     'defaults' => [
                                         'action' => 'delete',
@@ -642,6 +767,36 @@ return [
                             ],
                         ],
                     ],
+                    'register' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/register',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\RegisterLpaController',
+                                'action'     => 'index',
+                            ],
+                        ],
+                    ],
+                    'fee-reduction' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/fee-reduction',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\FeeReductionController',
+                                'action'     => 'index',
+                            ],
+                        ],
+                    ],
+                    'repeat-application' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/repeat-application',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\RepeatApplicationController',
+                                'action'     => 'index',
+                            ],
+                        ],
+                    ],
                     'replacement-attorney' => [
                         'type' => 'Literal',
                         'options' => [
@@ -665,9 +820,9 @@ return [
                             'edit' => [
                                 'type'    => 'Segment',
                                 'options' => [
-                                    'route'    => '/edit/:person_index',
+                                    'route'    => '/edit/:idx',
                                     'constraints' => [
-                                        'person_index' => '[0-9]+',
+                                        'idx' => '[0-9]+',
                                     ],
                                     'defaults' => [
                                         'action' => 'edit',
@@ -677,23 +832,60 @@ return [
                             'delete' => [
                                 'type'    => 'Segment',
                                 'options' => [
-                                    'route'    => '/delete/:person_index',
+                                    'route'    => '/delete/:idx',
                                     'constraints' => [
-                                        'person_index' => '[0-9]+',
+                                        'idx' => '[0-9]+',
                                     ],
                                     'defaults' => [
                                         'action' => 'delete',
                                     ],
                                 ],
                             ],
+                            'add-trust' => [
+                                'type'    => 'Literal',
+                                'options' => [
+                                    'route'    => '/add-trust',
+                                    'defaults' => [
+                                        'action' => 'add-trust',
+                                    ],
+                                ],
+                            ],
+                            'edit-trust' => [
+                                'type'    => 'Literal',
+                                'options' => [
+                                    'route'    => '/edit-trust',
+                                    'defaults' => [
+                                        'action' => 'edit-trust',
+                                    ],
+                                ],
+                            ],
+                            'delete-trust' => [
+                                'type'    => 'Literal',
+                                'options' => [
+                                    'route'    => '/delete-trust',
+                                    'defaults' => [
+                                        'action' => 'delete-trust',
+                                    ],
+                                ],
+                            ],
                         ],
                     ],
-                    'what-is-my-role' => [
+                    'view-docs' => [
                         'type' => 'Literal',
                         'options' => [
-                            'route'    => '/what-is-my-role',
+                            'route'    => '/view-docs',
                             'defaults' => [
-                                'controller' => 'Authenticated\Lpa\WhatIsMyRoleController',
+                                'controller' => 'Authenticated\Lpa\CompleteController',
+                                'action'     => 'view-docs',
+                            ],
+                        ],
+                    ],
+                    'who-are-you' => [
+                        'type' => 'Literal',
+                        'options' => [
+                            'route'    => '/who-are-you',
+                            'defaults' => [
+                                'controller' => 'Authenticated\Lpa\WhoAreYouController',
                                 'action'     => 'index',
                             ],
                         ],

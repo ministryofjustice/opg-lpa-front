@@ -1,5 +1,5 @@
 {
-    "name": "zendframework/skeleton-application",
+    "name": "ministryofjustice/opg-lpa-front",
     "description": "Skeleton Application for ZF2",
     "license": "BSD-3-Clause",
     "minimum-stability": "dev",
@@ -20,17 +20,23 @@
         },
         {
             "type": "vcs",
+            "url": "https://github.com/ministryofjustice/opg-lpa-logger"
+        },
+        {
+            "type": "vcs",
             "url": "https://github.com/Netsensia/omnipay-worldpay-xml"
         }
     ],
     "require": {
         "php": ">=5.5.9",
-        "guzzlehttp/guzzle": "5.1.*",
-        "zendframework/zendframework": "2.3.*",
+        "guzzlehttp/guzzle": "^5.1.0",
+        "zendframework/zendframework": "2.4.*",
         "sendgrid/sendgrid": "2.2.*",
-        "ministryofjustice/opg-lpa-api-client": "dev-develop",
-        "ministryofjustice/opg-lpa-datamodels": "dev-develop",
-        "Netsensia/omnipay-worldpay-xml": "*"
+        "ministryofjustice/opg-lpa-api-client": "1.0.2",
+        "ministryofjustice/opg-lpa-datamodels": "^1.0.1",
+        "ministryofjustice/opg-lpa-logger": "^1.0.1",
+        "Netsensia/omnipay-worldpay-xml": "^1.0.1",
+        "michelf/php-markdown": "1.5.0"
     },
     "require-dev": {
         "phpunit/phpunit": "4.4.*"

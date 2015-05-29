@@ -1,47 +1,50 @@
 <?php
 namespace Application\Model\Service\Authentication;
 
-use DateTime;
-
 use Zend\Authentication\AuthenticationService as ZFAuthenticationService;
 
+/**
+ * Used to enforce the setAdapter method to take our own AdapterInterface.
+ *
+ * Class AuthenticationService
+ * @package Application\Model\Service\Authentication
+ */
 class AuthenticationService extends ZFAuthenticationService {
 
     /**
-     * Returns true if and only if an identity is available from storage
+     * Sets the authentication adapter
      *
-     * @return bool
+     * @param  Adapter\AdapterInterface $adapter
+     * @return AuthenticationService Provides a fluent interface
      */
-    public function hasIdentity()
-    {
-        if( $this->getStorage()->isEmpty() ){
-            return false;
-        }
-
-        // Check the token is still valid.
-        $ident = $this->getStorage()->read();
-
-        if( (new DateTime) > $ident->tokenExpiresAt() ){
-            // Check token is still valid...
-        }
-
-        return true;
-
+    public function setAdapter(Adapter\AdapterInterface $adapter){
+        return parent::setAdapter( $adapter );
     }
 
     /**
-     * Returns the identity from storage or null if no identity is available
+     * Verify against the supplied adapter. On success this updates the persisted identity.
+     * On failure it does not effect the existing identity.
      *
-     * @return mixed|null
+     * This differs from authenticate() in that clearIdentity() is never called here.
+     *
+     * @param  Adapter\AdapterInterface $adapter
+     * @return \Zend\Authentication\Result
+     * @throws \Zend\Authentication\Exception\RuntimeException
      */
-    public function getIdentity(){
+    public function verify(Adapter\AdapterInterface $adapter = null)
+    {
+        if (!$adapter) {
+            if (!$adapter = $this->getAdapter()) {
+                throw new \Zend\Authentication\Exception\RuntimeException('An adapter must be set or passed prior to calling verify()');
+            }
+        }
+        $result = $adapter->authenticate();
 
-        if (!$this->hasIdentity()) {
-            return null;
+        if ($result->isValid()) {
+            $this->getStorage()->write($result->getIdentity());
         }
 
-        return $this->getStorage()->read();
-
+        return $result;
     }
 
 } // class

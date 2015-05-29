@@ -2,17 +2,47 @@
 
 namespace Application\Controller\Authenticated;
 
-use Zend\Session\Container as SessionContainer;
-
 use Zend\View\Model\ViewModel;
 use Application\Controller\AbstractAuthenticatedController;
+
+use Zend\Paginator\Paginator;
+use Zend\Paginator\Adapter\ArrayAdapter as PaginatorArrayAdapter;
 
 class DashboardController extends AbstractAuthenticatedController
 {
     public function indexAction()
     {
+        $query = $this->params()->fromQuery('search');
+
+        if( is_string($query) && !empty($query) ){
+            
+            $paginator = $this->searchLpaList( $query );
+
+        } else {
+
+            // No search query - return all LPAs.
+
+            $paginator = $this->getLpaList();
+
+            // If the user currently has no LPAs, redirect them to create one...
+            if( $paginator->getTotalItemCount() == 0 ){
+                return $this->createAction();
+            }
+
+        }
+
+        //---
+
+        $paginator->setItemCountPerPage(5);
+
+        $paginator->setCurrentPageNumber($this->params()->fromRoute('page'));
+
+        //---
+
         return new ViewModel([
-            'lpas' => $this->getLpaList(),
+            'lpas' => $paginator,
+            'freeText' => $query,
+            'isSearch' => (is_string($query) && !empty($query)),
             'version' => [
                 'commit' => $this->config()['version']['commit'],
                 'cache' => $this->config()['version']['cache'],
@@ -21,7 +51,8 @@ class DashboardController extends AbstractAuthenticatedController
                 'id' => $this->getUser()->id(),
                 'token' => $this->getUser()->token(),
                 'lastLogin' => $this->getUser()->lastLogin()->format('r'),
-            ]
+            ],
+            'pageTitle' => 'Your LPAs',
         ]);
     }
 
@@ -38,8 +69,10 @@ class DashboardController extends AbstractAuthenticatedController
         $newLpaId = $this->getLpaApplicationService()->createApplication();
 
         if( $newLpaId === false ){
-            // Bad things happened!
-            die('Error!');
+
+            $this->flashMessenger()->addErrorMessage('Error creating a new LPA. Please try again.');
+            return $this->redirect()->toRoute( 'user/dashboard' );
+
         }
 
         //-------------------------------------
@@ -48,10 +81,11 @@ class DashboardController extends AbstractAuthenticatedController
         if( ($seedId = $this->params()->fromRoute('lpa-id')) != null ){
 
             $result = $this->getLpaApplicationService()->setSeed( $newLpaId, (int)$seedId );
+            
+            $this->resetSessionCloneData($seedId);
 
             if( $result !== true ){
-                $messages = new SessionContainer('FlashMessages');
-                $messages->warning = 'LPA created but could not set seed';
+                $this->flashMessenger()->addWarningMessage('LPA created but could not set seed');
             }
 
         }
@@ -65,57 +99,69 @@ class DashboardController extends AbstractAuthenticatedController
     
     public function deleteLpaAction()
     {
+        $lpaId = $this->getEvent()->getRouteMatch()->getParam('lpa-id');
+        if(!$this->getLpaApplicationService()->deleteApplication($lpaId)) {
+            throw new \RuntimeException('API client failed to delete LPA for id: '.$lpaId);
+        }
         
+        return $this->redirect()->toRoute('user/dashboard');
     }
 
     //---
 
+    /**
+     * Displayed when the Terms and Conditions have changed since the user last logged in.
+     */
+    public function termsAction(){
+        return new ViewModel();
+    }
+
+    //------------------------------------------------------------------
+
+    /**
+     * Returns a Paginator for all the user's LPAs.
+     *
+     * @return Paginator
+     */
     private function getLpaList(){
 
-        $lpas = array();
+        // Return all of the (v2) LPAs.
+        $lpas = $this->getServiceLocator()->get('ApplicationList')->getAllALpaSummaries();
+
+        //---
 
         /**
-         * This should be the only point at which we touch the V1Proxy module!
-         * When the time comes to deprecated v1, we should just be able to remove the below if statement.
+         * When removing v1, the whole if statement below can be deleted.
+         *
+         * #v1Code
          */
         if( $this->getServiceLocator()->has('ProxyDashboard') ){
 
-            // This will return an empty array if the user has no v1 LPAs.
-            $lpas = $this->getServiceLocator()->get('ProxyDashboard')->getLpas();
+            try {
+
+                // This will return an empty array if the user has no v1 LPAs.
+                $v1Lpas = $this->getServiceLocator()->get('ProxyDashboard')->getLpas();
+
+            } catch( \RuntimeException $e ){
+
+                // Runtime errors are caused by a v1 / v2 auth token mismatch.
+                // Re-authenticating is the only solution.
+                // (realistically this only happens whilst we can login to both v1 & v2)
+                $this->redirect()->toRoute('login', ['state'=>'timeout']);
+
+            }
+
+            // Merge the v1 LPAs into the v2 list.
+            $lpas = array_merge($lpas, $v1Lpas);
 
         }
 
-        //----
-
-        $v2Apis = $this->getServiceLocator()->get('LpaApplicationService')->getApplicationList();
-
-        foreach($v2Apis as $lpa){
-
-            $obj = new \stdClass();
-
-            $obj->id = $lpa->id;
-
-            $obj->version = 2;
-
-            $obj->donor = $lpa->document->donor->name->first . ' ' . $lpa->document->donor->name->last;
-
-            $obj->type = $lpa->document->type;
-
-            $obj->updatedAt = $lpa->updatedAt;
-
-            $obj->status = 'Started';
-
-            $lpas[] = $obj;
-        }
-
-        # Get the v2 LPAs.
-
-        # Merge the list
+        // end #v1Code
 
         //---
-        # Sort the list
 
-        // Sort by updatedAt into decending order
+        // Sort by updatedAt into descending order
+        // Once we remove #v1Code, perhaps we can assume they're pre-sorted from the API/DB?
         usort($lpas, function($a, $b){
             if ($a->updatedAt == $b->updatedAt) { return 0; }
             return ($a->updatedAt > $b->updatedAt) ? -1 : 1;
@@ -123,8 +169,78 @@ class DashboardController extends AbstractAuthenticatedController
 
         //---
 
-        return $lpas;
+        return new Paginator(new PaginatorArrayAdapter($lpas));
 
     } // function
 
-}
+    /**
+     * Returns a Paginator for all the user's LPAs the match the given query.
+     *
+     * @return Paginator
+     */
+    private function searchLpaList( $query ){
+
+        // Return all of the (v2) LPAs that match the query.
+        $lpas = $this->getServiceLocator()->get('ApplicationList')->searchAllALpaSummaries( $query );
+
+        //---
+
+        /**
+         * This should be the only point at which we touch the V1Proxy module!
+         *
+         * When removing v1, the whole if statement below can be deleted.
+         *
+         * #v1Code
+         */
+        if( $this->getServiceLocator()->has('ProxyDashboard') ){
+
+            try {
+
+                // This will return an empty array if the user has no v1 LPAs.
+                $v1Lpas = $this->getServiceLocator()->get('ProxyDashboard')->searchLpas( $query );
+
+            } catch( \RuntimeException $e ){
+
+                // Runtime errors are caused by a v1 / v2 auth token mismatch.
+                // Re-authenticating is the only solution.
+                // (realistically this only happens whilst we can login to both v1 & v2)
+                $this->redirect()->toRoute('login', ['state'=>'timeout']);
+
+            }
+
+            // Merge the v1 LPAs into the v2 list.
+            $lpas = array_merge($lpas, $v1Lpas);
+
+        }
+
+        // end #v1Code
+
+        //---
+
+        // Sort by updatedAt into descending order
+        // Once we remove #v1Code, perhaps we can assume they're pre-sorted from the API/DB?
+        usort($lpas, function($a, $b){
+            if ($a->updatedAt == $b->updatedAt) { return 0; }
+            return ($a->updatedAt > $b->updatedAt) ? -1 : 1;
+        });
+
+        //---
+
+        return new Paginator(new PaginatorArrayAdapter($lpas));
+
+    }
+
+    //------------------------------------------------------------------
+
+    /**
+     * This is overridden to prevent people being (accidently?) directed to this controller post-auth.
+     *
+     * @return bool|\Zend\Http\Response
+     */
+    protected function checkAuthenticated(){
+
+        return parent::checkAuthenticated( false );
+
+    } // function
+
+} // class

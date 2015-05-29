@@ -15,6 +15,8 @@ class AccessController extends AbstractActionController {
 
         # TODO - check the user is singed in. If not, redirect to login
 
+        $config = $this->getServiceLocator()->get('Config')['v1proxy'];
+
         //-----
 
         $client = $this->getServiceLocator()->get('ProxyClient');
@@ -34,7 +36,7 @@ class AccessController extends AbstractActionController {
         }
 
         // Prevent a user creating a new v1 LPA.
-        if( $path == '/forward/newlpa' ){
+        if( $path == '/forward/newlpa' && !$config['allow-v1-laps-to-be-created'] ){
             throw new RuntimeException("Invalid path");
         }
 
@@ -95,10 +97,15 @@ class AccessController extends AbstractActionController {
             // otherwise assume GET. No others methods are allowed.
             $response = $client->get( 'http://front.local' . $path, $options );
 
-        }
+            // If we're deleting an LPA, clear the cache.
+            if(preg_match("/^\/service\/delete/", $path)) {
+                $this->getServiceLocator()->get('ProxyDashboard')->clearLpaCacheForUser();
+            }
+
+        } // if
 
         //------------------------------------
-        // Build out response from v1's
+        // Build our response from v1's
 
         $headers = $response->getHeaders();
 
@@ -126,7 +133,14 @@ class AccessController extends AbstractActionController {
         // Add the headers will relaying across...
         foreach( $headers as $k => $v ){
             $this->getResponse()->getHeaders()->addHeaderLine("{$k}: $v");
-        }
+
+            // If v1 returns this, then it has timed out...
+            if( $k == 'Location' && $v == '/user/login' ){
+                // So redirect to our timeout page.
+                return $this->redirect()->toRoute('login', ['state'=>'timeout']);
+            }
+
+        } // foreach
 
         // Bring the response code across...
         $this->getResponse()->setStatusCode( $response->getStatusCode() );

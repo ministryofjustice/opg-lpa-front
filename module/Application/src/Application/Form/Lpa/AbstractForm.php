@@ -7,23 +7,28 @@ use Zend\Form\Exception;
 use Zend\InputFilter\InputFilterInterface;
 use Opg\Lpa\DataModel\Validator\ValidatorResponse;
 use Zend\Form\Element\Checkbox;
-use Zend\InputFilter\InputFilter;
 use Zend\Form\FormInterface;
-use Opg\Lpa\DataModel\AbstractData;
+use Zend\Form\Element\Radio;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorInterface;
 
-abstract class AbstractForm extends Form
+abstract class AbstractForm extends Form implements ServiceLocatorAwareInterface
 {
-    protected $inputFilter;
+    protected $inputFilter, $serviceLocator, $logger;
     
-    public function __construct($formName)
+    public function init()
     {
-        parent::__construct($formName);
-        
+        parent::init();
         $this->setAttribute('method', 'post');
-        $this->setAttribute('enctype', 'multipart/form-data');
+
+        $this->add( (new Csrf('secret'))->setCsrfValidatorOptions([
+            'timeout' => null,
+            'salt' => sha1('Application\Form\Lpa-Salt'),
+        ]));
         
-        $this->add(new Csrf('secret'));
+        $filter = $this->getInputFilter();
         
+        // add elements
         foreach($this->formElements as $name => $elm) {
             $params = [
                     'name' => $name,
@@ -33,12 +38,44 @@ abstract class AbstractForm extends Form
             if(array_key_exists('options', $elm)) {
                 $params['options'] = $elm['options'];
             }
-                    
+            
             if(array_key_exists('attributes', $elm)) {
                 $params['attributes'] = $elm['attributes'];
             }
             
             $this->add($params);
+
+            // add default filters
+            $filterParams = [
+                    'name' => $name,
+                    'required' => (array_key_exists('required', $elm)?$elm['required']:false),
+                    'filters' => [
+                            ['name' => 'Zend\Filter\StripTags'],
+                            ['name' => 'Zend\Filter\StringTrim'],
+                    ],
+            ];
+            
+            // add additional filters if given
+            if(array_key_exists('filters', $elm)) {
+                $filterParams['filters'] += $elm['filters'];
+            }
+            
+            // add validators if given
+            if(array_key_exists('validators', $elm)) {
+                $filterParams['validators'] = $elm['validators'];
+            }
+            
+            $filter->add($filterParams);
+            
+        }
+        
+        $this->setInputFilter($filter);
+        
+        $this->prepare();
+        
+        //@todo: to be removed - logging form CSRF element value
+        if($this->getLogger() !== null) {
+            $this->getLogger()->debug('SessionId: '.$this->get('secret')->getCsrfValidator()->getSessionName().", FormName: ". $this->getName() .', Csrf: '.$this->get('secret')->getValue());
         }
     }
     
@@ -83,7 +120,7 @@ abstract class AbstractForm extends Form
                 __METHOD__
             ));
         }
-
+        
         $filter->setData($this->data);
         $filter->setValidationGroup(InputFilterInterface::VALIDATE_ALL);
 
@@ -93,11 +130,14 @@ abstract class AbstractForm extends Form
             $filter->setValidationGroup($validationGroup);
         }
         
-        // validate data though model validators.
-        $modelValidationResult = $this->modelValidation();
+        // do validation through Zend Validator first 
+        $result = (bool) $filter->isValid();
         
-        // take both Zend validation and model validation result into account 
-        $this->isValid = $result = $filter->isValid() & $modelValidationResult['isValid'];
+        // do validation though model validators.
+        $modelValidationResult = $this->validateByModel();
+        
+        // if Zend validation was successful, do validation through model.
+        $this->isValid = $result = (bool) ($result & $modelValidationResult['isValid']);
         
         $this->hasValidated = true;
         
@@ -106,61 +146,40 @@ abstract class AbstractForm extends Form
         }
 
         if (!$result) {
+            $messages = $filter->getMessages();
+            
+            // simplify zend email address validation error.
+            if(isset($messages['email-address'])) {
+                $messages['email-address'] = [
+                        \Zend\Validator\EmailAddress::INVALID_FORMAT => "Invalid email address.",
+                ];
+            }
+            
+            // @todo: to be removed - capture CSRF error
+            if(($this->getLogger() !== null) && isset($messages['secret']) && isset($messages['secret']['notSame'])) {
+                $this->getLogger()->err($messages['secret']['notSame'].". Received CSRF: ".$this->data['secret']);
+                
+                // logging session container contents
+                $csrfSsession = new \Zend\Session\Container($this->get('secret')->getCsrfValidator()->getSessionName());
+                $this->getLogger()->debug($csrfSsession->tokenList);
+            }
+            
             // merge Zend and model validation errors.
-            $this->setMessages(array_merge($filter->getMessages(), $modelValidationResult['messages']));
+            if(isset($modelValidationResult) && isset($modelValidationResult['messages'])) {
+                $messages = array_merge($messages, $modelValidationResult['messages']);
+            }
+            
+            $this->setMessages($messages);
         }
-
+        
+        //@todo: to be removed - logging received CSRF
+        if($this->getLogger() !== null) {
+            $this->getLogger()->debug('SessionId: '.$this->get('secret')->getCsrfValidator()->getSessionName().", Received CSRF: ".$this->data['secret']);
+        }
+        
         return $result;
     }
     
-    /**
-     * (non-PHPdoc)
-     * 
-     * Setup common filters for all elements of a form.
-     * 
-     * @see \Zend\Form\Form::getInputFilter()
-     */
-    public function getInputFilter()
-    {
-        if (!$this->inputFilter) {
-            $inputFilter = new InputFilter();
-    
-            foreach($this->formElements as $name => $elm) {
-                $params = [
-                        'name' => $name,
-                        'required' => false,
-                ];
-                
-                if(array_key_exists('required', $elm)) {
-                    $params['required'] = $elm['required'];
-                }
-                
-                // if 'filters' is not set in a form class, add the default filters - StripTags and StringTrim,
-                // if 'filters' is set in a form class and is not false, merge filters with the default ones.
-                // if 'filters; is set in a form class and is false, filtering is disabled.
-                if(!array_key_exists('filters', $elm)) {
-                    $elm['filters']  = [
-                            ['name' => 'StripTags'],
-                            ['name' => 'StringTrim'],
-                    ];
-                }
-                elseif($elm['filters'] !== false) {
-                    $elm['filters']  = [
-                        ['name' => 'StripTags'],
-                        ['name' => 'StringTrim'],
-                    ];
-                
-                    array_merge($params['filters'], $elm['filters']);
-                }
-                
-                $inputFilter->add($params);
-            }
-    
-            $this->inputFilter = $inputFilter;
-        }
-    
-        return $this->inputFilter;
-    }
     
     /**
      * Convert model validation response to Zend Form validation messages format.
@@ -171,7 +190,7 @@ abstract class AbstractForm extends Form
      * @param ValidatorResponse $validationResponse: e.g. {storage: ['address.address2/postcode'=>['value'=>'', 'messages'=>[0=>'cannot-be-null'],],]}
      * @return array: e.g. ['address-address2'=>'linked-1-cannot-be-null','address-postcode'=>'linked-1-cannot-be-null',]
      */
-    protected function modelValidationMessageConverter(ValidatorResponse $validationResponse)
+    protected function modelValidationMessageConverter(ValidatorResponse $validationResponse, $context=null)
     {
         $messages = [];
         $linkIdx = 1;
@@ -230,7 +249,7 @@ abstract class AbstractForm extends Form
      * 
      * @return array. e.g. ['name'=>['title'=>'Mr','first'=>'John',],]
      */
-    protected function unflattenForModel($formData)
+    protected function convertFormDataForModel($formData)
     {
         $modelData = [];
         foreach($formData as $key=>$value) {
@@ -243,12 +262,12 @@ abstract class AbstractForm extends Form
                 $m = &$m[$names[$i]];
             }
             
-            if($this->has($key) && ($this->get($key) instanceof Checkbox)) {
-                // convert checkbox value 0/1 to true/false
-                if($value === 0) {
+            if($this->has($key) && (($this->get($key) instanceof Checkbox)||($this->get($key) instanceof Radio))) {
+                // convert checkbox/radio value "" to false and "1" to true
+                if(($value=="0")||($value===false)||($value=="")||($value===null)) {
                     $m = false;
                 }
-                elseif($value === 1) {
+                elseif(($value=="1")||($value===true)) {
                     $m = true;
                 }
                 else {
@@ -263,15 +282,37 @@ abstract class AbstractForm extends Form
         return $modelData;
     }
     
-    public function bind($modelAbstractData, $flags = FormInterface::VALUES_NORMALIZED)
+    public function bind($modelizedDataArray, $flags = FormInterface::VALUES_NORMALIZED)
     {
-        if($modelAbstractData instanceof AbstractData) {
-            return parent::bind(new \ArrayObject($modelAbstractData->flatten()));
-        }
-        else {
-            return parent::bind($modelAbstractData);
+        return parent::bind(new \ArrayObject($modelizedDataArray));
+    }
+    
+    /**
+     * get validated form data for creating model object.
+     * 
+     * @return \Application\Form\Lpa\array. e.g. ['name'=>['title'=>'Mr','first'=>'John',],]
+     */
+    public function getModelDataFromValidatedForm()
+    {
+        if($this->data != null) {
+            return $this->convertFormDataForModel($this->getData());
         }
     }
     
-    abstract protected function modelValidation();
+    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
+    {
+        $this->serviceLocator = $serviceLocator;
+    }
+    
+    public function getServiceLocator()
+    {
+        return $this->serviceLocator;
+    }
+    
+    public function getLogger()
+    {
+        return $this->getServiceLocator()->getServiceLocator()->get('Logger');
+    }
+    
+    abstract protected function validateByModel();
 }

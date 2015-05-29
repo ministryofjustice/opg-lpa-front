@@ -32,7 +32,7 @@ class AccordionBottom extends AbstractAccordion
         
         $skip = true;
         foreach($barConfig as $barRouteName => $barDataFuncName) {
-            if($barRouteName == $flowChecker->check($barRouteName)) {
+            if($barRouteName == $flowChecker->getNearestAccessibleRoute($barRouteName)) {
                 if($barRouteName == $routeName) {
                     $seq++;
                     $skip = false;
@@ -44,17 +44,19 @@ class AccordionBottom extends AbstractAccordion
                     continue;
                 }
                 
-                if($this->$barDataFuncName() === null) break;
-                
-                $seq++;
-                $barList[$seq-1] = [
-                        'name'      => $this->getViewScriptName($barDataFuncName),
-                        'routeName' => $barRouteName,
-                        'lpaId'     => $lpa->id,
-                        'params'    => [
-                                'idx'   => $seq,
-                                'values'=> $this->$barDataFuncName()]
-                ];
+                if(method_exists($this, $barDataFuncName)) {
+                    if($this->$barDataFuncName() === null) break;
+                    
+                    $seq++;
+                    $barList[$seq-1] = [
+                            'name'      => $this->getViewScriptName($barDataFuncName),
+                            'routeName' => $barRouteName,
+                            'lpaId'     => $lpa->id,
+                            'params'    => [
+                                    'idx'   => $seq,
+                                    'values'=> $this->$barDataFuncName()]
+                    ];
+                }
             }
         }
         

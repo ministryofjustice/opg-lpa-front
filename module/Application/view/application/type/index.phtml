@@ -1,15 +1,52 @@
 <?php
-    $title      = 'LPA Type';
-    $this->headTitle($title);
-    $form       = $this->form;
-    $type       = $form->get('type');
-    $submit     = $form->get('submit');
+    $form = $this->formErrorTextExchange($this->form, [
+        'type' => [
+            "Value is required and can't be empty" => 'Please choose a type of LPA',
+         ],
+    ]);
     
-    $formLabel  = $this->plugin('formLabel');
+    $form->setAttribute('class', 'form');
+    $csrf        = $form->get('secret');
+
+    $type        = $form->get('type');
+    $typeValueOptions = $type->getOptions()['value_options'];
+    $typeValueOptions['property-and-financial']['label'] = 'Property and financial affairs';
+    $typeValueOptions['health-and-welfare']['label'] = 'Health and welfare';
+    
+    $typeValueOptions['property-and-financial'] += [
+            'label_attributes' => [
+                    'for' => 'property-and-financial',
+            ],
+            'attributes' => [
+                    'id' => 'property-and-financial',
+            ],
+    ];
+    $typeValueOptions['health-and-welfare'] += [
+            'label_attributes' => [
+                    'for' => 'health-and-welfare',
+            ],
+            'attributes' => [
+                    'id' => 'health-and-welfare',
+            ],
+    ];
+    
+    $type->setOptions( ['value_options' => $typeValueOptions] );
+    
+    $isChangeAllowed = true;
+    if(($this->lpa->document instanceof Opg\Lpa\DataModel\Lpa\Document\Document) && (
+            $this->lpa->document->donor instanceof Opg\Lpa\DataModel\Lpa\Document\Donor)) {
+        $type->setAttributes(['disabled'=>'disabled']);
+        $isChangeAllowed = false;
+    }
+    
+    $submit      = $form->get('submit');
+    $submit->setAttributes(['class'=>'button gotonextpart', 'value'=>'Save and continue']);
+    
+    $formLabel   = $this->plugin('formLabel');
     $form->prepare();
 ?>
 
-<section id="lpa-type">
+<section id="lpa-type" class="section current">
 	
 	<h2 class="accordion-header"><?= $this->accordionIdx($this->lpa); ?>. What type of LPA do you want to create?</h2>
 	
@@ -22,18 +59,19 @@
     	
         <?= $this->form()->openTag($form); ?>
     
-            <div class="form_element">
+            <?= $this->formElement($csrf) ?>
             
-                <?= $formLabel->openTag() . $type->getOption('label'); ?>
-                
-                <?= $this->formRadio($type) ?>
+            <?= $this->formErrorList(); ?>
+            
+            <div class="emphasised option group">
+                <?= $this->formElement($type)?>
                 
                 <p class='form-element-errors'>
                     <?= $this->formElementErrors($type) ?>
                 </p>
-                
-                <?= $formLabel->closeTag() ?>
-                
+                <?php if($isChangeAllowed == false): ?>
+                <p>You cannot change the type of your lasting power of attorney at this stage. If you want to make a <?= ($this->lpa->document->type == Opg\Lpa\DataModel\Lpa\Document\Document::LPA_TYPE_HW)?'Property  and financial affairs':'Health and welfare' ?> LPA based on the current one, click <a href="<?= $this->cloneUrl ?>">here</a>.</p>
+                <?php endif;?>
             </div>
     
     		<details>
@@ -43,13 +81,15 @@
     			<p>Remember, there’s an application fee for each LPA you register.</p>
     		</details>
     
-            <div class="form_element">
-                
-                    <?= $this->formInput($submit) ?>
-                
+            <div class="accordion-actions">
+				<p>
+				<?php if($isChangeAllowed == true): ?>
+                    <input type="submit" name="save" value="Save and continue" class="button gotonextpart">
+                <?php else:?>
+                    <a href='<?=$this->nextUrl ?>' class="button gotonextpart">Continue</a>
+                <?php endif;?>
+                </p>
             </div>
-        
-        <?= $this->formElement($form->get('secret')) ?>
         
         <?= $this->form()->closeTag(); ?>
     	

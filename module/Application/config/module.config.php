@@ -29,10 +29,11 @@ return [
             'Zend\Log\LoggerAbstractServiceFactory',
         ],
         'aliases' => [
-            'translator' => 'MvcTranslator',
+            //'translator' => 'MvcTranslator',
         ],
     ],
 
+    /*
     'translator' => [
         'locale' => 'en_US',
         'translation_file_patterns' => [
@@ -43,6 +44,7 @@ return [
             ],
         ],
     ],
+    */
 
     'view_manager' => [
         'display_not_found_reason' => true,
@@ -54,10 +56,14 @@ return [
             'layout/layout'           => __DIR__ . '/../view/layout/layout.phtml',
             'application/index/index' => __DIR__ . '/../view/application/index/index.phtml',
             'error/404'               => __DIR__ . '/../view/error/404.phtml',
+            'error/500'               => __DIR__ . '/../view/error/500.phtml',
             'error/index'             => __DIR__ . '/../view/error/index.phtml',
         ],
         'template_path_stack' => [
             __DIR__ . '/../view',
+        ],
+        'strategies' => [
+            'ViewJsonStrategy',
         ],
     ],
 
@@ -69,15 +75,21 @@ return [
     
     'view_helpers' => [
         'invokables' => [
-            'accordionTop'      => 'Application\View\Helper\AccordionTop',
-            'accordionBottom'   => 'Application\View\Helper\AccordionBottom',
-            'accordionIdx'      => 'Application\View\Helper\AccordionIdx',
-            'accountInfo'       => 'Application\View\Helper\AccountInfo',
-            'pageTitle'         => 'Application\View\Helper\PageTitle',
-            'routeName'         => 'Application\View\Helper\RouteName',
-            'environment'       => 'Application\View\Helper\Environment',
-            'noticeBoard'       => 'Application\View\Helper\NoticeBoard',
-            'fee'               => 'Application\View\Helper\Fee',
+            'accordionTop'          => 'Application\View\Helper\AccordionTop',
+            'accordionBottom'       => 'Application\View\Helper\AccordionBottom',
+            'accordionIdx'          => 'Application\View\Helper\AccordionIdx',
+            'accountInfo'           => 'Application\View\Helper\AccountInfo',
+            'actorsList'            => 'Application\View\Helper\ActorsList',
+            'pageHeaders'           => 'Application\View\Helper\PageHeaders',
+            'elementGroupClass'     => 'Application\View\Helper\ElementGroupClass',
+            'routeName'             => 'Application\View\Helper\RouteName',
+            'formElementErrors'     => 'Application\View\Helper\FormElementErrors',
+            'formErrorList'         => 'Application\View\Helper\FormErrorList',
+            'formLinkedErrorList'   => 'Application\View\Helper\FormLinkedErrorList',
+            'formErrorTextExchange' => 'Application\View\Helper\FormErrorTextExchange',
+            'concatNames'           => 'Application\View\Helper\ConcatNames',
+            'cellStyles'            => 'Application\View\Helper\CellStyles',
+            'systemMessage'         => 'Application\View\Helper\SystemMessage',
         ],
     ],
 

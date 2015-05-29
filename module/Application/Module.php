@@ -13,7 +13,10 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 use Application\Model\Service\Authentication\Adapter\LpaApiClient as LpaApiClientAuthAdapter;
 use Application\Model\Service\Lpa\Application as LpaApplicationService;
+use Opg\Lpa\Logger\Logger;
+use Zend\Cache\StorageFactory;
 
+use Zend\View\Model\ViewModel;
 
 class Module{
     
@@ -22,8 +25,22 @@ class Module{
         $eventManager        = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
+        
+        // Register error handler for dispatch and render errors
+        $eventManager->attach(\Zend\Mvc\MvcEvent::EVENT_DISPATCH_ERROR, array($this, 'handleError'));
+        $eventManager->attach(\Zend\Mvc\MvcEvent::EVENT_RENDER_ERROR, array($this, 'handleError'));
+        
+        register_shutdown_function(function () {
+            $error = error_get_last();
+            
+            if ($error['type'] === E_ERROR) {
+                // This is a fatal error, we have no exception and no nice view to render
+                // The fatal error will have been logged already prior to writing this message
+                echo 'An unknown server error has occurred.';
+            }
+        });
 
-        //Only bootstrap the session if it's *not* PHPUnit.
+        // Only bootstrap the session if it's *not* PHPUnit.
         if(!strstr($e->getApplication()->getServiceManager()->get('Request')->getServer('SCRIPT_NAME'), 'phpunit')) {
             $this->bootstrapSession($e);
             $this->bootstrapIdentity($e);
@@ -48,20 +65,14 @@ class Module{
 
         //---
 
-        $container = new Container('initialised');
-
-        // If it's a new session, regenerate the id.
-        if (!isset($container->init)) {
-            $session->regenerateId(true);
-            $container->init = true;
-        }
+        $session->initialise();
 
     } // function
 
     /**
      * This performs lazy checking of the user's auth token (if there is one).
      *
-     * It works by only checking if the token is invalid if once we've gone past our recorded (in session)
+     * It works by only checking if the token is invalid once we've gone past our recorded (in session)
      * 'tokenExpiresAt' time. Before then we assume the token is valid (leaving the API to verify this).
      *
      * If we're past 'tokenExpiresAt', then we query the Auth service to check the token's state. If it's still
@@ -113,13 +124,24 @@ class Module{
         return [
             'aliases' => [
                 'MailTransport' => 'SendGridTransport',
+                'AddressLookup' => 'PostcodeAnywhere',
                 'AuthenticationAdapter' => 'LpaApiClientAuthAdapter',
                 'Zend\Authentication\AuthenticationService' => 'AuthenticationService',
             ],
             'invokables' => [
-                'AuthenticationService' => 'Zend\Authentication\AuthenticationService',
+                'AuthenticationService' => 'Application\Model\Service\Authentication\AuthenticationService',
                 'PasswordReset'         => 'Application\Model\Service\User\PasswordReset',
+                'Register'              => 'Application\Model\Service\User\Register',
+                'AboutYouDetails'       => 'Application\Model\Service\User\Details',
+                'DeleteUser'            => 'Application\Model\Service\User\Delete',
                 'Payment'               => 'Application\Model\Service\Payment\Payment',
+                'Feedback'              => 'Application\Model\Service\Feedback\Feedback',
+                'Signatures'            => 'Application\Model\Service\Feedback\Signatures',
+                'Guidance'              => 'Application\Model\Service\Guidance\Guidance',
+                'ApplicationList'       => 'Application\Model\Service\Lpa\ApplicationList',
+                'Metadata'              => 'Application\Model\Service\Lpa\Metadata',
+                'Communication'         => 'Application\Model\Service\Lpa\Communication',
+                'PostcodeAnywhere'      => 'Application\Model\Service\AddressLookup\PostcodeAnywhere',
             ],
             'factories' => [
                 'SessionManager'    => 'Application\Model\Service\Session\SessionFactory',
@@ -138,6 +160,36 @@ class Module{
                 'LpaApiClientAuthAdapter' => function( ServiceLocatorInterface $sm ){
                     return new LpaApiClientAuthAdapter( $sm->get('ApiClient') );
                 },
+
+                // Generate the session container for a user's personal details
+                'UserDetailsSession' => function(){
+                    return new Container('UserDetails');
+                },
+                
+                // Logger
+                'Logger' => function ( ServiceLocatorInterface $sm ) {
+                    $logger = new Logger();
+                    $logConfig = $sm->get('config')['log'];
+                    
+                    $logger->setFileLogPath($logConfig['path']);
+                    $logger->setSentryUri($logConfig['sentry-uri']);
+                    
+                    return $logger;
+                    
+                },
+                
+                'Cache' => function ( ServiceLocatorInterface $sm ) {
+                    $config = $sm->get('config')['admin'];
+                    
+                    $redisAdapter = StorageFactory::factory([
+                        'adapter' => [
+                            'name' => 'redis',
+                            'options' => $config['redis'],
+                        ]
+                    ]);
+                    
+                    return $redisAdapter;
+                }
 
             ], // factories
         ];
@@ -190,5 +242,32 @@ class Module{
         return $config;
 
     }
+    
+    /**
+     * Use our logger to send this exception to its various destinations
+     * 
+     * @param MvcEvent $e
+     */
+    public function handleError(MvcEvent $e)
+    {
 
+        $exception = $e->getResult()->exception;
+        
+        if ($exception) {
+            $logger = $e->getApplication()->getServiceManager()->get('Logger');
+            $logger->err($exception->getMessage());
+            
+            $viewModel = new ViewModel();
+            $viewModel->setTemplate('error/500');
+            
+            $e->getViewModel()->addChild($viewModel);
+            $e->stopPropagation();
+             
+            $e->getResponse()->setStatusCode(500);
+            
+            return $viewModel;
+        }
+        
+    }
+    
 } // class

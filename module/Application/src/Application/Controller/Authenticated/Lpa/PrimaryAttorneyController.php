@@ -9,54 +9,301 @@
 
 namespace Application\Controller\Authenticated\Lpa;
 
-use Application\Controller\AbstractLpaController;
 use Zend\View\Model\ViewModel;
+use Opg\Lpa\DataModel\Lpa\Document\Attorneys\Human;
+use Opg\Lpa\DataModel\Lpa\Document\Document;
+use Opg\Lpa\DataModel\Lpa\Document\Attorneys\TrustCorporation;
+use Zend\View\Model\JsonModel;
+use Application\Controller\AbstractLpaActorController;
 
-class PrimaryAttorneyController extends AbstractLpaController
+class PrimaryAttorneyController extends AbstractLpaActorController
 {
     
     protected $contentHeader = 'creation-partial.phtml';
     
     public function indexAction()
     {
-        return new ViewModel();
+        $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        $lpaId = $this->getLpa()->id;
+             
+        if( count($this->getLpa()->document->primaryAttorneys) > 0 ) {
+            
+            $attorneysParams = [];
+            foreach($this->getLpa()->document->primaryAttorneys as $idx=>$attorney) {
+                $params = [
+                        'attorney' => [
+                                'address'   => $attorney->address
+                        ],
+                        'editRoute'     => $this->url()->fromRoute( $currentRouteName.'/edit', ['lpa-id' => $lpaId, 'idx' => $idx ]),
+                        'deleteRoute'   => $this->url()->fromRoute( $currentRouteName.'/delete', ['lpa-id' => $lpaId, 'idx' => $idx ]),
+                ];
+                
+                if($attorney instanceof Human) {
+                    $params['attorney']['name'] = $attorney->name;
+                }
+                else {
+                    $params['attorney']['name'] = $attorney->name;
+                }
+                
+                $attorneysParams[] = $params;
+            }
+            
+            return new ViewModel([
+                    'addRoute'  => $this->url()->fromRoute( $currentRouteName.'/add', ['lpa-id' => $lpaId] ),
+                    'attorneys' => $attorneysParams,
+                    'nextRoute' => $this->url()->fromRoute( $this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id'=>$lpaId] )
+            ]);
+            
+        }
+        else {
+            
+            return new ViewModel([
+                    'addRoute'    => $this->url()->fromRoute( $currentRouteName.'/add', ['lpa-id'=>$lpaId] ),
+            ]);
+            
+        }
     }
     
     public function addAction()
     {
-        return new ViewModel();
+        $viewModel = new ViewModel();
+        $viewModel->setTemplate('application/primary-attorney/person-form.phtml');
+        if ( $this->getRequest()->isXmlHttpRequest() ) {
+            $viewModel->setTerminal(true);
+        }
+        
+        $lpaId = $this->getLpa()->id;
+        $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\AttorneyForm');
+        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
+        
+        $seedSelection = $this->seedDataSelector($viewModel, $form);
+        if($seedSelection instanceof JsonModel) {
+            return $seedSelection;
+        }
+        
+        if($this->request->isPost()) {
+            $postData = $this->request->getPost();
+            
+            // reveived POST from attorney form submission. 
+            if(!$postData->offsetExists('pick-details')) {
+                
+                // handle primary attorney form submission
+                $form->setData($postData);
+                if($form->isValid()) {
+                
+                    // persist data
+                    $attorney = new Human($form->getModelDataFromValidatedForm());
+                    if( !$this->getLpaApplicationService()->addPrimaryAttorney($lpaId, $attorney) ) {
+                        throw new \RuntimeException('API client failed to add a primary attorney for id: '.$lpaId);
+                    }
+                    
+                    if ( $this->getRequest()->isXmlHttpRequest() ) {
+                        return new JsonModel(['success' => true]);
+                    }
+                    else {
+                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+                    }
+                }
+            }
+        }
+        else {
+            // load user's details into the form
+            if($this->params()->fromQuery('use-my-details')) {
+                $form->bind($this->getUserDetailsAsArray());
+            }
+        }
+        
+        $viewModel->form = $form;
+        
+        // show user my details link (if the link has not been clicked and seed dropdown is not set in the view)
+        if(($viewModel->seedDetailsPickerForm==null) && !$this->params()->fromQuery('use-my-details')) {
+            $viewModel->useMyDetailsRoute = $this->url()->fromRoute('lpa/primary-attorney/add', ['lpa-id' => $lpaId]) . '?use-my-details=1';
+        }
+        
+        // only provide add trust corp link if lpa has not a trust already and lpa is of PF type.
+        if(!$this->hasTrust() && ($this->getLpa()->document->type == Document::LPA_TYPE_PF) ) {
+            $viewModel->addTrustCorporationRoute = $this->url()->fromRoute( 'lpa/primary-attorney/add-trust', ['lpa-id' => $lpaId] );
+        }
+        
+        return $viewModel;
+        
     }
     
     public function editAction()
     {
-        return new ViewModel();
+        $routeMatch = $this->getEvent()->getRouteMatch();
+        $viewModel = new ViewModel(['routeMatch' => $routeMatch]);
+        
+        if ( $this->getRequest()->isXmlHttpRequest() ) {
+            $viewModel->setTerminal(true);
+        }
+        
+        $lpaId = $this->getLpa()->id;
+        $currentRouteName = $routeMatch->getMatchedRouteName();
+        
+        $attorneyIdx = $routeMatch->getParam('idx');
+        if(array_key_exists($attorneyIdx, $this->getLpa()->document->primaryAttorneys)) {
+            $attorney = $this->getLpa()->document->primaryAttorneys[$attorneyIdx];
+        }
+        
+        // if attorney idx does not exist in lpa, return 404.
+        if(!isset($attorney)) {
+            return $this->notFoundAction();
+        }
+        
+        if($attorney instanceof Human) {
+            $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\AttorneyForm');
+            $viewModel->setTemplate('application/primary-attorney/person-form.phtml');
+        }
+        else {
+            $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\TrustCorporationForm');
+            $viewModel->setTemplate('application/primary-attorney/trust-form.phtml');
+        }
+        
+        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId, 'idx'=>$attorneyIdx]));
+        
+        if($this->request->isPost()) {
+            $postData = $this->request->getPost();
+            $form->setData($postData);
+            
+            if($form->isValid()) {
+                // update attorney with new details
+                if($attorney instanceof Human) {
+                    $attorney->populate($form->getModelDataFromValidatedForm());
+                }
+                else {
+                    $attorney->populate($form->getModelDataFromValidatedForm());
+                }
+                
+                // persist to the api
+                if(!$this->getLpaApplicationService()->setPrimaryAttorney($lpaId, $attorney, $attorney->id)) {
+                    throw new \RuntimeException('API client failed to update a primary attorney ' . $attorneyIdx . ' for id: ' . $lpaId);
+                }
+                
+                if ( $this->getRequest()->isXmlHttpRequest() ) {
+                    return new JsonModel(['success' => true]);
+                }
+                else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+                }
+            }
+        }
+        else {
+            $flattenAttorneyData = $attorney->flatten();
+            if($attorney instanceof Human) {
+                $dob = $attorney->dob->date;
+                $flattenAttorneyData['dob-date-day'] = $dob->format('d');
+                $flattenAttorneyData['dob-date-month'] = $dob->format('m');
+                $flattenAttorneyData['dob-date-year'] = $dob->format('Y');
+            }
+            
+            $form->bind($flattenAttorneyData);
+        }
+        
+        $viewModel->form = $form;
+        
+        return $viewModel;
     }
     
     public function deleteAction()
     {
-        // @todo delete an attorney
+        $lpaId = $this->getLpa()->id;
+        $attorneyIdx = $this->getEvent()->getRouteMatch()->getParam('idx');
         
-        $this->redirect()->toRoute('lpa/primary-attorney', array('lpa-id'=>$this->getEvent()->getRouteMatch()->getParam('lpa-id')));
+        $deletionFlag = true;
+        if(array_key_exists($attorneyIdx, $this->getLpa()->document->primaryAttorneys)) {
+            $attorneyId = $this->getLpa()->document->primaryAttorneys[$attorneyIdx]->id;
+            
+            // check whoIsRegistering
+            if(is_array($this->getLpa()->document->whoIsRegistering)) {
+                foreach($this->getLpa()->document->whoIsRegistering as $idx=>$aid) {
+                    if($aid == $attorneyId) {
+                        unset($this->getLpa()->document->whoIsRegistering[$idx]);
+                        if(count($this->getLpa()->document->whoIsRegistering) == 0) {
+                            $this->getLpa()->document->whoIsRegistering = null;
+                        }
+                        
+                        $this->getLpaApplicationService()->setWhoIsRegistering($lpaId, $this->getLpa()->document->whoIsRegistering);
+                        break;
+                    }
+                }
+            }
+            
+            // delete attorney
+            if(!$this->getLpaApplicationService()->deletePrimaryAttorney($lpaId, $attorneyId)) {
+                throw new \RuntimeException('API client failed to delete a primary attorney ' . $attorneyIdx . ' for id: ' . $lpaId);
+            }
+            $deletionFlag = true;
+        }
         
-        return $this->response;
+        // if attorney idx does not exist in lpa, return 404.
+        if(!$deletionFlag) {
+            return $this->notFoundAction();
+        }
+        
+        if ( $this->getRequest()->isXmlHttpRequest() ) {
+            return new JsonModel(['success' => true]);
+        }
+        else {
+            $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+            return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+        }
     }
     
     public function addTrustAction()
     {
-        return new ViewModel();
-    }
-    
-    public function editTrustAction()
-    {
-        return new ViewModel();
-    }
-    
-    public function deleteTrustAction()
-    {
-        // @todo delete trust from primaryAttorneys
-                
-        $this->redirect()->toRoute('lpa/primary-attorney', array('lpa-id'=>$this->getEvent()->getRouteMatch()->getParam('lpa-id')));
+        $viewModel = new ViewModel();
+        $viewModel->setTemplate('application/primary-attorney/trust-form.phtml');
+        if ( $this->getRequest()->isXmlHttpRequest() ) {
+            $viewModel->setTerminal(true);
+        }
         
-        return $this->response;
+        $lpaId = $this->getLpa()->id;
+        $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        
+        // redirect to add human attorney if lpa is of hw type or a trust was added already.
+        if( ($this->getLpa()->document->type == Document::LPA_TYPE_HW) || $this->hasTrust() ) {
+            return $this->redirect()->toRoute('lpa/primary-attorney/add', ['lpa-id' => $lpaId]);
+        }
+        
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\TrustCorporationForm');
+        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
+        
+        $seedSelection = $this->seedDataSelector($viewModel, $form, true);
+        if($seedSelection instanceof JsonModel) {
+            return $seedSelection;
+        }
+        
+        if($this->request->isPost()) {
+            $postData = $this->request->getPost();
+            
+            if(!$postData->offsetExists('pick-details')) {
+                
+                // handle trust corp form submission
+                $form->setData($postData);
+                if($form->isValid()) {
+                
+                    // persist data
+                    $attorney = new TrustCorporation($form->getModelDataFromValidatedForm());
+                    if( !$this->getLpaApplicationService()->addPrimaryAttorney($lpaId, $attorney) ) {
+                        throw new \RuntimeException('API client failed to add a trust corporation attorney for id: '.$lpaId);
+                    }
+                    
+                    if ( $this->getRequest()->isXmlHttpRequest() ) {
+                        return new JsonModel(['success' => true]);
+                    }
+                    else {
+                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+                    }
+                }
+            }
+        }
+        
+        $viewModel->form = $form;
+        $viewModel->addAttorneyRoute = $this->url()->fromRoute( 'lpa/primary-attorney/add', ['lpa-id' => $lpaId] );
+        
+        return $viewModel;
     }
 }

@@ -26,7 +26,7 @@ class ApplicationResourceService
     {
         $this->apiClient = $apiClient;
         $this->resourceType = $resourceType;
-        $this->endpoint = Client::PATH_API . '/v1/users/' . $this->apiClient->getUserId() . '/applications/' . $lpaId . '/' . $resourceType;
+        $this->endpoint = $apiClient->getApiBaseUri() . '/v1/users/' . $this->apiClient->getUserId() . '/applications/' . $lpaId . '/' . $resourceType;
     }
 
     /**
@@ -158,6 +158,31 @@ class ApplicationResourceService
     }
     
     /**
+     * Return the json response for an endpoint
+     *
+     * @param $key The JSON key of the value being retrieved
+     * @return boolean|null|mixed
+     */
+    public function getRawJson()
+    {
+        $response = $this->httpClient()->get( $this->endpoint, [
+            'headers' => ['Content-Type' => 'application/json']
+        ]);
+    
+        $code = $response->getStatusCode();
+    
+        if ($code == 204) {
+            return null; // not yet set
+        }
+    
+        if ($code != 200) {
+            return $this->log($response, false);
+        }
+        
+        return $response->json();
+    }
+    
+    /**
      * Return the processed response for setting a data model entity
      * (e.g., type or preferences, which are both simply strings rather than classes)
      *
@@ -197,7 +222,7 @@ class ApplicationResourceService
     }
     
     /**
-     * Set the data for the given resource
+     * Set the data for the given resource. i.e. PUT
      *
      * @param string $jsonBody
      * @param $index number in series, if applicable
@@ -210,16 +235,38 @@ class ApplicationResourceService
             'headers' => ['Content-Type' => 'application/json']
         ]);
         
-        if ($response->getStatusCode() != 200) {
+        if (($response->getStatusCode() != 200) && ($response->getStatusCode() != 204)) {
             return $this->log($response, false);
         }
     
         $this->isSuccess = true;
         return true;
     }
+
+    /**
+     * Patch the data for the given resource. i.e. PUT
+     *
+     * @param string $jsonBody
+     * @param $index number in series, if applicable
+     * @return boolean
+     */
+    public function updateResource($jsonBody, $index=null)
+    {
+        $response = $this->httpClient()->patch( $this->endpoint . (!is_null($index) ? '/' . $index : ''), [
+            'body' => $jsonBody,
+            'headers' => ['Content-Type' => 'application/json']
+        ]);
+
+        if ($response->getStatusCode() != 200) {
+            return $this->log($response, false);
+        }
+
+        $this->isSuccess = true;
+        return true;
+    }
     
     /**
-     * Add data for the given resource
+     * Add data for the given resource. i.e. POST
      *
      * @param string $jsonBody
      * @return boolean
@@ -240,7 +287,7 @@ class ApplicationResourceService
     }
     
     /**
-     * Delete the resource type from the LPA
+     * Delete the resource type from the LPA. i.e. DELETE
      * 
      * @param $index number in series, if applicable
      * @return boolean

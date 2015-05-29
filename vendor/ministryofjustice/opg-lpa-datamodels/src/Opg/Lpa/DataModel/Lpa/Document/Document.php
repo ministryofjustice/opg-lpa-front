@@ -9,6 +9,7 @@ use Opg\Lpa\DataModel\Lpa\Document\Decisions;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Opg\Lpa\DataModel\Validator\Constraints as Assert;
+use Opg\Lpa\DataModel\Lpa\Document\Attorneys\AbstractAttorney;
 
 class Document extends AbstractData {
 
@@ -128,7 +129,7 @@ class Document extends AbstractData {
             //---
 
             // If it's an array, ensure the IDs are valid primary attorney IDs.
-            if( is_array($value) ){
+            if( is_array($value) && !empty($value) ){
 
                 foreach( $value as $attorneyId ){
                     if( !in_array( $attorneyId, $validAttorneyIds ) ){
@@ -165,12 +166,22 @@ class Document extends AbstractData {
         $metadata->addPropertyConstraint('instruction', new Assert\Callback(function ($value, ExecutionContextInterface $context){
             if( is_null($value) || is_string($value) || $value === false ){ return; }
             $context->buildViolation( 'expected-type:string-or-bool=false' )->addViolation();
+
+            if( strlen($value) > 10000 ){
+                $context->buildViolation( 'must-be-less-than-or-equal:10000' )->addViolation();
+            }
+
         }));
 
         // preference should be string or boolean false.
         $metadata->addPropertyConstraint('preference', new Assert\Callback(function ($value, ExecutionContextInterface $context){
             if( is_null($value) || is_string($value) || $value === false ){ return; }
             $context->buildViolation( 'expected-type:string-or-bool=false' )->addViolation();
+
+            if( strlen($value) > 10000 ){
+                $context->buildViolation( 'must-be-less-than-or-equal:10000' )->addViolation();
+            }
+
         }));
 
         $metadata->addPropertyConstraints('certificateProvider', [
@@ -179,19 +190,25 @@ class Document extends AbstractData {
         ]);
 
         $metadata->addPropertyConstraints('primaryAttorneys', [
+            new Assert\NotNull,
+            new Assert\Type([ 'type' => 'array' ]),
             new Assert\All([
                 'constraints' => [
                     new Assert\Type([ 'type' => '\Opg\Lpa\DataModel\Lpa\Document\Attorneys\AbstractAttorney' ]),
                 ]
-            ])
+            ]),
+            new Assert\Custom\UniqueIdInArray,
         ]);
 
         $metadata->addPropertyConstraints('replacementAttorneys', [
+            new Assert\NotNull,
+            new Assert\Type([ 'type' => 'array' ]),
             new Assert\All([
                 'constraints' => [
                     new Assert\Type([ 'type' => '\Opg\Lpa\DataModel\Lpa\Document\Attorneys\AbstractAttorney' ]),
                 ]
-            ])
+            ]),
+            new Assert\Custom\UniqueIdInArray,
         ]);
 
         // Allow only N trust corporation(s) across primaryAttorneys and replacementAttorneys.
@@ -213,12 +230,15 @@ class Document extends AbstractData {
         }));
 
         $metadata->addPropertyConstraints('peopleToNotify', [
+            new Assert\NotNull,
+            new Assert\Type([ 'type' => 'array' ]),
             new Assert\Count( [ 'max' => 5 ] ),
             new Assert\All([
                 'constraints' => [
                     new Assert\Type([ 'type' => '\Opg\Lpa\DataModel\Lpa\Document\NotifiedPerson' ]),
                 ]
-            ])
+            ]),
+            new Assert\Custom\UniqueIdInArray,
         ]);
 
     } // function
@@ -267,5 +287,42 @@ class Document extends AbstractData {
 
     } // function
 
-
+    /**
+     * Get primary attorney object by attorney id.
+     * 
+     * @param int $id
+     * @return NULL|AbstractAttorney
+     */
+    public function getPrimaryAttorneyById($id)
+    {
+        if($this->primaryAttorneys == null) return null;
+    
+        foreach($this->primaryAttorneys as $attorney) {
+            if($attorney->id == $id) {
+                return $attorney;
+            }
+        }
+    
+        return null;
+    } // function
+    
+    /**
+     * Get replacement attorney object by attorney id.
+     * 
+     * @param int $id
+     * @return NULL|AbstractAttorney
+     */
+    public function getReplacementAttorneyById($id)
+    {
+        if($this->replacementAttorneys == null) return null;
+    
+        foreach($this->replacementAttorneys as $attorney) {
+            if($attorney->id == $id) {
+                return $attorney;
+            }
+        }
+    
+        return null;
+    } // function
+    
 } // class

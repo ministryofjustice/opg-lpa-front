@@ -9,11 +9,30 @@ return array(
         'cache' => ( !is_null($commit) ) ? abs( crc32( $commit ) ) : time(),
     ],
 
+    'terms' => [
+        // The date and time the terms were last updated.
+        // Users who have not logged in since this date will see the 'T&Cs updated' page.
+        'lastUpdated' => '2015-02-17 14:00 UTC',
+    ],
+
     'redirects' => [
         'index' => 'https://www.gov.uk/power-of-attorney/make-lasting-power',
         'logout' => 'https://www.gov.uk/done/lasting-power-of-attorney',
     ],
 
+    'admin' => [
+        'redis' => [
+            // Set a default (longish) Redis TTL to protect against long term stale data.
+            'ttl' => (60 * 60 * 24 * 28), // 28 days
+            'namespace' => 'session',
+            'server' => [
+                'host' => 'redisfront.local',
+                'port' => 6379
+            ],
+            'database' => 1, // WARNING: this has to be defined last otherwise Zend\Cache has a hissy fit.
+        ],
+    ],
+    
     'session' => [
 
         // ini session.* settings...
@@ -50,7 +69,7 @@ return array(
         'encryption' => [
             'enabled' => true,
             // Key MUST be a 32 character ASCII string
-            'key' => 'insecure-encryption-session-key!'
+            'key' => null
         ],
 
     ], // session
@@ -64,11 +83,10 @@ return array(
 
     ], // email
 
-    'postcode' => [
+    'address' => [
 
         'postcodeanywhere' => [
             'key' => null,
-            'code' => null,
         ],
 
     ], // postcode
@@ -82,5 +100,31 @@ return array(
         'log' => false,
 
     ], // worldpay
+    
+    'sendFeedbackEmailTo' => 'LPADigitalFeedback@PublicGuardian.gsi.gov.uk',
+
+    #v1Code
+    'v1proxy' => [
+
+        // Should we cache the fact there are no v1 LPAs in a user's account.
+        // Should be TRUE in production.
+        'cache-no-lpas' => false,
+
+        // Should we allow new v1 LPAs to be created.
+        // Should be FALSE in production.
+        'allow-v1-laps-to-be-created' => true,
+
+        'redis' => [
+            // This data should persist for the length v1 is alive (6 months predicted).
+            'ttl' => (86400 * 365), // 365 days; leave room for delays.
+            'namespace' => 'v1proxy',
+            'server' => [
+                'host' => 'redisfront.local',
+                'port' => 6379
+            ],
+            'database' => 2, // WARNING: this has to be defined last otherwise Zend\Cache has a hissy fit.
+        ],
+
+    ],
 
 );

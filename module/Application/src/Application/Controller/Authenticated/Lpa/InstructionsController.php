@@ -19,6 +19,41 @@ class InstructionsController extends AbstractLpaController
     
     public function indexAction()
     {
-        return new ViewModel();
+        $lpaId = $this->getLpa()->id;
+        $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\InstructionsAndPreferencesForm');
+        
+        if($this->request->isPost()) {
+            $postData = $this->request->getPost();
+            
+            // set data for validation
+            $form->setData($postData);
+            
+            if($form->isValid()) {
+                
+                // persist data
+                if(!$this->getLpaApplicationService()->setInstructions($lpaId, $form->getData()['instruction'])) {
+                    throw new \RuntimeException('API client failed to set LPA instructions for id: '.$lpaId);
+                }
+                
+                if(!$this->getLpaApplicationService()->setPreferences($lpaId, $form->getData()['preference'])) {
+                    throw new \RuntimeException('API client failed to set LPA preferences for id: '.$lpaId);
+                }
+                
+                // send email
+                if($this->getLpa()->createdAt === null) {
+                    $communicationService = $this->getServiceLocator()->get('Communication');
+                    $communicationService->sendInstrumentCompleteEmail($this->getLpa(), $this->url()->fromRoute('lpa/created', ['lpa-id' => $lpaId], ['force_canonical' => true]));
+                }
+                
+                return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+            }
+        }
+        else {
+            $form->bind($this->getLpa()->document->flatten());
+        }
+        
+        return new ViewModel(['form'=>$form]);
     }
 }

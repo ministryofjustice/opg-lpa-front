@@ -272,7 +272,7 @@ class DateTime extends AbstractValidator
                 throw new ValidatorException\InvalidArgumentException($formatter->getErrorMessage());
             }
         } catch (IntlException $intlException) {
-            throw new ValidatorException\InvalidArgumentException($e->getMessage(), 0, $intlException);
+            throw new ValidatorException\InvalidArgumentException($intlException->getMessage(), 0, $intlException);
         }
 
 
@@ -298,7 +298,7 @@ class DateTime extends AbstractValidator
      */
     protected function getIntlDateFormatter()
     {
-        if ($this->formatter == null || $this->invalidateFormatter) {
+        if ($this->formatter === null || $this->invalidateFormatter) {
             $this->formatter = new IntlDateFormatter(
                 $this->getLocale(),
                 $this->getDateType(),

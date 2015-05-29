@@ -3,50 +3,97 @@
 <?php endif; ?>
 
 <?php if($this->message):?>
-<h3><?php echo $this->message?></h3>
+
+    <h3><?php echo $this->message?></h3>
+
 <?php else:?>
-    <?php if(empty($this->lpas)): ?>
-    <p>You haven't created any LPAs yet.</p>
+
+    <?php if( $this->lpas->getTotalItemCount() == 0 ): ?>
+
+        <?php if( $this->isSearch ): ?>
+            <p>Your search has found no results</p>
+        <?php else: ?>
+            <p>You haven't created any LPAs yet.</p>
+        <?php endif;?>
+
     <?php else: ?>
-    <p>These are all the LPAs that you've created.</p>
+
+        <?php if( $this->isSearch ): ?>
+            <p>Your search has found these results</p>
+        <?php else: ?>
+            <p>These are all the LPAs that you've created.</p>
+        <?php endif;?>
+
     <?php endif;?>
+
 <?php endif;?>
 
   <div style="margin: 5px;" >
     <a class="add button" href='<?php echo $this->url('user/dashboard/create-lpa') ?>' role="button">Create a new LPA</a>
     <div style="float:right;">
-        <form action="/user/dashboard" method="POST" >
-             <input type="text" name="freeText" style="width: 215px; " placeholder="LPA no, donor first or last name" value="<?php echo isset($this->freeText) ? $this->freeText: ''; ?>" />
-             <input class = "add button" type="submit" value="Search" name="search"/>
+        <form action="<?= $this->url('user/dashboard') ?>" method="GET" >
+             <input type="text" name="search" style="width: 215px; " placeholder="LPA no, donor first or last name" value="<?php echo isset($this->freeText) ? $this->freeText: ''; ?>" />
+             <input class = "add button" type="submit" value="Search"/>
              <a class="add button" id="clear" href="<?php echo $this->url('user/dashboard'); ?>"> Clear </a>
         </form>
     </div>
   </div>
   
-  <?php if (!empty($this->lpas)) : ?>
+  <?php if ( $this->lpas->getTotalItemCount() > 0 ) : ?>
   <table id="savedforms" class="lpa-list">
   <thead>
   <tr>
-    <th>ID/Version</th>
+    <th>ID</th>
     <th>Donor</th>
-    <th>LPA</th>
+    <th>Type</th>
+    <th>Progress</th>
     <th>Last saved on</th>
     <th>&nbsp;</th>
   </tr>
   </thead>
   <tbody>
   <?php foreach($this->lpas as $lpa): ?>
+    <?php if($lpa->version == 2):?>
       <tr>
-      <td><?php echo $lpa->id . ' v' . $lpa->version ?></td>
-      <td><?php echo $lpa->donor; ?></td>
-      <td><?php echo $lpa->type; ?></td>
-      <td><?php echo $lpa->updatedAt->format('r'); ?></td>
-      <td><?php if ($lpa->version != 2): ?><a href="/forward/lpa/'.$lpa->id.'">Load</a><?php endif; ?></td>
+      <td><?= \Opg\Lpa\DataModel\Lpa\Formatter::id($lpa->id)?></td>
+      <td><?= $lpa->donor; ?></td>
+      <td><?= ($lpa->type == 'property-and-financial') ? 'PF' : (($lpa->type == 'health-and-welfare')?'HW':'') ?></td>
+      <td><?= $lpa->progress ?></td>
+      <td><?= $lpa->updatedAt->format('d/m/y'); ?></td>
+      <td>
+        <div class="lpa-actions">
+        <a class="button" href="/lpa/<?= $lpa->id ?>"><?= ($lpa->progress=='Completed')?'View LPA':'Continue' ?></a>
+        <a class="button" href="/lpa/<?= $lpa->id ?>/date-check">Dates</a>
+        <a class="button" href="<?= $this->url( 'user/dashboard/create-lpa', [ 'lpa-id'=>$lpa->id ] )?>">Clone</a>
+        <a class="button-warning delete-lpa" href="/user/dashboard/delete-lpa/<?= $lpa->id ?>">Delete</a>
+        </div>
+      </td>
       </tr>
+    <?php else:?>
+      <tr>
+      <td><?= $lpa->id ?></td>
+      <td><?= $lpa->donor; ?></td>
+      <td><?= ($lpa->type == 'property-and-financial') ? 'PF' : (($lpa->type == 'health-and-welfare')?'HW':'') ?></td>
+      <td><?= $lpa->status ?></td>
+      <td><?= $lpa->updatedAt->format('d/m/y'); ?></td>
+      <td>
+        <div class="lpa-actions">
+        <a class="button" href="/forward/lpa/<?= sprintf("%010d", $lpa->id) ?>"><?= ($lpa->status=='Completed')?'View LPA':'Continue' ?></a>
+        <a class="button" href="/lpa/<?= $lpa->id ?>/date-check">Dates</a>
+        <a class="button" href="<?= $this->url( 'user/dashboard/create-lpa', [ 'lpa-id'=>$lpa->id ] )?>">Clone</a>
+        <a class="button-warning delete-lpa" href="/service/delete/<?= sprintf("%010d", $lpa->id) ?>">Delete</a>
+        </div>
+      </td>
+      </tr>
+    <?php endif;?>
   <?php endforeach;?>
   
   </tbody>
   </table>
+
+  <? /* Pagination HTML is in pagination.phtml */ ?>
+  <?= $this->paginationControl($this->lpas, 'Sliding',  'pagination', ['route' => 'user/dashboard/pagination'] ); ?>
+
   <p>
 <?php endif; ?>
   

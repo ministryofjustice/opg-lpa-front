@@ -1,15 +1,41 @@
 <?php
-    $title          = 'LPA Type';
-    $this->headTitle($title);
-    $form           = $this->form;
-    $whenLpaStarts  = $form->get('whenLpaStarts');
+    $form = $this->formErrorTextExchange($this->form, []);
+    $form->setAttribute('class', 'form');
+    $csrf           = $form->get('secret');
+    
+    $when  = $form->get('when');
+    $whenValueOptions = $when->getOptions()['value_options'];
+    
+    $whenValueOptions['now']['label'] = "as soon as it's registered (with my consent)";
+    $whenValueOptions['no-capacity']['label'] = "only if I don't have mental capacity";
+    
+    $whenValueOptions['now'] += [
+            'label_attributes' => [
+                    'for' => 'now'
+            ],
+            'attributes' => [
+                    'id' => 'now'
+            ],
+    ];
+    $whenValueOptions['no-capacity'] += [
+            'label_attributes' => [
+                    'for' => 'no-capacity'
+            ],
+            'attributes' => [
+                    'id' => 'no-capacity'
+            ],
+    ];
+    
+    $when->setOptions( [ 'value_options' => $whenValueOptions ] );
+    
     $submit         = $form->get('submit');
+    $submit->setAttributes(['class'=>'button gotonextpart', 'value'=>'Save and continue']);
     
     $formLabel      = $this->plugin('formLabel');
     $form->prepare();
 ?>
 
-<section id="when-lpa-starts">
+<section id="when-lpa-starts" class="section current">
 	
 	<h2 class="accordion-header"><?= $this->accordionIdx($this->lpa); ?>. When can your LPA be used?</h2>
 	
@@ -27,29 +53,27 @@
 		
         <?= $this->form()->openTag($form); ?>
         
-        <div class="form_element">
+        <div class="<?= $this->elementGroupClass($csrf) ?>">
+            <?= $this->formElement($csrf) ?>
+            <?= $this->formElementErrors($csrf) ?>
+        </div>
         
-            <?= $formLabel->openTag() . $whenLpaStarts->getOption('label'); ?>
-            
-            <?= $this->formRadio($whenLpaStarts) ?>
+        <div class="emphasised option group">
+        
+            <?= $this->formRadio($when) ?>
             
             <p class='form-element-errors'>
-                <?= $this->formElementErrors($whenLpaStarts) ?>
+                <?= $this->formElementErrors($when) ?>
             </p>
             
-            <?= $formLabel->closeTag() ?>
-        
         </div>
         
         
-        <div class="form_element">
-        
-            <?= $this->formInput($submit) ?>
-        
+        <div class="accordion-actions">
+        <p>
+            <?= $this->formElement($submit) ?>
+        </p>
         </div>
-        
-        
-        <?= $this->formElement($form->get('secret')) ?>
         
         <?= $this->form()->closeTag(); ?>
         

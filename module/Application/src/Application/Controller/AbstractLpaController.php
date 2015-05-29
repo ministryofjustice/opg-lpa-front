@@ -4,9 +4,10 @@ namespace Application\Controller;
 use RuntimeException;
 
 use Zend\Mvc\MvcEvent;
-use Application\Model\FormFlowChecker;
-use Opg\Lpa\DataModel\Lpa\Lpa;
 use Zend\View\Model\ViewModel;
+use Opg\Lpa\DataModel\Lpa\Lpa;
+use Opg\Lpa\DataModel\Lpa\Document\Attorneys\TrustCorporation;
+use Application\Model\FormFlowChecker;
 
 abstract class AbstractLpaController extends AbstractAuthenticatedController implements LpaAwareInterface
 {
@@ -16,15 +17,22 @@ abstract class AbstractLpaController extends AbstractAuthenticatedController imp
     private $lpa;
     
     /**
-     * @var Application\Model\Service\Lpa\Application
+     * @var Application\Model\FormFlowChecker
      */
-    protected $lpaService;
-
-
+    private $flowChecker;
+    
     public function onDispatch(MvcEvent $e)
     {
-        $this->lpaService = $this->getServiceLocator()->get('LpaApplicationService');
-        
+
+        //----------------------------------------------------------------------
+        // Check we have a user set, thus ensuring an authenticated user
+
+        if( ($authenticated = $this->checkAuthenticated()) !== true ){
+            return $authenticated;
+        }
+
+        //---
+
         # load content header in the layout if controller has a $contentHeader
         if(isset($this->contentHeader)) {
             $this->layout()->contentHeader = $this->contentHeader;
@@ -33,26 +41,30 @@ abstract class AbstractLpaController extends AbstractAuthenticatedController imp
         # inject lpa into layout.
         $this->layout()->lpa = $this->getLpa();
         
-        # @todo: remove the lines below to the return $view line once form data can persist.
-        $view = parent::onDispatch($e);
-        if($view instanceof ViewModel) {
-            $view->setVariable('lpa', $this->getLpa());
-        }
-        
-        return $view;
-                
         /**
          * check the requested route and redirect user to the correct one if the requested route is not available.
          */   
-        $checker = new FormFlowChecker($this->getLpa());
-        $checker->setLpa($this->getLpa());
         $currentRoute = $e->getRouteMatch()->getMatchedRouteName();
-        $personIndex = $e->getRouteMatch()->getParam('person_index');
         
-        $calculatedRoute = $checker->check($currentRoute, $personIndex);
+        // get extra input query param from the request url.
+        if($currentRoute == 'lpa/download') {
+            $param = $e->getRouteMatch()->getParam('pdf-type');
+        }
+        else {
+            $param = $e->getRouteMatch()->getParam('idx');
+        }
         
-        if($calculatedRoute && ($calculatedRoute != $currentRoute)) {
-            return $this->redirect()->toRoute($calculatedRoute);
+        // call flow checker to get the nearest accessible route.
+        $calculatedRoute = $this->getFlowChecker()->getNearestAccessibleRoute($currentRoute, $param);
+        
+        // if false, do not run action method.
+        if($calculatedRoute === false) {
+            return $this->response;
+        }
+        
+        // redirect to the calculated route if it is not equal to the current route
+        if($calculatedRoute != $currentRoute) {
+            return $this->redirect()->toRoute($calculatedRoute, ['lpa-id'=>$this->getLpa()->id]);
         }
         
         // inject lpa into view
@@ -87,4 +99,64 @@ abstract class AbstractLpaController extends AbstractAuthenticatedController imp
         $this->lpa = $lpa;
     }
     
+    /**
+     * @return \Application\Controller\Application\Model\FormFlowChecker
+     */
+    public function getFlowChecker()
+    {
+        if($this->flowChecker == null) {
+            $formFlowChecker = new FormFlowChecker($this->getLpa());
+            $formFlowChecker->setLpa($this->getLpa());
+            $this->flowChecker = $formFlowChecker;
+        }
+        
+        return $this->flowChecker;
+    }
+
+    /**
+     * Check if LPA has a trust corporation attorney in either primary or replacement attorneys
+     * 
+     * @return boolean
+     */
+    protected function hasTrust()
+    {
+        $hasTrust = false;
+        
+        foreach(array_merge($this->getLpa()->document->primaryAttorneys, $this->getLpa()->document->replacementAttorneys) as $attorney) {
+            if($attorney instanceof TrustCorporation) {
+                return true;
+            }
+        }
+        return false;
+    }
+        
+    /**
+     * Convert model/seed data for populating into form
+     * 
+     * @param array $modelData - eg. [name=>[title=>'Mr', first=>'John', last=>'Smith']]
+     * @return array - eg [name-title=>'Mr', name-first=>'John', name-last=>'Smith']
+     */
+    protected function flattenData($modelData)
+    {
+        $formData = [];
+        foreach($modelData as $l1 => $l2) {
+            if(is_array($l2)) {
+                foreach($l2 as $name=>$l3) {
+                    if($l1=='dob') {
+                        $formData['dob-date-day'] = (new \DateTime($l3))->format('d');
+                        $formData['dob-date-month'] = (new \DateTime($l3))->format('m');
+                        $formData['dob-date-year'] = (new \DateTime($l3))->format('Y');
+                    }
+                    else {
+                        $formData[$l1.'-'.$name] = $l3;
+                    }
+                }
+            }
+            else {
+                $formData[$l1] = $l2;
+            }
+        }
+        
+        return $formData;
+    }
 }

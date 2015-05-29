@@ -5,7 +5,11 @@ namespace Application\Controller\General;
 use Zend\View\Model\ViewModel;
 use Zend\Mvc\Controller\AbstractActionController;
 
-class ForgotPasswordController extends AbstractActionController
+use Application\Form\User\ResetPasswordEmail as ResetPasswordEmailForm;
+use Application\Form\User\SetPassword as ResetPasswordPasswordForm;
+use Application\Controller\AbstractBaseController;
+
+class ForgotPasswordController extends AbstractBaseController
 {
 
     /**
@@ -16,23 +20,59 @@ class ForgotPasswordController extends AbstractActionController
      */
     public function indexAction(){
 
-        $email = $this->params()->fromPost('email');
-        $confirmation = $this->params()->fromPost('email_confirm');
+        $check = $this->preventAuthenticatedUser();
+        if( $check !== true ){ return $check; }
 
-        if( !empty($email) && !empty($confirmation) ){
+        //---
+        
+        $form = new ResetPasswordEmailForm();
+        $form->setAttribute( 'action', $this->url()->fromRoute('forgot-password') );
 
-            # TODO - checks addresses are the same.
+        $error = null;
 
-            // Create a callback for the Model to get the callback URL from.
-            $callback = function( $token ) {
-                return $this->url()->fromRoute('forgot-password/callback', [ 'token'=>$token ], [ 'force_canonical' => true ] );
-            };
+        //---
 
-            $result = $this->getServiceLocator()->get('PasswordReset')->requestPasswordResetEmail( $email, $callback );
+        $request = $this->getRequest();
+
+        if ($request->isPost()) {
+
+            $form->setData($request->getPost());
+
+            if ($form->isValid()) {
+
+                // Create a callback for the Model to get the forgotten password route.
+                $fpCallback = function( $token ) {
+                    return $this->url()->fromRoute('forgot-password/callback', [ 'token'=>$token ], [ 'force_canonical' => true ] );
+                };
+
+                // Create a callback for the Model to get the activate callback.
+                $activateCallback = function( $token ) {
+                    return $this->url()->fromRoute('register/callback', [ 'token'=>$token ], [ 'force_canonical' => true ] );
+                };
+
+                //---
+
+                $result = $this->getServiceLocator()->get('PasswordReset')->requestPasswordResetEmail( $form->getData()['email'], $fpCallback, $activateCallback );
+
+                if( $result === true ){
+
+                    return (new ViewModel( ['email'=>$form->getData()['email']] ))->setTemplate('application/forgot-password/email-sent');
+
+                }
+
+                $error = $result;
+
+            } // if
 
         } // if
 
-        return new ViewModel();
+        return new ViewModel(
+            array_merge([
+                    'pageTitle' => 'Reset your password',    
+                ],
+                compact('form', 'error')
+            ) 
+        );
 
     } // function
 
@@ -46,42 +86,69 @@ class ForgotPasswordController extends AbstractActionController
 
         $token = $this->params()->fromRoute('token');
 
-        if( !empty($token) ){
-
+        if( empty($token) ){
+            return (new ViewModel())->setTemplate('application/forgot-password/invalid-reset-token');
         }
 
         // Check the token is valid...
         $valid = $this->getServiceLocator()->get('PasswordReset')->isResetTokenValid( $token );
 
-        //---------------------------
+        if( !$valid ){
+            return (new ViewModel())->setTemplate('application/forgot-password/invalid-reset-token');
+        }
 
-        $password = $this->params()->fromPost('password');
-        $confirmation = $this->params()->fromPost('password_confirm');
+        //-------------------------------------
+        // We have a valid reset token...
 
-        if( !empty($password) || !empty($confirmation) ){
+        $form = new ResetPasswordPasswordForm();
+        $form->setAttribute( 'action', $this->url()->fromRoute('forgot-password/callback', [ 'token'=>$token ] ) );
 
-            // Validate the password. # TODO
+        $error = null;
 
-            //---
+        //---
 
-            $result = $this->getServiceLocator()->get('PasswordReset')->setNewPassword( $token, $password );
+        $request = $this->getRequest();
 
-            // if all good, direct them back to login.
-            if( $result == true ){
+        if ($request->isPost()) {
 
-                $this->flashMessenger()->addSuccessMessage('Password successfully reset');
+            $form->setData($request->getPost());
 
-                // Send them to login...
-                return $this->redirect()->toRoute( 'login' );
+            if ($form->isValid()) {
 
-            }
+                $result = $this->getServiceLocator()->get('PasswordReset')->setNewPassword( $token, $form->getData()['password'] );
+
+                // if all good, direct them back to login.
+                if( $result === true ){
+
+                    $this->flashMessenger()->addSuccessMessage('Password successfully reset');
+
+                    // Send them to login...
+                    return $this->redirect()->toRoute( 'login' );
+
+                }
+
+                // else there was an error
+                $error = $result;
+
+            } // if
 
         } // if
 
         //---------------------------
 
-        var_dump($token, $valid); exit();
+        // Ensure no user is logged in and ALL session data is cleared then re-initialise it.
+        $session = $this->getServiceLocator()->get('SessionManager');
+        $session->getStorage()->clear();
+        $session->initialise();
 
-        return new ViewModel();
+        //---------------------------
+
+        return new ViewModel(
+            array_merge([
+                    'pageTitle' => 'Reset your password',    
+                ],
+                compact('form', 'error')
+            ) 
+        );
     }
 }

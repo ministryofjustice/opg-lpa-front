@@ -6,19 +6,33 @@ return array(
 
         'encryption' => [
             // Key MUST be a 32 character string
-            'key' => 'insecure-encryption-session-key!'
+            'key' => '{{pillar['session']['encryption']['key']}}'
+        ],
+
+        'redis' => [
+            'server' => [
+                'host' => '{{pillar['session']['redis']['host']}}'
+            ],
         ],
 
     ], // session
 
-    'postcode' => [
+    'admin' => [
+        'redis' => [
+            'server' => [
+                'host' => '{{pillar['session']['redis']['host']}}'
+
+            ],
+        ],
+    ],
+
+    'address' => [
 
         'postcodeanywhere' => [
             'key' => "{{pillar['postcode']['license_key']}}",
-            'code' => "{{pillar['postcode']['account_code']}}",
         ],
 
-    ], // postcode
+    ], // address
 
     'email' => [
 
@@ -28,6 +42,16 @@ return array(
         ], //sendgrid
 
     ], // email
+    
+    'api_client' => [
+        'api_uri' => '',
+        'auth_uri' => '',
+    ], // api_client
+    
+    'log' => [
+        'path' => '{{pillar['apps']['opg-lpa-front2']['log-dir']}}/application.log',
+        'sentry-uri' => '{{pillar['opg-lpa']['sentry']['api-uri']}}',
+    ], // log
 
     'worldpay' => [
         'merchant_code' => '{{pillar['payment']['worldpay']['merchant_code']}}',
@@ -37,5 +61,25 @@ return array(
         'mac_secret' => '{{pillar['payment']['worldpay']['mac_secret']}}',
         'api_token_secret' => '{{pillar['payment']['worldpay']['api_token_secret']}}',
     ], // worldpay
+    
+    'admin' => [
+        'accounts' => [
+{% for name, admin_email_address in pillar['admin_accounts'].iteritems() %}
+    "{{ admin_email_address }}",
+{% endfor %}
+        ],
+    ], // admin
+
+
+    #v1Code
+    'v1proxy' => [
+
+        'redis' => [
+            'server' => [
+                'host' => '{{pillar['v1proxy']['redis']['host']}}',
+            ],
+        ],
+
+    ],
 
 );

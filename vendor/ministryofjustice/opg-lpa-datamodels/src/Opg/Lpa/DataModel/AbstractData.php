@@ -23,6 +23,7 @@ use Symfony\Component\Validator\ConstraintViolationList;
  */
 abstract class AbstractData implements AccessorInterface, JsonSerializable, Validator\ValidatableInterface {
 
+
     /**
      * Builds and populates $this chunk of the LPA.
      *
@@ -147,17 +148,30 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
     // Validation
 
     /**
+     * Calls validate(), including all validation groups.
+     *
+     * @return ValidatorResponse
+     */
+    public function validateAllGroups(){
+        return $this->validate( array(), [ 'Default', 'require-actor-ids' ] );
+    }
+
+    /**
      * Validates the concrete class which this method is called on.
      *
      * @param $properties Array An array of property names to check. An empty array means all properties.
+     * @param $groups Array An array of what validator groups to check (if any).
      * @return ValidatorResponse
      * @throws InvalidArgumentException
      */
-    public function validate( Array $properties = array() ){
+    public function validate( Array $properties = array(), Array $groups = array() ){
 
         $validator = Validation::createValidatorBuilder()
             ->setApiVersion( Validation::API_VERSION_2_5 )
             ->addMethodMapping('loadValidatorMetadata')->getValidator();
+
+        // Marge any other require groups in along with Default.
+        $groups = array_unique( array_merge( $groups, ['Default'] ) );
 
         if( !empty($properties) ){
 
@@ -166,13 +180,13 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
             $violations = new ConstraintViolationList();
 
             foreach( $properties as $property ){
-                $result = $validator->validateProperty( $this, $property );
+                $result = $validator->validateProperty( $this, $property, $groups );
                 $violations->addAll( $result );
             }
 
         } else {
             // Validate all properties...
-            $violations = $validator->validate( $this );
+            $violations = $validator->validate( $this, null, $groups );
         }
 
         //---
@@ -323,10 +337,15 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
     /**
      * Returns $this as JSON, propagating to all properties that implement AccessorInterface.
      *
+     * @param bool $pretty
      * @return string
      */
-    public function toJson(){
-        return json_encode( $this, JSON_PRETTY_PRINT );
+    public function toJson( $pretty = true ){
+        if( $pretty ){
+            return json_encode( $this, JSON_PRETTY_PRINT );
+        } else {
+            return json_encode( $this );
+        }
     }
 
     /**
@@ -364,6 +383,35 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
         return $result;
     }
 
+    /**
+     * Recursively walks over a flat array (separated with dashes) and
+     * converts it to a multidimensional array.
+     *
+     * @param $array array Flat array.
+     * @return array Multidimensional array
+     */
+    private function unFlattenArray( $array ){
+
+        $result = array();
+
+        foreach( $array as $key => $value ){
+
+            $keys = explode( '-', $key );
+
+            $position = &$result;
+
+            foreach( $keys as $index ){
+                $position = &$position[$index];
+            }
+
+            $position = $value;
+
+        }
+
+        return $result;
+
+    } // function
+
     //-------------------
     // Hydrator methods
 
@@ -371,6 +419,7 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
      * Populates the concrete class' properties with the array.
      *
      * @param array $data
+     * @return self
      */
     public function populate( Array $data ){
 
@@ -384,7 +433,25 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
 
         } // foreach
 
+        return $this;
+
     } // function
+
+    /**
+     * Populates the concrete class' properties with the passed flat array.
+     *
+     * @param array $data
+     * @return self
+     */
+    public function populateWithFlatArray( Array $data ){
+
+        $data = $this->unFlattenArray( $data );
+
+        return $this->populate( $data );
+
+    } // function
+
+    //-------------------
 
     /**
      * Basic mapper. This should be overridden in the concrete class if needed.

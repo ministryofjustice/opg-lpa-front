@@ -10,8 +10,8 @@
 namespace Application\Controller\Authenticated\Lpa;
 
 use Application\Controller\AbstractLpaController;
-use Application\Form\Lpa\WhenLpaStartsForm;
 use Zend\View\Model\ViewModel;
+use Opg\Lpa\DataModel\Lpa\Document\Decisions\PrimaryAttorneyDecisions;
 
 class WhenLpaStartsController extends AbstractLpaController
 {
@@ -20,9 +20,7 @@ class WhenLpaStartsController extends AbstractLpaController
     
     public function indexAction()
     {
-        $form = new WhenLpaStartsForm();
-        
-        $form->bind(new \ArrayObject(['whenLpaStarts'=>$this->getLpa()->document->primaryAttorneyDecisions->when]));
+        $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\WhenLpaStartsForm');
         
         if($this->request->isPost()) {
             $postData = $this->request->getPost();
@@ -31,7 +29,29 @@ class WhenLpaStartsController extends AbstractLpaController
             
             if($form->isValid()) {
                 
-//                 $this->redirect('lpa/donor', ['lpa-id'=>$this->request->getPost('lpa-id')]);
+                $lpaId = $this->getLpa()->id;
+                $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+                
+                if($this->getLpa()->document->primaryAttorneyDecisions instanceof PrimaryAttorneyDecisions) {
+                    $primaryAttorneyDecisions = $this->getLpa()->document->primaryAttorneyDecisions;
+                }
+                else {
+                    $primaryAttorneyDecisions = $this->getLpa()->document->primaryAttorneyDecisions = new PrimaryAttorneyDecisions();
+                }
+                
+                $primaryAttorneyDecisions->when = $form->get('when')->getValue();
+                
+                // persist data
+                if(!$this->getLpaApplicationService()->setPrimaryAttorneyDecisions($lpaId, $primaryAttorneyDecisions)) {
+                    throw new \RuntimeException('API client failed to set when LPA starts for id: '.$lpaId);
+                }
+                
+                return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+            }
+        }
+        else {
+            if($this->getLpa()->document->primaryAttorneyDecisions instanceof PrimaryAttorneyDecisions) {
+                $form->bind($this->getLpa()->document->primaryAttorneyDecisions->flatten());
             }
         }
         

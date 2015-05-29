@@ -20,10 +20,16 @@ use Opg\Lpa\DataModel\Lpa\Document\Attorneys\AbstractAttorney;
 
 class Client
 {
-
-    const PATH_API = 'http://localhost:8083';
-    const PATH_AUTH = 'http://auth.local';
-
+    /**
+     * The base URI for the API
+     */
+    private $apiBaseUri;
+    
+    /**
+     * The base URI for the auth server
+     */
+    private $authBaseUri;
+    
     /**
      * The API auth token
      * 
@@ -73,6 +79,38 @@ class Client
     private $isError;
     
     /**
+     * @return the $apiBaseUri
+     */
+    public function getApiBaseUri()
+    {
+        return $this->apiBaseUri;
+    }
+
+    /**
+     * @return the $authBaseUri
+     */
+    public function getAuthBaseUri()
+    {
+        return $this->authBaseUri;
+    }
+
+    /**
+     * @param field_type $apiBaseUri
+     */
+    public function setApiBaseUri($apiBaseUri)
+    {
+        $this->apiBaseUri = $apiBaseUri;
+    }
+
+    /**
+     * @param field_type $authBaseUri
+     */
+    public function setAuthBaseUri($authBaseUri)
+    {
+        $this->authBaseUri = $authBaseUri;
+    }
+
+    /**
      * Create an API client for the given uri endpoint.
      * 
      * Optionally pass in a previously-obtained token. If no token is provided,
@@ -121,7 +159,7 @@ class Client
         $password
     )
     {
-        $response = $this->client()->post( self::PATH_AUTH . '/users' ,[
+        $response = $this->client()->post( $this->authBaseUri . '/users' ,[
             'body' => [
                 'username' => strtolower($email),
                 'password' => $password,
@@ -149,7 +187,7 @@ class Client
      */
     public function createApplication()
     {
-        $response = $this->client()->post( self::PATH_API . '/v1/users/' . $this->getUserId() . '/applications', []);
+        $response = $this->client()->post( $this->apiBaseUri . '/v1/users/' . $this->getUserId() . '/applications', []);
     
         if( $response->getStatusCode() != 201 ){
             return $this->log($response, false);
@@ -173,7 +211,7 @@ class Client
      */
     public function deleteApplication($lpaId, $succeedIfDocumentNotFound = false)
     {
-        $response = $this->client()->delete( self::PATH_API . '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId, [
+        $response = $this->client()->delete( $this->apiBaseUri . '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId, [
             'headers' => ['Content-Type' => 'application/json']
         ]);
     
@@ -198,7 +236,7 @@ class Client
      */
     public function getApplication($lpaId)
     {
-        $response = $this->client()->get( self::PATH_API . '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId, [
+        $response = $this->client()->get( $this->apiBaseUri . '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId, [
             'headers' => ['Content-Type' => 'application/json']
         ]);
     
@@ -215,20 +253,26 @@ class Client
      *
      * @return array<Lpa>
      */
-    public function getApplicationList()
+    public function getApplicationList( $query = null )
     {
         $applicationList = array();
 
         $path = '/v1/users/' . $this->getUserId() . '/applications';
         
         do {
-            $response = $this->client()->get( self::PATH_API . $path );
+            $response = $this->client()->get( $this->apiBaseUri . $path, [
+                'query' => [ 'search' => $query ]
+            ]);
 
             if ($response->getStatusCode() != 200) {
                 return $this->log($response, false);
             }
             
             $json = $response->json();
+            
+            if ($json['count'] == 0) {
+                return [];
+            }
                         
             if (!isset($json['_links']) || !isset($json['_embedded']['applications'])) {
                 return $this->log($response, false);
@@ -248,6 +292,7 @@ class Client
         return $applicationList;
     }
 
+    
     /**
      * Activate an account from an activation token (generated at registration)
      *
@@ -258,7 +303,7 @@ class Client
         $activationToken
     )
     {
-        $response = $this->client()->post( self::PATH_AUTH . '/users/activate' ,[
+        $response = $this->client()->post( $this->authBaseUri . '/users/activate' ,[
             'body' => [
                 'activation_token' => $activationToken,
             ]
@@ -291,7 +336,7 @@ class Client
         //-------------------------
         // Authenticate the user
 
-        $response = $this->client()->post( self::PATH_AUTH . '/token' ,[
+        $response = $this->client()->post( $this->authBaseUri . '/token' ,[
             'body' => [
                 'username' => strtolower($email),
                 'password' => $password,
@@ -301,7 +346,23 @@ class Client
 
         if( $response->getStatusCode() != 200 ){
             $this->log($response, false);
-            return $authResponse->setErrorDescription( "Authentication failed" );
+
+            $json = $response->json();
+
+            if( isset($json['error_description']) && $json['error_description'] == 'account locked' ){
+                return $authResponse->setErrorDescription( "locked" );
+            }
+
+            if( isset($json['error_description']) && $json['error_description'] == 'account is not activated' ){
+                return $authResponse->setErrorDescription( "not-activated" );
+            }
+
+            if( isset($json['failure_count']) ){
+                return $authResponse->setErrorDescription( "incorrect-".(int)$json['failure_count'] );
+            }
+
+            return $authResponse->setErrorDescription( "authentication-failed" );
+
         }
 
         $authResponse->exchangeJson( $response->getBody() );
@@ -312,7 +373,7 @@ class Client
         //-------------------------
         // Get the user's details
 
-        $response = $this->client()->get( self::PATH_AUTH . '/tokeninfo', [
+        $response = $this->client()->get( $this->authBaseUri . '/tokeninfo', [
             'query' => [ 'access_token' => $this->getToken() ]
         ]);
 
@@ -347,7 +408,7 @@ class Client
     public function getTokenInfo($token)
     {
 
-        $response = $this->client()->get( self::PATH_AUTH . '/tokeninfo', [
+        $response = $this->client()->get( $this->authBaseUri . '/tokeninfo', [
             'query' => [ 'access_token' => $token ]
         ]);
 
@@ -370,7 +431,7 @@ class Client
 
         $response = $this->getTokenInfo( $token );
         
-        if( !isset($response['user_id']) ){
+        if( !isset($response['username']) ){
             return false;
         }
         
@@ -402,16 +463,40 @@ class Client
     }
     
     /**
+     * Delete all the LPAs from an account
+     */
+    public function deleteAllLpas()
+    {
+        $response = $this->client()->delete( $this->apiBaseUri . '/v1/users/' . $this->getUserId(), [
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'X-AuthOne' => $this->getToken(),
+            ],
+        ]);
+        
+        if ($response->getStatusCode() != 204) {
+            return $this->log($response, false);
+        }
+        
+        return true;
+    }
+    
+    /**
      * Delete an account from the auth server, delete the user from
      * the account server and delete all the account's LPAs
      *
-     * @param $authToken
      * @return boolean
      */
-    public function deleteUserAndAllTheirLpas($authToken)
+    public function deleteUserAndAllTheirLpas()
     {
-        $response = $this->client()->get( self::PATH_AUTH . '/deregister', [
-            'headers' => ['Token' => $authToken]
+        $success = $this->deleteAllLpas();
+        
+        if (!$success) {
+            return false;
+        }
+        
+        $response = $this->client()->get( $this->authBaseUri . '/deregister', [
+            'headers' => ['Token' => $this->getToken()]
         ]);
         
         if ($response->getStatusCode() != 200) {
@@ -430,7 +515,7 @@ class Client
     public function requestPasswordReset( $email )
     {
 
-        $response = $this->client()->post( self::PATH_AUTH . '/pwreset' ,[
+        $response = $this->client()->post( $this->authBaseUri . '/pwreset' ,[
             'body' => [
                 'email' => strtolower($email),
             ]
@@ -459,7 +544,7 @@ class Client
      */
     public function requestPasswordResetAuthToken( $resetToken ){
 
-        $response = $this->client()->get( self::PATH_AUTH . '/pwreset/' . $resetToken );
+        $response = $this->client()->get( $this->authBaseUri . '/pwreset/' . $resetToken );
 
         if( $response->getStatusCode() != 200 ){
             return $this->log($response, false);
@@ -474,7 +559,6 @@ class Client
         return $data['access_token'];
 
     }
-
     
     /**
      * Update auth email
@@ -487,8 +571,8 @@ class Client
         $newEmail
     )
     {
-        $response = $this->client()->post( self::PATH_AUTH . '/users/' . $this->getEmail() . '/put', [
-            'body' => ['new_email' => $newEmail],
+        $response = $this->client()->post( $this->authBaseUri . '/users/' . $this->getEmail() . '/put', [
+            'body' => ['new_email' => strtolower($newEmail) ],
             'headers' => ['Token' => $this->getToken()]
         ]);
         
@@ -517,7 +601,7 @@ class Client
         $newPassword
     )
     {
-        $response = $this->client()->post( self::PATH_AUTH . '/users/' . $this->getEmail() . '/put', [
+        $response = $this->client()->post( $this->authBaseUri . '/users/' . $this->getEmail() . '/put', [
             'body' => ['new_password' => $newPassword],
             'headers' => ['Token' => $this->getToken()]
         ]);
@@ -539,7 +623,7 @@ class Client
         User $user
     )
     {
-        $response = $this->client()->put( self::PATH_API . '/v1/users/' . $this->getUserId(), [
+        $response = $this->client()->put( $this->apiBaseUri . '/v1/users/' . $this->getUserId(), [
             'body' => $user->toJson(),
             'headers' => ['Content-Type' => 'application/json']
         ]);
@@ -558,7 +642,7 @@ class Client
      */
     public function getAboutMe()
     {
-        $response = $this->client()->get( self::PATH_API . '/v1/users/' . $this->getUserId(), [
+        $response = $this->client()->get( $this->apiBaseUri . '/v1/users/' . $this->getUserId(), [
             'headers' => ['Content-Type' => 'application/json']
         ]);
         
@@ -598,6 +682,46 @@ class Client
     public function getStatus(Lpa $lpa)
     {
         return new LpaStatusResponse();
+    }
+    
+    /**
+     * Return the repeat case number
+     *
+     * If property not yet set, return null
+     * If error, return false
+     *
+     * @param string $lpaId
+     * @return boolean|null|string
+     */
+    public function getRepeatCaseNumber($lpaId)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'repeat-case-number', $this);
+        return $helper->getSingleValueResource('repeatCaseNumber');
+    }
+    
+    /**
+     * Set the LPA type
+     *
+     * @param string $lpaId
+     * @param number $repeatCaseNumber
+     * @return boolean
+     */
+    public function setRepeatCaseNumber($lpaId, $repeatCaseNumber)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'repeat-case-number', $this);
+        return $helper->setResource(json_encode(['repeatCaseNumber' => $repeatCaseNumber]));
+    }
+    
+    /**
+     * Delete the type from the LPA
+     *
+     * @param string $lpaId
+     * @return boolean
+     */
+    public function deleteRepeatCaseNumber($lpaId)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'repeat-case-number', $this);
+        return $helper->deleteResource();
     }
     
     /**
@@ -750,6 +874,22 @@ class Client
         $helper = new ApplicationResourceService($lpaId, 'primary-attorney-decisions', $this);
         return $helper->setResource($primaryAttorneyDecisions->toJson());
     }
+
+    /**
+     * Update (patch) the primary attorney decisions
+     *
+     * @param string $lpaId
+     * @param Array $primaryAttorneyDecisions
+     * @return boolean
+     */
+    public function updatePrimaryAttorneyDecisions(
+        $lpaId,
+        Array $primaryAttorneyDecisions
+    )
+    {
+        $helper = new ApplicationResourceService($lpaId, 'primary-attorney-decisions', $this);
+        return $helper->updateResource( json_encode($primaryAttorneyDecisions) );
+    }
     
     /**
      * Delete the primary attorney decisions
@@ -790,7 +930,23 @@ class Client
         $helper = new ApplicationResourceService($lpaId, 'replacement-attorney-decisions', $this);
         return $helper->setResource($replacementAttorneyDecisions->toJson());
     }
-    
+
+    /**
+     * Update (patch) the replacement attorney decisions
+     *
+     * @param string $lpaId
+     * @param Array $replacementAttorneyDecisions
+     * @return boolean
+     */
+    public function updateReplacementAttorneyDecisions(
+        $lpaId,
+        Array $replacementAttorneyDecisions
+    )
+    {
+        $helper = new ApplicationResourceService($lpaId, 'replacement-attorney-decisions', $this);
+        return $helper->updateResource( json_encode($replacementAttorneyDecisions) );
+    }
+
     /**
      * Delete the replacement attorney decisions
      *
@@ -971,7 +1127,7 @@ class Client
      */
     public function lockLpa($lpaId)
     {
-        $uri = self::PATH_API . '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId . '/lock';
+        $uri = $this->apiBaseUri . '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId . '/lock';
         
         $response = $this->client()->post( $uri );
         
@@ -997,7 +1153,7 @@ class Client
     public function getSeedDetails($lpaId)
     {
         $helper = new ApplicationResourceService($lpaId, 'seed', $this);
-        return $helper->getSingleValueResource('seed');
+        return $helper->getRawJson();
     }
     
     /**
@@ -1181,6 +1337,84 @@ class Client
     }
     
     /**
+     * Returns a list of all currently set replacement attorneys
+     *
+     * @param string $lpaId
+     * @return array
+     */
+    public function getReplacementAttorneys($lpaId)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'replacement-attorneys', $this);
+        return $helper->getResourceList('\Opg\Lpa\DataModel\Lpa\Document\Attorneys\AbstractAttorney');
+    }
+    
+    /**
+     * Adds a new replacement attorney
+     *
+     * @param string $lpaId
+     * @param ReplacementAttorney $replacementAttorney
+     * @return boolean
+     */
+    public function addReplacementAttorney(
+        $lpaId,
+        AbstractAttorney $replacementAttorney
+    )
+    {
+        $helper = new ApplicationResourceService($lpaId, 'replacement-attorneys', $this);
+        return $helper->addResource($replacementAttorney->toJson());
+    }
+    
+    /**
+     * Returns the replacement attorney for the given replacement attorney id
+     *
+     * @param string $lpaId
+     * @param string $replacementAttorneyId
+     * @return \Opg\Lpa\DataModel\Lpa\Document\ReplacementAttorney
+     */
+    public function getReplacementAttorney(
+        $lpaId,
+        $replacementAttorneyId
+    )
+    {
+        $helper = new ApplicationResourceService($lpaId, 'replacement-attorneys', $this);
+        return $helper->getEntityResource('\Opg\Lpa\DataModel\Lpa\Document\Attorneys\AbstractAttorney', $replacementAttorneyId);
+    }
+    
+    /**
+     * Sets the replacement attorney for the given replacement attorney id
+     *
+     * @param string $lpaId
+     * @param AbstractAttorney $replacementAttorney
+     * @param string $replacementAttorneyId
+     * @return boolean
+     */
+    public function setReplacementAttorney(
+        $lpaId,
+        AbstractAttorney $replacementAttorney,
+        $replacementAttorneyId
+    )
+    {
+        $helper = new ApplicationResourceService($lpaId, 'replacement-attorneys', $this);
+        return $helper->setResource($replacementAttorney->toJson(), $replacementAttorneyId);
+    }
+    
+    /**
+     * Deletes the person to notify for the given replacement attorney id
+     *
+     * @param string $lpaId
+     * @param string $replacementAttorneyId
+     * @return boolean
+     */
+    public function deleteReplacementAttorney(
+        $lpaId,
+        $replacementAttorneyId
+    )
+    {
+        $helper = new ApplicationResourceService($lpaId, 'replacement-attorneys', $this);
+        return $helper->deleteResource($replacementAttorneyId);
+    }
+    
+    /**
      * Get the certificate provider
      *
      * @param string $lpaId
@@ -1273,30 +1507,135 @@ class Client
     }
     
     /**
-     * Returns a list of all currently available PDFs, with a href to download them
-     * 
-     * @return array
+     * Returns the PDF details for the specified PDF type
+     *
+     * @param string $lpaId
+     * @param string $pdfName
      */
-    public function getPdfList()
+    public function getPdfDetails(
+        $lpaId,
+        $pdfName
+    )
     {
-        return [];
+        $helper = new ApplicationResourceService($lpaId, 'pdfs/' . $pdfName, $this);
+        $resource = $helper->getResource();
+        
+        $json = $resource->getBody();
+        
+        $array = json_decode($json, true);
+        return $array;
     }
     
     /**
-     * Returns the PDF specified by name. If the required data is present
-     * 
+     * Returns the PDF body for the specified PDF type
+     *
      * @param string $lpaId
      * @param string $pdfName
-     * @return string - The PDF stream
      */
     public function getPdf(
         $lpaId,
         $pdfName
     )
     {
-        return null;
+        $path = '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId . '/pdfs/' . $pdfName . '.pdf';
+        
+        $response = $this->client()->get( $this->apiBaseUri . $path );
+        
+        $code = $response->getStatusCode();
+        
+        if ($code != 200) {
+            return $this->log($response, false);
+        }
+        
+        return $response->getBody();
+    }
+    
+    /**
+     * Get list of pdfs for the given LPA
+     * Combine pages, if necessary
+     *
+     * @param string $lpaId
+     *
+     * @return array
+     */
+    public function getPdfList($lpaId)
+    {
+        $pdfList = array();
+    
+        $path = '/v1/users/' . $this->getUserId() . '/applications/' . $lpaId . '/pdfs';
+    
+        do {
+            $response = $this->client()->get( $this->apiBaseUri . $path );
+    
+            if ($response->getStatusCode() != 200) {
+                return $this->log($response, false);
+            }
+    
+            $json = $response->json();
+    
+            if ($json['count'] == 0) {
+                return [];
+            }
+    
+            if (!isset($json['_links']) || !isset($json['_embedded']['pdfs'])) {
+                return $this->log($response, false);
+            }
+             
+            foreach ($json['_embedded']['pdfs'] as $pdf) {
+                $pdfList[] = $pdf;
+            }
+    
+            if (isset($json['_links']['next']['href'])) {
+                $path = $json['_links']['next']['href'];
+            } else {
+                $path = null;
+            }
+        } while (!is_null($path));
+    
+        return $pdfList;
     }
 
+    /**
+     * Return stats from the API server
+     *
+     * @param $type string - The stats type (or context)
+     * @return bool|mixed
+     */
+    public function getApiStats( $type ){
+
+        $path = '/v1/stats/' . $type;
+
+        $response = $this->client()->get( $this->apiBaseUri . $path );
+
+        $code = $response->getStatusCode();
+
+        if ($code != 200) {
+            return $this->log($response, false);
+        }
+
+        return $response->json();
+
+    }
+    
+    /**
+     * Return user stats from the auth server
+     *
+     * @return bool|mixed
+     */
+    public function getAuthStats( ){
+    
+        $response = $this->client()->get( $this->authBaseUri . '/admin/stats' );
+    
+        $code = $response->getStatusCode();
+    
+        if ($code != 200) {
+            return $this->log($response, false);
+        }
+    
+        return $response->json();
+    
+    }
+    
     /**
      * @return the $lastStatusCode
      */
@@ -1384,6 +1723,45 @@ class Client
     {
         $this->userId = $userId;
     }
+    
+    /**
+     * Returns metadata of for give LPA id. 
+     *
+     * @param string $lpaId
+     * @return array
+     */
+    public function getMetaData($lpaId)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'metadata', $this);
+        return $helper->getRawJson();
+    }
+    
+    /**
+     * Sets metadata for give LPA id
+     *
+     * @param string $lpaId
+     * @param array $metadata
+     * @return boolean
+     */
+    public function setMetaData($lpaId, $metadata)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'metadata', $this);
+        return $helper->setResource(json_encode($metadata));
+    }
+    
+    /**
+     * Deletes metadata for given LPA id
+     *
+     * @param string $lpaId
+     * @return boolean
+     */
+    public function deleteMetaData($lpaId)
+    {
+        $helper = new ApplicationResourceService($lpaId, 'metadata', $this);
+        return $helper->deleteResource();
+    }
+    
+    
 
     /**
      * Log the response of the API call and set some internal member vars
@@ -1408,6 +1786,10 @@ class Client
             $this->setLastContent($responseBody);
         }
 
+        // @todo - Log properly
+        if (!$isSuccess) { 
+        }
+        
         $this->setIsError(!$isSuccess);
 
         return $isSuccess;

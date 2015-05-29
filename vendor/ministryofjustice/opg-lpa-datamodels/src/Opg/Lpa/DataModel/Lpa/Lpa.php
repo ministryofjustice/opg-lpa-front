@@ -15,7 +15,7 @@ use Opg\Lpa\DataModel\Validator\Constraints as Assert;
  * Class Lpa
  * @package Opg\Lpa\DataModel\Lpa
  */
-class Lpa extends AbstractData implements CompleteInterface {
+class Lpa extends AbstractData {
 
     /**
      * @var int The LPA identifier.
@@ -23,6 +23,13 @@ class Lpa extends AbstractData implements CompleteInterface {
     protected $id;
 
     /**
+     * @var \DateTime the LPA was started.
+     */
+    protected $startedAt;
+
+    /**
+     * This means 'created' in the business sense, which means when the LPA instrument is finished.
+     *
      * @var \DateTime the LPA was created.
      */
     protected $createdAt;
@@ -77,6 +84,11 @@ class Lpa extends AbstractData implements CompleteInterface {
      */
     protected $document;
 
+    /**
+     * @var array Metadata relating to the LPA. Clients can use this value however they wish.
+     */
+    protected $metadata = array();
+
     //------------------------------------------------
 
     public static function loadValidatorMetadata(ClassMetadata $metadata){
@@ -87,8 +99,12 @@ class Lpa extends AbstractData implements CompleteInterface {
             new Assert\Range([ 'min' => 0, 'max' => 99999999999 ]),
         ]);
 
-        $metadata->addPropertyConstraints('createdAt', [
+        $metadata->addPropertyConstraints('startedAt', [
             new Assert\NotBlank,
+            new Assert\Custom\DateTimeUTC,
+        ]);
+
+        $metadata->addPropertyConstraints('createdAt', [
             new Assert\Custom\DateTimeUTC,
         ]);
 
@@ -140,6 +156,11 @@ class Lpa extends AbstractData implements CompleteInterface {
             new Assert\Valid,
         ]);
 
+        $metadata->addPropertyConstraints('metadata', [
+            new Assert\NotNull,
+            new Assert\Type([ 'type' => 'array' ]),
+        ]);
+
     } // function
 
     //------------------------------------------------
@@ -154,6 +175,7 @@ class Lpa extends AbstractData implements CompleteInterface {
     protected function map( $property, $v ){
 
         switch( $property ){
+            case 'startedAt':
             case 'updatedAt':
             case 'createdAt':
             case 'completedAt':
@@ -188,17 +210,6 @@ class Lpa extends AbstractData implements CompleteInterface {
         return $data;
     }
 
-    /**
-     * Check whether the LPA document is complete and valid at the business level.
-     *
-     * @return bool
-     */
-    public function isComplete(){
-
-        return true;
-
-    } // function
-
     //------------------------------------------------
 
     /**
@@ -212,7 +223,7 @@ class Lpa extends AbstractData implements CompleteInterface {
 
         // Include these top level fields...
         $data = array_intersect_key( $data, array_flip([
-            'id', 'lockedAt', 'updatedAt', 'createdAt', 'user', 'locked', 'document'
+            'id', 'lockedAt', 'startedAt', 'updatedAt', 'createdAt', 'completedAt', 'user', 'locked', 'document', 'metadata'
         ]));
 
         // Include these document level fields...

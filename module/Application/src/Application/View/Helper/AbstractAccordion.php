@@ -7,31 +7,42 @@ use Opg\Lpa\DataModel\Lpa\Document\Donor;
 use Opg\Lpa\DataModel\Lpa\Document\Decisions\PrimaryAttorneyDecisions;
 use Opg\Lpa\DataModel\Lpa\Document\Decisions\ReplacementAttorneyDecisions;
 use Opg\Lpa\DataModel\Lpa\Document\CertificateProvider;
+use Opg\Lpa\DataModel\Lpa\Elements\Name;
+use Opg\Lpa\DataModel\Lpa\Payment\Payment;
+use Application\View\Helper\Traits\ConcatNamesTrait;
+use Application\Model\Service\Lpa\Metadata;
 
 abstract class AbstractAccordion extends AbstractHelper
 {
+    use ConcatNamesTrait;
+    
     protected $lpa;
     
+    // map route name to method name. Returning value is to be injected into a file under layout/partials/accordion/items
     private $bars = [
         'creation' => [
-            'lpa/form-type' => 'type',
-            'lpa/donor' => 'donor',
-            'lpa/when-lpa-starts' => "whenLpaStarts",
-            'lpa/life-sustaining' => "lifeSustaining",
-            'lpa/primary-attorney' => 'primaryAttorney',
-            'lpa/how-primary-attorneys-make-decision' => 'howPrimaryAttorneysMakeDecision',
-            'lpa/replacement-attorney' => 'replacementAttorney',
-            'lpa/when-replacement-attorney-step-in' => 'whenReplacementAttorneyStepIn',
+            'lpa/form-type'                               => 'type',
+            'lpa/donor'                                   => 'donor',
+            'lpa/when-lpa-starts'                         => "whenLpaStarts",
+            'lpa/life-sustaining'                         => "lifeSustaining",
+            'lpa/primary-attorney'                        => 'primaryAttorney',
+            'lpa/how-primary-attorneys-make-decision'     => 'howPrimaryAttorneysMakeDecision',
+            'lpa/replacement-attorney'                    => 'replacementAttorney',
+            'lpa/when-replacement-attorney-step-in'       => 'whenReplacementAttorneyStepIn',
             'lpa/how-replacement-attorneys-make-decision' => 'howReplacementAttorneysMakeDecision',
-            'lpa/certificate-provider' => 'certificateProvider',
-            'lpa/people-to-notify' => 'peopleToNotify',
-            'lpa/instructions' => 'instructions',
+            'lpa/certificate-provider'                    => 'certificateProvider',
+            'lpa/people-to-notify'                        => 'peopleToNotify',
+            'lpa/instructions'                            => 'instructions',
         ],
         'registration' => [
-            'lpa/applicant' => 'applicant',
-            'lpa/correspondent' => 'correspondent',
-            'lpa/what-is-my-role' => 'whatIsMyRole',
-            'lpa/fee' => 'fee',
+            'lpa/applicant'                     => 'applicant',
+            'lpa/correspondent'                 => 'correspondent',
+            'lpa/who-are-you'                   => 'whoAreYou',
+            'lpa/repeat-application'            => 'repeatApplication',
+            'lpa/fee-reduction'                 => 'feeReduction',
+            'lpa/payment'                       => 'payment',
+            'lpa/payment/return/failure'        => null,
+            'lpa/payment/return/cancel'         => null,
         ],
     ];
     
@@ -67,7 +78,7 @@ abstract class AbstractAccordion extends AbstractHelper
     protected function donor()
     {
         if($this->lpa->document->donor instanceof Donor) {
-            return $this->lpa->document->donor->name->__toString();
+            return $this->lpa->document->donor->name;
         }
     }
     
@@ -87,7 +98,9 @@ abstract class AbstractAccordion extends AbstractHelper
     
     protected function primaryAttorney()
     {
-        return ((count($this->lpa->document->primaryAttorneys)==1)? 'is ':'are ').$this->joinNames($this->lpa->document->primaryAttorneys);
+        if(count($this->lpa->document->primaryAttorneys) > 0) {
+            return ((count($this->lpa->document->primaryAttorneys)==1)? 'is':'are').' '.$this->concatNames($this->lpa->document->primaryAttorneys);
+        }
     }
     
     protected function howPrimaryAttorneysMakeDecision()
@@ -99,21 +112,30 @@ abstract class AbstractAccordion extends AbstractHelper
     
     protected function replacementAttorney()
     {
-        if(count($this->lpa->document->replacementAttorneys)==0) return '';
+        if(count($this->lpa->document->replacementAttorneys) == 0) {
+            // user has confirmed no replacement attorneys
+            if(array_key_exists(Metadata::REPLACEMENT_ATTORNEYS_CONFIRMED, $this->lpa->metadata)) {
+                return '';
+            }
+            else {
+                // user has NOT confirmed no replacement attorneys 
+                return null;
+            }
+        }
         
-        return ((count($this->lpa->document->replacementAttorneys)==1)? 'is ':'are ').$this->joinNames($this->lpa->document->replacementAttorneys);
+        return ((count($this->lpa->document->replacementAttorneys)==1)? 'is':'are').' '.$this->concatNames($this->lpa->document->replacementAttorneys);
     }
     
     protected function whenReplacementAttorneyStepIn()
     {
-        if($this->lpa->document->primaryAttorneyDecisions instanceof ReplacementAttorneyDecisions) {
+        if($this->lpa->document->replacementAttorneyDecisions instanceof ReplacementAttorneyDecisions) {
             return $this->lpa->document->replacementAttorneyDecisions->when;
         }
     }
     
     protected function howReplacementAttorneysMakeDecision()
     {
-        if($this->lpa->document->primaryAttorneyDecisions instanceof ReplacementAttorneyDecisions) {
+        if($this->lpa->document->replacementAttorneyDecisions instanceof ReplacementAttorneyDecisions) {
             return $this->lpa->document->replacementAttorneyDecisions->how;
         }
     }
@@ -121,65 +143,98 @@ abstract class AbstractAccordion extends AbstractHelper
     protected function certificateProvider()
     {
         if($this->lpa->document->certificateProvider instanceof CertificateProvider) {
-            return $this->lpa->document->certificateProvider->name->__toString();
+            return $this->lpa->document->certificateProvider->name;
         }
     }
     
     protected function peopleToNotify()
     {
-        if(count($this->lpa->document->peopleToNotify)==0) return '';
+        if(count($this->lpa->document->peopleToNotify)==0) {
+            // user has confirmed no people to notify
+            if(array_key_exists(Metadata::PEOPLE_TO_NOTIFY_CONFIRMED, $this->lpa->metadata)) {
+                    return '';
+            }
+            else {
+                // user has NOT confirmed no people to notify 
+                return null;
+            }
+        }
         
-        return ((count($this->lpa->document->peopleToNotify)==1)? 'is ':'are ').$this->joinNames($this->lpa->document->peopleToNotify);
+        return ((count($this->lpa->document->peopleToNotify)==1)? 'is':'are').' '.$this->concatNames($this->lpa->document->peopleToNotify);
     }
     
     protected function instructions()
     {
+        if(($this->lpa->document->instruction === null)&&($this->lpa->document->preference === null)) return null;
+        
         return "Review";
     }
     
     protected function applicant()
     {
+        if($this->lpa->document->whoIsRegistering === null) return null;
+        
         if($this->lpa->document->whoIsRegistering == 'donor') {
-            return ['who' => 'donor', 'name' => $this->lpa->document->donor->name->__toString()];
+            return ['who' => 'donor', 'name' => (string)$this->lpa->document->donor->name];
         }
         else {
-            return ['who'=>'attorney', 'name'=>$this->joinNames($this->lpa->document->primaryAttorneys)];
+            return ['who'=>'attorney', 'name'=>$this->concatNames($this->lpa->document->primaryAttorneys)];
         }
     }
     
     protected function correspondent()
     {
-        return $this->lpa->document->correspondent->name->__toString();
+        if($this->lpa->document->correspondent === null) return null;
+        
+        return (($this->lpa->document->correspondent->name instanceof Name)?$this->lpa->document->correspondent->name:$this->lpa->document->correspondent->company);
     }
     
-    protected function whatIsMyRole()
+    protected function whoAreYou()
     {
-        return "Who was using the LPA tool answered";
+        if($this->lpa->whoAreYouAnswered) {
+            return "Who was using the LPA tool answered";
+        }
+        else {
+            return null;
+        }
     }
     
-    protected function fee()
+    protected function repeatApplication()
     {
-        return "Payment";
+        if(!array_key_exists(Metadata::REPEAT_APPLICATION_CONFIRMED, $this->lpa->metadata)) return null;
+        
+        if($this->lpa->repeatCaseNumber === null) {
+            return 'This is a new application';
+        }
+        else {
+            return "I’m making a repeat application";
+        }
+    }
+    
+    protected function feeReduction()
+    {
+        if(!($this->lpa->payment instanceof Payment)) return;
+        
+        if(($this->lpa->payment->reducedFeeReceivesBenefits == null)
+                && ($this->lpa->payment->reducedFeeAwardedDamages == null)
+                && ($this->lpa->payment->reducedFeeUniversalCredit == null)
+                && ($this->lpa->payment->reducedFeeLowIncome == null)) {
+            return "I am not applying for reduced fee";
+        }
+        else {
+            return "I am applying for reduced fee";
+        }
+    }
+    
+    protected function payment()
+    {
+        if(($this->lpa->payment instanceof Payment) && ($this->lpa->payment->method !== null)) {
+            return 'Application fee: £'.$this->lpa->payment->amount. ' (Payment method: '.$this->lpa->payment->method.')';
+        }
     }
     
     protected function getViewScriptName($barDataFuncName)
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $barDataFuncName)).'.phtml';
-    }
-    
-    private function joinNames(array $nameList)
-    {
-        $count = count($nameList);
-        if($count == 0) {
-            return null;
-        }
-        elseif($count == 1) {
-            return $nameList[0]->name->__toString();
-        }
-       else {
-           $lastItem = array_pop($nameList);
-           return implode(', ', array_map( function( $item ) { return $item->name->__toString(); }, $nameList) )
-                  . ' and ' . $lastItem->name->__toString();
-       }
     }
 }
