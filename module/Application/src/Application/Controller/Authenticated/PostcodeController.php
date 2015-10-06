@@ -38,6 +38,12 @@ class PostcodeController extends AbstractAuthenticatedController {
             $result = $service->lookupPostcode( $postcode );
             
             if ($usingMojDsdPostcodeService && count($result) == 0) {
+                
+                $this->log()->info(
+                    'Postcode not found in DSD lookup service. Trying PostcodeAnywhere.',
+                    ['postcode' => $postcode]
+                );
+                
                 // Drop through to use PostcodeAnywhere if no result from DSD service
                 // In addition to providing an a ray of hope that the address may still
                 // be found, it also makes sure that the return structure is always the 
@@ -51,7 +57,8 @@ class PostcodeController extends AbstractAuthenticatedController {
             $v1Format = array_map( function($addr) use ($usingMojDsdPostcodeService) {
     
                 if ($usingMojDsdPostcodeService) {
-                    return [
+                    
+                    $details = [
                         'id' => $addr['Id'],
                         'description' => $addr['Summary'],
                         'line1' => $addr['Detail']['line1'],
@@ -59,11 +66,25 @@ class PostcodeController extends AbstractAuthenticatedController {
                         'line3' => $addr['Detail']['line3'],
                         'postcode' => $addr['Detail']['postcode'],
                     ];
+                    
+                    $this->log()->info(
+                        'Postcode found in DSD postcode lookup service.',
+                        $details
+                    );
+                    
+                    return $details;
                 } else {
-                    return [
+                    $details = [
                         'id' => $addr['Id'],
                         'description' => $addr['StreetAddress'].' '.$addr['Place'],
                     ];
+                    
+                    $this->log()->info(
+                        'Postcode found in PostcodeAnywhere.',
+                        $details
+                    );
+                    
+                    return $details;
                 }
             }, $result );
     
