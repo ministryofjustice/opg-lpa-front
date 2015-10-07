@@ -109,8 +109,7 @@ class Details implements ServiceLocatorAwareInterface {
     public function updatePassword( ServiceDataInputInterface $details ){
 
         $this->getServiceLocator()->get('Logger')->info(
-            'Updating password',
-            $this->getServiceLocator()->get('AuthenticationService')->getIdentity()->toArray()
+            'Updating password'
         );
         
         $client = $this->getServiceLocator()->get('ApiClient');
