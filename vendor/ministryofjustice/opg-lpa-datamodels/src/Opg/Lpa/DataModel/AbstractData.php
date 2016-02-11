@@ -446,7 +446,7 @@ abstract class AbstractData implements AccessorInterface, JsonSerializable, Vali
         foreach( $data as $k => $v ){
 
             // Only include known properties during the import...
-            if( property_exists( $this, $k ) && !is_null($v) ){
+            if( property_exists( $this, $k ) ){
                 $this->set( $k, $v );
             }
 
