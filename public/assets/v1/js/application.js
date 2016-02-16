@@ -4305,7 +4305,16 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
                   item = actors.names[loop];
                   if ($firstName.val().toLocaleLowerCase() === item.firstname.toLocaleLowerCase()) {
                     if ($lastName.val().toLocaleLowerCase() === item.lastname.toLocaleLowerCase()) {
-                      duplicateName = item;
+                      if ($form.attr('action').indexOf('replacement') > -1) {
+                    	  // if user is on the replacement attorney form,
+                    	  // they can add one of their primary attorneys, so
+                    	  // don't flag this one up as a clash
+                    	  if (item['type'] != 'attorney') {
+                    		  duplicateName = item;
+                    	  }  
+                      } else {
+                    	  duplicateName = item;
+                      }
                       break;
                     }
                   }
