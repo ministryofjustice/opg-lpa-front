@@ -17,6 +17,9 @@ use Zend\View\Model\ViewModel;
 use Zend\Session\Container;
 use Opg\Lpa\DataModel\Lpa\Payment\Payment;
 use Opg\Lpa\DataModel\Lpa\Lpa;
+use Application\Model\Service\Payment\Helper\LpaIdHelper;
+
+use GuzzleHttp\Client as GuzzleClient;
 
 class PaymentController extends AbstractLpaController
 {
@@ -107,6 +110,49 @@ class PaymentController extends AbstractLpaController
         ]);
         
     }
+
+
+    public function responseAction(){
+
+        $container = new Container('Payment');
+
+        $client = new GuzzleClient();
+
+        $response = $client->get( $container->details['_links']['self']['href'] ,[
+            'headers' => [
+                'accept' => 'application/json',
+                'authorization' => 'Bearer 020ec61b-2be1-4d13-86e9-00a55ae05463',
+            ]
+        ]);
+
+        $json = $response->json();
+
+        //-----------------------
+
+        $lpa = $this->getLpa();
+
+        if( $json['status'] !== 'SUCCEEDED' ) {
+
+            // FAILED
+            return $this->forward()->dispatch('Authenticated\Lpa\PaymentController', array('action' => 'failure'));
+
+        }
+
+        //---
+
+        $payment = $lpa->payment;
+        $payment->reference = $json['reference'];
+        $payment->date = new \DateTime( $json['created_date'] );
+
+        $this->getServiceLocator()->get('ApiClient')->setPayment($lpa->id, $payment);
+
+        // send email
+        $communicationService = $this->getServiceLocator()->get('Communication');
+        $communicationService->sendRegistrationCompleteEmail($lpa, $this->url()->fromRoute('lpa/view-docs', ['lpa-id' => $lpa->id], ['force_canonical' => true]));
+
+        return $this->redirect()->toRoute('lpa/complete', ['lpa-id'=>$this->getLpa()->id]);
+
+    }
     
     public function successAction()
     {
@@ -128,42 +174,7 @@ class PaymentController extends AbstractLpaController
         return $this->redirect()->toRoute('lpa/complete', ['lpa-id'=>$this->getLpa()->id]);
     }
     
-    /**
-     * Helper function to verify and extract the success params
-     * 
-     * @return array
-     */
-    private function getSuccessParams()
-    {
-        $params = [
-            'paymentStatus' => null,
-            'orderKey' => null,
-            'paymentAmount' => null,
-            'paymentCurrency' => null,
-            'mac' => null
-        ];
-        
-        foreach ($params as $key => &$value) {
-            if ($this->request->getQuery($key) == null) {
-                throw new \Exception(
-                    'Invalid success response from Worldpay. ' .
-                    'Expected ' . $key . ' parameter was not found. ' .
-                    $_SERVER["REQUEST_URI"]
-                );
-            }
-            $value = $this->request->getQuery($key);
-        }
-        
-        if ($params['paymentStatus'] != 'AUTHORISED') {
-            throw new \Exception(
-                'Invalid success response from Worldpay. ' .
-                'paymentStatus was ' . $params['paymentStatus'] . ' (expected AUTHORISED)'
-            );
-        }
-        
-        return $params;
-    }
-    
+
     public function failureAction()
     {
         return new ViewModel([
@@ -179,71 +190,52 @@ class PaymentController extends AbstractLpaController
                 'paymentUrl' => $this->url()->fromRoute('lpa/payment', ['lpa-id'=>$this->getLpa()->id]),
         ]);
     }
-    
-    public function pendingAction()
-    {
-        //@todo:  set flash message before redirecting
-        
-        return $this->redirect()->toRoute('lpa/complete', ['lpa-id'=>$this->getLpa()->id]);
-        
-        return $this->getResponse();
-    }
-    
-    /**
-     * Helper function to construct the Worldpay redirect URL
-     *
-     * @param string $baseUrl
-     * @param string $lpaId
-     * @param Uri $uri
-     * @return string
-     */
-    public function getRedirectUrl($baseUrl)
-    {
-        $redirectUrl =
-            $baseUrl .
-                '&successURL=' .  $this->getCallbackEndpoint('success') .
-                '&pendingURL=' . $this->getCallbackEndpoint('pending') .
-                '&failureURL=' . $this->getCallbackEndpoint('failure') .
-                '&cancelURL=' . $this->getCallbackEndpoint('cancel');
-    
-        return $redirectUrl;
-    }
-    
-    /**
-     * Helper function to construct the callback URLs
-     *
-     * @param string $type
-     * @return string
-     */
-    public function getCallbackEndpoint($type)
-    {
-        $baseUri = (new ServerUrl())->__invoke(false);
-    
-        return $baseUri . $this->url()->fromRoute(
-            'lpa/payment/return/' . $type,
-            ['lpa-id' => $this->getLpa()->id]
-        );
-    }
-    
+
     private function payOnline(Lpa $lpa)
     {
-        // init online payment
-        $paymentService = $this->getServiceLocator()->get('Payment');
-        
-        $options = $paymentService->getOptions($lpa);
-        
-        $response = $paymentService
-            ->getGateway()
-            ->purchase($options)
-            ->send();
-        
-        $paymentGatewayBaseUrl = $response->getData()->reference;
-        
-        $redirectUrl = $this->getRedirectUrl($paymentGatewayBaseUrl);
-        
-        $this->redirect()->toUrl($redirectUrl);
-        
+
+        $baseUri = (new ServerUrl())->__invoke(false);
+
+        $callback =  $baseUri . $this->url()->fromRoute(
+            'lpa/payment/response',
+            ['lpa-id' => $this->getLpa()->id]
+        );
+
+        //---
+
+        $lpa = $this->getLpa();
+        $donorName = (string)$lpa->document->donor->name;
+
+        //---
+
+        $client = new GuzzleClient();
+
+
+        $response = $client->post( 'https://publicapi.pymnt.uk/v1/payments' ,[
+            'headers' => [
+                'accept' => 'application/json',
+                'authorization' => 'Bearer 020ec61b-2be1-4d13-86e9-00a55ae05463',
+                'content-type' => 'application/json',
+            ],
+            'json' => [
+                'return_url' => $callback,
+                'description' => 'LPA for ' . $donorName,
+                'reference' => LpaIdHelper::constructWorldPayTransactionId($lpa->id),
+                'amount' => (int)($lpa->payment->amount * 100), // amount in pence
+            ]
+        ]);
+
+        //---
+
+        $container = new Container('Payment');
+
+        $container->details = $json = $response->json();
+
+        $redirect = $json['_links']['next_url']['href'];
+
+        $this->redirect()->toUrl($redirect);
+
         return $this->getResponse();
-        
-    }
+
+    } // function
 }
