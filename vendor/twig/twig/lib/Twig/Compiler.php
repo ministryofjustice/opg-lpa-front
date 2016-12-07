@@ -26,6 +26,11 @@ class Twig_Compiler implements Twig_CompilerInterface
     protected $sourceLine;
     protected $filename;
 
+    /**
+     * Constructor.
+     *
+     * @param Twig_Environment $env The twig environment instance
+     */
     public function __construct(Twig_Environment $env)
     {
         $this->env = $env;
@@ -44,7 +49,7 @@ class Twig_Compiler implements Twig_CompilerInterface
     /**
      * Returns the environment instance related to this compiler.
      *
-     * @return Twig_Environment
+     * @return Twig_Environment The environment instance
      */
     public function getEnvironment()
     {
@@ -67,7 +72,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      * @param Twig_NodeInterface $node        The node to compile
      * @param int                $indentation The current indentation
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      */
     public function compile(Twig_NodeInterface $node, $indentation = 0)
     {
@@ -105,7 +110,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      *
      * @param string $string The string
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      */
     public function raw($string)
     {
@@ -117,7 +122,7 @@ class Twig_Compiler implements Twig_CompilerInterface
     /**
      * Writes a string to the compiled code by adding indentation.
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      */
     public function write()
     {
@@ -132,7 +137,7 @@ class Twig_Compiler implements Twig_CompilerInterface
     /**
      * Appends an indentation to the current PHP code after compilation.
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      *
      * @deprecated since 1.27 (to be removed in 2.0).
      */
@@ -150,7 +155,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      *
      * @param string $value The string
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      */
     public function string($value)
     {
@@ -164,7 +169,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      *
      * @param mixed $value The value to convert
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      */
     public function repr($value)
     {
@@ -205,7 +210,9 @@ class Twig_Compiler implements Twig_CompilerInterface
     /**
      * Adds debugging information.
      *
-     * @return $this
+     * @param Twig_NodeInterface $node The related twig node
+     *
+     * @return Twig_Compiler The current compiler instance
      */
     public function addDebugInfo(Twig_NodeInterface $node)
     {
@@ -242,7 +249,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      *
      * @param int $step The number of indentation to add
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      */
     public function indent($step = 1)
     {
@@ -256,7 +263,7 @@ class Twig_Compiler implements Twig_CompilerInterface
      *
      * @param int $step The number of indentation to remove
      *
-     * @return $this
+     * @return Twig_Compiler The current compiler instance
      *
      * @throws LogicException When trying to outdent too much so the indentation would become negative
      */

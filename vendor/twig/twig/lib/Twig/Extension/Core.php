@@ -132,7 +132,6 @@ class Twig_Extension_Core extends Twig_Extension
             new Twig_TokenParser_Flush(),
             new Twig_TokenParser_Do(),
             new Twig_TokenParser_Embed(),
-            new Twig_TokenParser_With(),
         );
     }
 
@@ -276,7 +275,7 @@ class Twig_Extension_Core extends Twig_Extension
 /**
  * Cycles over a value.
  *
- * @param ArrayAccess|array $values
+ * @param ArrayAccess|array $values   An array or an ArrayAccess instance
  * @param int               $position The cycle position
  *
  * @return string The next value in the cycle
@@ -296,8 +295,8 @@ function twig_cycle($values, $position)
  * - a random character from a string
  * - a random integer between 0 and the integer parameter.
  *
- * @param Twig_Environment                   $env
- * @param Traversable|array|int|float|string $values The values to pick a random item from
+ * @param Twig_Environment             $env    A Twig_Environment instance
+ * @param Traversable|array|int|string $values The values to pick a random item from
  *
  * @throws Twig_Error_Runtime When $values is an empty array (does not apply to an empty string which is returned as is).
  *
@@ -356,7 +355,7 @@ function twig_random(Twig_Environment $env, $values = null)
  *   {{ post.published_at|date("m/d/Y") }}
  * </pre>
  *
- * @param Twig_Environment                               $env
+ * @param Twig_Environment                               $env      A Twig_Environment instance
  * @param DateTime|DateTimeInterface|DateInterval|string $date     A date
  * @param string|null                                    $format   The target format, null to use the default
  * @param DateTimeZone|string|null|false                 $timezone The target timezone, null to use the default, false to leave unchanged
@@ -384,7 +383,7 @@ function twig_date_format_filter(Twig_Environment $env, $date, $format = null, $
  *   {{ post.published_at|date_modify("-1day")|date("m/d/Y") }}
  * </pre>
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env      A Twig_Environment instance
  * @param DateTime|string  $date     A date
  * @param string           $modifier A modifier string
  *
@@ -410,7 +409,7 @@ function twig_date_modify_filter(Twig_Environment $env, $date, $modifier)
  *    {% endif %}
  * </pre>
  *
- * @param Twig_Environment                       $env
+ * @param Twig_Environment                       $env      A Twig_Environment instance
  * @param DateTime|DateTimeInterface|string|null $date     A date
  * @param DateTimeZone|string|null|false         $timezone The target timezone, null to use the default, false to leave unchanged
  *
@@ -512,7 +511,7 @@ function twig_round($value, $precision = 0, $method = 'common')
  * be used.  Supplying any of the parameters will override the defaults set in the
  * environment object.
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env          A Twig_Environment instance
  * @param mixed            $number       A float/int/string of the number to format
  * @param int              $decimal      The number of decimal points to display.
  * @param string           $decimalPoint The character(s) to use for the decimal point.
@@ -641,7 +640,7 @@ function twig_array_merge($arr1, $arr2)
 /**
  * Slices a variable.
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env          A Twig_Environment instance
  * @param mixed            $item         A variable
  * @param int              $start        Start of the slice
  * @param int              $length       Size of the slice
@@ -683,7 +682,7 @@ function twig_slice(Twig_Environment $env, $item, $start, $length = null, $prese
 /**
  * Returns the first element of the item.
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env  A Twig_Environment instance
  * @param mixed            $item A variable
  *
  * @return mixed The first element of the item
@@ -698,7 +697,7 @@ function twig_first(Twig_Environment $env, $item)
 /**
  * Returns the last element of the item.
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env  A Twig_Environment instance
  * @param mixed            $item A variable
  *
  * @return mixed The last element of the item
@@ -754,7 +753,7 @@ function twig_join_filter($value, $glue = '')
  *  {# returns [aa, bb, cc] #}
  * </pre>
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env       A Twig_Environment instance
  * @param string           $value     A string
  * @param string           $delimiter The delimiter
  * @param int              $limit     The limit
@@ -834,7 +833,7 @@ function twig_get_array_keys_filter($array)
 /**
  * Reverses a variable.
  *
- * @param Twig_Environment         $env
+ * @param Twig_Environment         $env          A Twig_Environment instance
  * @param array|Traversable|string $item         An array, a Traversable instance, or a string
  * @param bool                     $preserveKeys Whether to preserve key or not
  *
@@ -910,7 +909,7 @@ function twig_in_filter($value, $compare)
 /**
  * Escapes a string.
  *
- * @param Twig_Environment $env
+ * @param Twig_Environment $env        A Twig_Environment instance
  * @param mixed            $string     The value to be escaped
  * @param string           $strategy   The escaping strategy
  * @param string           $charset    The charset
@@ -991,7 +990,7 @@ function twig_escape_filter(Twig_Environment $env, $string, $strategy = 'html', 
                 $string = twig_convert_encoding($string, 'UTF-8', $charset);
             }
 
-            if (0 == strlen($string) ? false : 1 !== preg_match('/^./su', $string)) {
+            if (0 == strlen($string) ? false : (1 == preg_match('/^./su', $string) ? false : true)) {
                 throw new Twig_Error_Runtime('The string to escape is not a valid UTF-8 string.');
             }
 
@@ -1008,7 +1007,7 @@ function twig_escape_filter(Twig_Environment $env, $string, $strategy = 'html', 
                 $string = twig_convert_encoding($string, 'UTF-8', $charset);
             }
 
-            if (0 == strlen($string) ? false : 1 !== preg_match('/^./su', $string)) {
+            if (0 == strlen($string) ? false : (1 == preg_match('/^./su', $string) ? false : true)) {
                 throw new Twig_Error_Runtime('The string to escape is not a valid UTF-8 string.');
             }
 
@@ -1025,7 +1024,7 @@ function twig_escape_filter(Twig_Environment $env, $string, $strategy = 'html', 
                 $string = twig_convert_encoding($string, 'UTF-8', $charset);
             }
 
-            if (0 == strlen($string) ? false : 1 !== preg_match('/^./su', $string)) {
+            if (0 == strlen($string) ? false : (1 == preg_match('/^./su', $string) ? false : true)) {
                 throw new Twig_Error_Runtime('The string to escape is not a valid UTF-8 string.');
             }
 
@@ -1189,7 +1188,7 @@ if (function_exists('mb_get_info')) {
     /**
      * Returns the length of a variable.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env   A Twig_Environment instance
      * @param mixed            $thing A variable
      *
      * @return int The length of the value
@@ -1202,7 +1201,7 @@ if (function_exists('mb_get_info')) {
     /**
      * Converts a string to uppercase.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env    A Twig_Environment instance
      * @param string           $string A string
      *
      * @return string The uppercased string
@@ -1219,7 +1218,7 @@ if (function_exists('mb_get_info')) {
     /**
      * Converts a string to lowercase.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env    A Twig_Environment instance
      * @param string           $string A string
      *
      * @return string The lowercased string
@@ -1236,7 +1235,7 @@ if (function_exists('mb_get_info')) {
     /**
      * Returns a titlecased string.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env    A Twig_Environment instance
      * @param string           $string A string
      *
      * @return string The titlecased string
@@ -1253,7 +1252,7 @@ if (function_exists('mb_get_info')) {
     /**
      * Returns a capitalized string.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env    A Twig_Environment instance
      * @param string           $string A string
      *
      * @return string The capitalized string
@@ -1272,7 +1271,7 @@ else {
     /**
      * Returns the length of a variable.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env   A Twig_Environment instance
      * @param mixed            $thing A variable
      *
      * @return int The length of the value
@@ -1285,7 +1284,7 @@ else {
     /**
      * Returns a titlecased string.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env    A Twig_Environment instance
      * @param string           $string A string
      *
      * @return string The titlecased string
@@ -1298,7 +1297,7 @@ else {
     /**
      * Returns a capitalized string.
      *
-     * @param Twig_Environment $env
+     * @param Twig_Environment $env    A Twig_Environment instance
      * @param string           $string A string
      *
      * @return string The capitalized string
@@ -1451,23 +1450,6 @@ function twig_constant($constant, $object = null)
     }
 
     return constant($constant);
-}
-
-/**
- * Checks if a constant exists.
- *
- * @param string      $constant The name of the constant
- * @param null|object $object   The object to get the constant from
- *
- * @return bool
- */
-function twig_constant_is_defined($constant, $object = null)
-{
-    if (null !== $object) {
-        $constant = get_class($object).'::'.$constant;
-    }
-
-    return defined($constant);
 }
 
 /**
