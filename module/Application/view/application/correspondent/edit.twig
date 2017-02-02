@@ -172,7 +172,7 @@
 {{ form().openTag( switcherForm )|raw }}
     {{ formElement(sCsrf) }}
 
-    <div class="panel-actions">
+    <div class="use-these-details-panel">
         <fieldset>
             <legend class="visuallyhidden">Select details from a different person</legend>
 
@@ -186,7 +186,7 @@
     </div>
 {{ form().closeTag|raw }}
 
-{# switcher form - error summary #}
+{# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
 {# correspondent form - begin form #}
