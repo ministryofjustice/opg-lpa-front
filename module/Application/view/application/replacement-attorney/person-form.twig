@@ -146,17 +146,10 @@
 
 {{ form.prepare() ? '' }}
 
+{# Reuse contacts picker #}
 {{ macros.renderPickerForm(form, seedDetailsPickerForm) }}
 
 {################# replacement attorney form #####################}
-
-{{ macros.useMyDetails(useMyDetailsRoute) }}
-
-{% if (addTrustCorporationRoute) %}
-    <div class="panel-actions">
-        <a class="js-form-popup" href="{{ addTrustCorporationRoute }}">Using a trust corporation?</a>
-    </div>
-{% endif %}
 
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
@@ -170,6 +163,14 @@
 
     <fieldset>
         <legend class="visuallyhidden">Add replacement attorney's name</legend>
+
+        {{ macros.useMyDetails(useMyDetailsRoute) }}
+
+        {% if (addTrustCorporationRoute) %}
+            <div class="use-details-link-panel form-group">
+                <a class="js-form-popup" href="{{ addTrustCorporationRoute }}">Using a trust corporation?</a>
+            </div>
+        {% endif %}
 
         {{ macros.formGroup(title) }}
         {{ macros.formGroup(firstname) }}
