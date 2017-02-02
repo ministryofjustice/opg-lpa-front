@@ -4016,8 +4016,9 @@ input[type=number] {
   @media (max-width: 640px) {
     .form-popup .dob-label {
       display: none; } }
-  .form-popup .use-details-link-panel {
-    padding-left: 150px; }
+  @media (min-width: 641px) {
+    .form-popup .use-details-link-panel {
+      padding-left: 150px; } }
   .form-popup .use-these-details-panel {
     padding: 15px 15px 0; }
 
