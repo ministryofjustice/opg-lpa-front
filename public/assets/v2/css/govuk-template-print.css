@@ -12,18 +12,26 @@ html {
 
 body {
   font-family: sans-serif;
+  font-size: 12px;
+  line-height: 1.25;
   font-weight: 400;
   text-transform: none;
   font-size: 11pt;
-  line-height: 1.42857;
   margin: 0;
   padding: 0;
   width: 100%; }
+  @media (min-width: 641px) {
+    body {
+      font-size: 14px;
+      line-height: 1.42857; } }
 
 a, a:visited {
   word-wrap: break-word; }
 
-a[href^="/"]:after,
+a[href^="/"]:after {
+  content: " (https://www.gov.uk" attr(href) ")";
+  font-size: 90%; }
+
 a[href^="http://"]:after,
 a[href^="https://"]:after {
   content: " (" attr(href) ")";
@@ -40,23 +48,30 @@ select {
   background: white; }
 
 #global-header {
-  margin: 3px 0 1em; }
+  color: #000;
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 1em; }
   #global-header #logo {
     font-family: sans-serif;
-    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.09375;
+    font-weight: 400;
     text-transform: none;
     font-size: 18pt;
-    line-height: 1.04167;
     font-size: 28pt;
-    /* `bold-80` can be used instead when govuk_frontend_toolkit gem is >= 4.18.2,
-       see https://github.com/alphagov/govuk_frontend_toolkit/pull/328 */
+    font-weight: bold;
     text-rendering: optimizeLegibility; }
+    @media (min-width: 641px) {
+      #global-header #logo {
+        font-size: 48px;
+        line-height: 1.04167; } }
     #global-header #logo img {
-      width: 45px;
+      width: 46px;
       height: 40px;
-      position: relative;
-      top: -3px;
-      vertical-align: bottom; }
+      padding-right: 6px;
+      display: block;
+      float: left; }
   #global-header .content {
     margin: 0 !important; }
   #global-header a, #global-header a:visited {

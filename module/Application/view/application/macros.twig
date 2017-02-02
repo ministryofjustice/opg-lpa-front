@@ -105,7 +105,7 @@
         {{ form().openTag( pickerForm )|raw }}
             {{ formElement(pickerCsrf) }}
 
-            <div class="panel-actions">
+            <div class="use-these-details-panel">
                 <fieldset>
                     <legend class="visuallyhidden">Select person from previous LPA</legend>
 
@@ -132,7 +132,7 @@
 
 {% macro useMyDetails(useMyDetailsRoute) %}
     {% if (useMyDetailsRoute) %}
-    <div class="panel-actions js-UseMyDetails">
+    <div class="use-details-link-panel form-group js-UseMyDetails">
         <a class="js-form-popup" href="{{ useMyDetailsRoute }}">Use my details</a>
     </div>
     {% endif %}

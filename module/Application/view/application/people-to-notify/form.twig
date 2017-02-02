@@ -108,14 +108,13 @@
 
 {{ form.prepare() ? '' }}
 
-{{ macros.renderPickerForm(form, seedDetailsPickerForm) }}
-
 {################# person to notify form #####################}
-
-{{ macros.useMyDetails(useMyDetailsRoute) }}
 
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
+
+{# Reuse contacts picker #}
+{{ macros.renderPickerForm(form, seedDetailsPickerForm) }}
 
 {# begin form #}
 {{ form().openTag( form )|raw }}
@@ -126,6 +125,8 @@
 
     <fieldset>
         <legend class="visuallyhidden">Add person's name</legend>
+
+        {{ macros.useMyDetails(useMyDetailsRoute) }}
 
         {{ macros.formGroup(title) }}
         {{ macros.formGroup(firstname) }}

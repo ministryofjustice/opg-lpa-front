@@ -1,6 +1,6 @@
 // Use My Details module for LPA
 // Dependencies: moj, jQuery
-// 
+//
 // The 'Use My Details' action link can only be used once.
 // This module removes the panel and the link if any current actors
 // match the signed in user's first and last name.
