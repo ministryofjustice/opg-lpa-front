@@ -38,7 +38,7 @@
 
       // If it's a match then remove the panel with the link
       if (detailsUsed) {
-        $('.use-details-link-panel').remove();
+        $('.js-UseMyDetails').remove();
       }
 
     }
