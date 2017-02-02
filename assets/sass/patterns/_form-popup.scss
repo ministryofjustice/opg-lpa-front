@@ -160,7 +160,9 @@
     }
 
     .use-details-link-panel {
-        padding-left: 150px;
+        @include media($min-width: 641px) {
+            padding-left: 150px;
+        }
     }
 
     .use-these-details-panel {
