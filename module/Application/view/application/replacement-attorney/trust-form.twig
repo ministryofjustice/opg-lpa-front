@@ -88,18 +88,6 @@
 
 {############################ trust corp form ############################}
 
-{% if (useTrustRoute) %}
-<div class="panel-actions">
-    <a href="{{ useTrustRoute }}" class="js-form-popup" >Use details of the {{ trustName }}</a>
-</div>
-{% endif %}
-
-{% if (addAttorneyRoute) %}
-<div class="panel-actions">
-    <a href="{{ addAttorneyRoute }}" class="js-form-popup" >Using an individual?</a>
-</div>
-{% endif %}
-
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
@@ -111,6 +99,18 @@
 
     <fieldset>
         <legend class="visuallyhidden">Add company details</legend>
+
+        {% if (useTrustRoute) %}
+            <div class="use-details-link-panel form-group">
+                <a href="{{ useTrustRoute }}" class="js-form-popup" >Use details of the {{ trustName }}</a>
+            </div>
+        {% endif %}
+
+        {% if (addAttorneyRoute) %}
+            <div class="use-details-link-panel form-group">
+                <a href="{{ addAttorneyRoute }}" class="js-form-popup" >Using an individual?</a>
+            </div>
+        {% endif %}
 
         {{ macros.formGroup(companyName) }}
         {{ macros.formGroup(registrationNumber) }}
