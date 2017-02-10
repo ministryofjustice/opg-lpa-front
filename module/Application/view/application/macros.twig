@@ -133,10 +133,10 @@
     {% endif %}
 {% endmacro %}
 
-{% macro renderAddTrustIndividualLink(route, trustLink) %}
-    {% if (route) %}
+{% macro addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, trustLink) %}
+    {% if (switchAttorneyTypeRoute) %}
         <div class="use-details-link-panel form-group">
-            <a class="js-form-popup" href="{{ route }}">Using {{ trustLink ? 'a trust corporation' : 'an individual' }}?</a>
+            <a class="js-form-popup" href="{{ url(switchAttorneyTypeRoute, {'lpa-id': lpa.id}) }}">Using {{ trustLink ? 'a trust corporation' : 'an individual' }}?</a>
         </div>
     {% endif %}
 {% endmacro %}

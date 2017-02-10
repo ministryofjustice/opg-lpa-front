@@ -113,8 +113,8 @@
             </div>
         {% endif %}
 
-        {# Add person link #}
-        {{ macros.renderAddTrustIndividualLink(addAttorneyRoute, false) }}
+        {# Add switch attorney type link #}
+        {{ macros.addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, false) }}
 
         {{ macros.formGroup(companyName) }}
         {{ macros.formGroup(registrationNumber) }}

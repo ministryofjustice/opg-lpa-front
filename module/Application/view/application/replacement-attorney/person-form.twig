@@ -164,8 +164,8 @@
         {# Add reuse details options #}
         {{ macros.renderReuseDetailsOptions(reuseDetailsForm, useMyDetailsRoute) }}
 
-        {# Add trust link #}
-        {{ macros.renderAddTrustIndividualLink(addTrustCorporationRoute, true) }}
+        {# Add switch attorney type link #}
+        {{ macros.addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, true) }}
 
         {{ macros.formGroup(title) }}
         {{ macros.formGroup(firstname) }}

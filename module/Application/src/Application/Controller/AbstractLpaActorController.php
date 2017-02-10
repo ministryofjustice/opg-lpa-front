@@ -238,18 +238,4 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
         return $userDetails;
     }
-
-    /**
-     * If conditions are meet then add a trust route to the view model
-     *
-     * @param string    $route
-     * @param ViewModel $viewModel
-     */
-    protected function addUseTrustRoute($route, ViewModel $viewModel)
-    {
-        //  Only provide an add trust link if the lpa doesn't have a trust link already and is of PF type
-        if (!$this->hasTrust() && ($this->getLpa()->document->type == Document::LPA_TYPE_PF)) {
-            $viewModel->addTrustCorporationRoute = $this->url()->fromRoute($route, ['lpa-id' => $this->getLpa()->id]);
-        }
-    }
 }
