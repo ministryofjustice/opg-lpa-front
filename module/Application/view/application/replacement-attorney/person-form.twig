@@ -162,10 +162,7 @@
         <legend class="visuallyhidden">Add replacement attorney's name</legend>
 
         {# Add reuse details options #}
-        {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
-
-        {# Add use my details links #}
-        {{ macros.useMyDetails(useMyDetailsRoute) }}
+        {{ macros.renderReuseDetailsOptions(reuseDetailsForm, useMyDetailsRoute) }}
 
         {# Add trust link #}
         {{ macros.renderAddTrustIndividualLink(addTrustCorporationRoute, true) }}

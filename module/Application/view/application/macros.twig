@@ -71,7 +71,7 @@
 {% endmacro %}
 
 {# Add reuse details options #}
-{% macro renderReuseDetailsOptions(reuseDetailsForm) %}
+{% macro renderReuseDetailsOptions(reuseDetailsForm, useMyDetailsRoute) %}
     {% if (reuseDetailsForm) %}
 
         {# Set form fields variables #}
@@ -126,14 +126,10 @@
 
         {{ form().closeTag|raw }}
 
-    {% endif %}
-{% endmacro %}
-
-{% macro useMyDetails(useMyDetailsRoute) %}
-    {% if (useMyDetailsRoute) %}
-    <div class="use-details-link-panel form-group js-UseMyDetails">
-        <a class="js-form-popup" href="{{ useMyDetailsRoute }}">Use my details</a>
-    </div>
+    {% elseif (useMyDetailsRoute) %}
+        <div class="use-details-link-panel form-group js-UseMyDetails">
+            <a class="js-form-popup" href="{{ useMyDetailsRoute }}">Use my details</a>
+        </div>
     {% endif %}
 {% endmacro %}
 

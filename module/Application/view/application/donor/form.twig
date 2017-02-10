@@ -184,10 +184,7 @@
         <legend class="visuallyhidden">Add donor details</legend>
 
         {# Add reuse details options #}
-        {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
-
-        {# Add use my details links #}
-        {{ macros.useMyDetails(useMyDetailsRoute) }}
+        {{ macros.renderReuseDetailsOptions(reuseDetailsForm, useMyDetailsRoute) }}
 
         {{ macros.formGroup(title) }}
         {{ macros.formGroup(firstname) }}
