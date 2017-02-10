@@ -71,7 +71,7 @@
 {% endmacro %}
 
 {# Add reuse details options #}
-{% macro renderReuseDetailsOptions(reuseDetailsForm, useMyDetailsRoute) %}
+{% macro renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails) %}
     {% if (reuseDetailsForm) %}
 
         {# Set form fields variables #}
@@ -126,9 +126,16 @@
 
         {{ form().closeTag|raw }}
 
-    {% elseif (useMyDetailsRoute) %}
+    {% elseif (allowUseMyDetails) %}
+        {% set queryJoiner = '?' %}
+        {% set currentUrl = serverUrl(true) %}
+
+        {% if (queryJoiner in currentUrl) %}
+            {% set queryJoiner = '&' %}
+        {% endif %}
+
         <div class="use-details-link-panel form-group js-UseMyDetails">
-            <a class="js-form-popup" href="{{ useMyDetailsRoute }}">Use my details</a>
+            <a class="js-form-popup" href="{{ currentUrl }}{{ queryJoiner }}use-my-details=1">Use my details</a>
         </div>
     {% endif %}
 {% endmacro %}

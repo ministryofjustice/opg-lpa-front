@@ -98,7 +98,7 @@ class DonorController extends AbstractLpaActorController
 
         // show user my details link (if the link has not been clicked and seed dropdown is not set in the view)
         if (($viewModel->reuseDetailsForm == null) && !$this->params()->fromQuery('use-my-details')) {
-            $viewModel->useMyDetailsRoute = $this->url()->fromRoute('lpa/donor/add', ['lpa-id' => $lpaId]) . '?use-my-details=1';
+            $viewModel->allowUseMyDetails = true;
         }
 
         //  Add a cancel route for this action
