@@ -70,54 +70,54 @@
 	{% endif %}
 {% endmacro %}
 
-{# Reuse contacts picker #}
-{% macro renderPickerForm(form, pickerForm) %}
-    {% if (pickerForm) %}
+{# Add reuse details options #}
+{% macro renderReuseDetailsOptions(reuseDetailsForm) %}
+    {% if (reuseDetailsForm) %}
 
         {# Set form fields variables #}
-        {% set pickerSubmit = pickerForm.get('submit') %}
-        {% set picker = pickerForm.get('pick-details') %}
-        {% set pickerCsrf = pickerForm.get(pickerForm.csrfName()) %}
+        {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
+        {% set reuseDetailsOptions = reuseDetailsForm.get('pick-details') %}
+        {% set reuseDetailsCsrf = reuseDetailsForm.get(reuseDetailsForm.csrfName()) %}
 
         {# form fields config #}
-        {{ pickerSubmit.setAttributes({
+        {{ reuseDetailsSubmit.setAttributes({
             'value': "Use this person's details",
             'class' : 'button js-details-picker'
         }) ? '' }}
 
-        {{ picker.setAttributes({
+        {{ reuseDetailsOptions.setAttributes({
             'id':'pick-details',
             'class':'form-control js-reusable'
         }) ? '' }}
 
-        {{ pickerCsrf.setAttributes({
+        {{ reuseDetailsCsrf.setAttributes({
             'id' : 'secret'
         }) ? '' }}
 
         {# form fields labels #}
-        {{ picker.setOptions({
+        {{ reuseDetailsOptions.setOptions({
             'label': 'Use these details',
             'empty_option' : 'Select a person'
         }) ? '' }}
 
         {# begin form #}
-        {{ pickerForm.prepare() ? '' }}
-        {{ form().openTag( pickerForm )|raw }}
-            {{ formElement(pickerCsrf) }}
+        {{ reuseDetailsForm.prepare() ? '' }}
+        {{ form().openTag( reuseDetailsForm )|raw }}
+            {{ formElement(reuseDetailsCsrf) }}
 
             <div class="use-these-details-panel">
                 <fieldset>
                     <legend class="visuallyhidden">Select person from previous LPA</legend>
 
                     <div class="form-group flush--bottom">
-                        <label class="form-label" for="{{ picker.getAttribute('id') }}">{{ picker.getOption('label') }}</label>
+                        <label class="form-label" for="{{ reuseDetailsOptions.getAttribute('id') }}">{{ reuseDetailsOptions.getOption('label') }}</label>
 
-                        {{ formSelect(picker) }}
-                        {{ formElementErrors(picker) }}
+                        {{ formSelect(reuseDetailsOptions) }}
+                        {{ formElementErrors(reuseDetailsOptions) }}
                     </div>
 
                     <div class="form-group js-hidden">
-                        {{ formSubmit(pickerSubmit) }}
+                        {{ formSubmit(reuseDetailsSubmit) }}
                     </div>
 
                 </fieldset>
@@ -129,11 +129,18 @@
     {% endif %}
 {% endmacro %}
 
-
 {% macro useMyDetails(useMyDetailsRoute) %}
     {% if (useMyDetailsRoute) %}
     <div class="use-details-link-panel form-group js-UseMyDetails">
         <a class="js-form-popup" href="{{ useMyDetailsRoute }}">Use my details</a>
     </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro renderAddTrustIndividualLink(route, trustLink) %}
+    {% if (route) %}
+        <div class="use-details-link-panel form-group">
+            <a class="js-form-popup" href="{{ route }}">Using {{ trustLink ? 'a trust corporation' : 'an individual' }}?</a>
+        </div>
     {% endif %}
 {% endmacro %}

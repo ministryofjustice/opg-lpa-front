@@ -123,14 +123,12 @@ class ReplacementAttorneyController extends AbstractLpaActorController
         $viewModel->form = $form;
 
         // show user my details link (if the link has not been clicked and seed dropdown is not set in the view)
-        if (($viewModel->seedDetailsPickerForm==null) && !$this->params()->fromQuery('use-my-details')) {
+        if (($viewModel->reuseDetailsForm == null) && !$this->params()->fromQuery('use-my-details')) {
             $viewModel->useMyDetailsRoute = $this->url()->fromRoute('lpa/replacement-attorney/add', ['lpa-id' => $lpaId]) . '?use-my-details=1';
         }
 
-        // only provide add trust corp link if lpa has not a trust already and lpa is of PF type.
-        if (!$this->hasTrust() && ($this->getLpa()->document->type == Document::LPA_TYPE_PF)) {
-            $viewModel->addTrustCorporationRoute = $this->url()->fromRoute('lpa/replacement-attorney/add-trust', ['lpa-id' => $lpaId]);
-        }
+        //  Try to add a trust corporation route to the view model
+        $this->addUseTrustRoute('lpa/replacement-attorney/add-trust', $viewModel);
 
         //  Add a cancel route for this action
         $this->addCancelRouteToView($viewModel, 'lpa/replacement-attorney');

@@ -146,9 +146,6 @@
 
 {{ form.prepare() ? '' }}
 
-{# Reuse contacts picker #}
-{{ macros.renderPickerForm(form, seedDetailsPickerForm) }}
-
 {################# replacement attorney form #####################}
 
 {# Error summary #}
@@ -164,13 +161,14 @@
     <fieldset>
         <legend class="visuallyhidden">Add replacement attorney's name</legend>
 
+        {# Add reuse details options #}
+        {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+
+        {# Add use my details links #}
         {{ macros.useMyDetails(useMyDetailsRoute) }}
 
-        {% if (addTrustCorporationRoute) %}
-            <div class="use-details-link-panel form-group">
-                <a class="js-form-popup" href="{{ addTrustCorporationRoute }}">Using a trust corporation?</a>
-            </div>
-        {% endif %}
+        {# Add trust link #}
+        {{ macros.renderAddTrustIndividualLink(addTrustCorporationRoute, true) }}
 
         {{ macros.formGroup(title) }}
         {{ macros.formGroup(firstname) }}

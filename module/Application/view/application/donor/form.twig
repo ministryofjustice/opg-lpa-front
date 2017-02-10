@@ -161,23 +161,21 @@
 {{ postcode.setOptions({label:'Postcode'}) ? '' }}
 {{ canSign.setOptions({label:'This person cannot physically sign or make a mark on the LPA'}) ? '' }}
 
-
 <header class="popup-header">
     <i class="icon icon-person"></i>
     <h2 class="heading-small popup-header-title">Donor's details</h2>
 </header>
+
+{{ form.prepare() ? '' }}
 
 {############################ donor form ############################}
 
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-{# Reuse contacts picker #}
-{{ macros.renderPickerForm(form, seedDetailsPickerForm) }}
-
 {# begin form #}
-{{ form.prepare() ? '' }}
 {{ form().openTag( form )|raw }}
+
     {{ formElement(form.get( form.csrfName )) }}
 
     <h2 class="heading-medium">What is the donor's name?</h2>
@@ -185,6 +183,10 @@
     <fieldset>
         <legend class="visuallyhidden">Add donor details</legend>
 
+        {# Add reuse details options #}
+        {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+
+        {# Add use my details links #}
         {{ macros.useMyDetails(useMyDetailsRoute) }}
 
         {{ macros.formGroup(title) }}

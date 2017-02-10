@@ -138,8 +138,6 @@ abstract class AbstractLpaController extends AbstractAuthenticatedController
      */
     protected function hasTrust()
     {
-        $hasTrust = false;
-
         foreach (array_merge($this->getLpa()->document->primaryAttorneys, $this->getLpa()->document->replacementAttorneys) as $attorney) {
             if ($attorney instanceof TrustCorporation) {
                 return true;

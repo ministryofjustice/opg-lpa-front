@@ -88,7 +88,7 @@ class CertificateProviderController extends AbstractLpaActorController
         $viewModel->form = $form;
 
         // show user my details link (if the link has not been clicked and seed dropdown is not set in the view)
-        if (($viewModel->seedDetailsPickerForm==null) && !$this->params()->fromQuery('use-my-details')) {
+        if (($viewModel->reuseDetailsForm == null) && !$this->params()->fromQuery('use-my-details')) {
             $viewModel->useMyDetailsRoute = $this->url()->fromRoute('lpa/certificate-provider/add', ['lpa-id' => $lpaId]) . '?use-my-details=1';
         }
 

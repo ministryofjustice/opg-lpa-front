@@ -113,11 +113,8 @@
             </div>
         {% endif %}
 
-        {% if (addAttorneyRoute) %}
-            <div class="use-details-link-panel form-group">
-                <a href="{{ addAttorneyRoute }}" class="js-form-popup" >Using an individual?</a>
-            </div>
-        {% endif %}
+        {# Add person link #}
+        {{ macros.renderAddTrustIndividualLink(addAttorneyRoute, false) }}
 
         {{ macros.formGroup(companyName) }}
         {{ macros.formGroup(registrationNumber) }}

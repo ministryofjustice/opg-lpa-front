@@ -1,12 +1,13 @@
 <?php
+
 namespace Application\Controller;
 
-use RuntimeException;
-
+use Application\Form\Lpa\AbstractActorForm;
+use Opg\Lpa\DataModel\Lpa\Document\Document;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
 use Zend\Session\Container;
-use Application\Form\Lpa\AbstractActorForm;
+
 
 abstract class AbstractLpaActorController extends AbstractLpaController
 {
@@ -179,8 +180,8 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
         if($seedDetails == null) return;
 
-        $seedDetailsPickerForm = $this->getServiceLocator()->get('FormElementManager')->get( 'Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails'=>$seedDetails] );
-        $seedDetailsPickerForm->setAttribute( 'action', $this->url()->fromRoute( $this->getEvent()->getRouteMatch()->getMatchedRouteName(), ['lpa-id' => $this->getLpa()->id] ) );
+        $reuseDetailsForm = $this->getServiceLocator()->get('FormElementManager')->get( 'Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails'=>$seedDetails] );
+        $reuseDetailsForm->setAttribute( 'action', $this->url()->fromRoute( $this->getEvent()->getRouteMatch()->getMatchedRouteName(), ['lpa-id' => $this->getLpa()->id] ) );
 
         if($trustOnly) {
             if(!$this->params()->fromQuery('use-trust-details')) {
@@ -189,7 +190,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             }
         }
         else {
-            $viewModel->seedDetailsPickerForm = $seedDetailsPickerForm;
+            $viewModel->reuseDetailsForm = $reuseDetailsForm;
         }
 
         if($this->request->isPost()) {
@@ -199,9 +200,9 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             if(!$postData->offsetExists('pick-details')) return;
 
             // load seed data into the form or return form data in json format if request is an ajax
-            $seedDetailsPickerForm->setData($this->request->getPost());
+            $reuseDetailsForm->setData($this->request->getPost());
 
-            if(!$seedDetailsPickerForm->isValid()) return;
+            if(!$reuseDetailsForm->isValid()) return;
 
             $pickIdx = $this->request->getPost('pick-details');
 
@@ -236,5 +237,19 @@ abstract class AbstractLpaActorController extends AbstractLpaController
         }
 
         return $userDetails;
+    }
+
+    /**
+     * If conditions are meet then add a trust route to the view model
+     *
+     * @param string    $route
+     * @param ViewModel $viewModel
+     */
+    protected function addUseTrustRoute($route, ViewModel $viewModel)
+    {
+        //  Only provide an add trust link if the lpa doesn't have a trust link already and is of PF type
+        if (!$this->hasTrust() && ($this->getLpa()->document->type == Document::LPA_TYPE_PF)) {
+            $viewModel->addTrustCorporationRoute = $this->url()->fromRoute($route, ['lpa-id' => $this->getLpa()->id]);
+        }
     }
 }
