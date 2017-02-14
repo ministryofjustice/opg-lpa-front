@@ -67,7 +67,7 @@
 
 {# form fields config #}
 {{ form.setAttributes({
-    'class':'form form-condensed js-PersonForm js-PostcodeLookup'
+    'class':'form js-PersonForm js-PostcodeLookup'
 }) ? '' }}
 
 {{ title.setAttributes({
@@ -173,6 +173,9 @@
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
+{# Add reuse details options #}
+{{ macros.renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails) }}
+
 {# begin form #}
 {{ form().openTag( form )|raw }}
 
@@ -182,9 +185,6 @@
 
     <fieldset>
         <legend class="visuallyhidden">Add donor details</legend>
-
-        {# Add reuse details options #}
-        {{ macros.renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails) }}
 
         {{ macros.formGroup(title) }}
         {{ macros.formGroup(firstname) }}

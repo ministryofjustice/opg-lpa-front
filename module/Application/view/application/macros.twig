@@ -73,25 +73,18 @@
 {# Add reuse details options #}
 {% macro renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails) %}
     {% if (reuseDetailsForm) %}
+        {# form fields config #}
+        {{ reuseDetailsForm.setAttributes({
+            'class':'form'
+        }) ? '' }}
 
         {# Set form fields variables #}
-        {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
         {% set reuseDetailsOptions = reuseDetailsForm.get('pick-details') %}
-        {% set reuseDetailsCsrf = reuseDetailsForm.get(reuseDetailsForm.csrfName()) %}
-
-        {# form fields config #}
-        {{ reuseDetailsSubmit.setAttributes({
-            'value': "Use this person's details",
-            'class' : 'button js-details-picker'
-        }) ? '' }}
+        {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
 
         {{ reuseDetailsOptions.setAttributes({
             'id':'pick-details',
             'class':'form-control js-reusable'
-        }) ? '' }}
-
-        {{ reuseDetailsCsrf.setAttributes({
-            'id' : 'secret'
         }) ? '' }}
 
         {# form fields labels #}
@@ -100,12 +93,17 @@
             'empty_option' : 'Select a person'
         }) ? '' }}
 
+        {# form fields config #}
+        {{ reuseDetailsSubmit.setAttributes({
+            'value': "Use this person's details",
+            'class' : 'button js-details-picker'
+        }) ? '' }}
+
         {# begin form #}
         {{ reuseDetailsForm.prepare() ? '' }}
         {{ form().openTag( reuseDetailsForm )|raw }}
-            {{ formElement(reuseDetailsCsrf) }}
 
-            <div class="use-these-details-panel">
+            <div class="form-group">
                 <fieldset>
                     <legend class="visuallyhidden">Select person from previous LPA</legend>
 

@@ -9,29 +9,30 @@ use Zend\View\Model\ViewModel;
 
 class DonorController extends AbstractLpaActorController
 {
-
-    protected $contentHeader = 'creation-partial.phtml';
-
     public function indexAction()
     {
         $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
 
         $lpaId = $this->getLpa()->id;
 
+        //  Set the add route in the view model
+        $viewModel = new ViewModel(['addRoute' => $this->url()->fromRoute($currentRouteName . '/add', ['lpa-id' => $lpaId])]);
+
         $donor = $this->getLpa()->document->donor;
 
         if ($donor instanceof Donor) {
-            return new ViewModel([
-                'donor'         => [
-                    'name'  => $donor->name,
+            //  Set the donor data in the view model
+            $viewModel = new ViewModel([
+                'donor' => [
+                    'name'    => $donor->name,
                     'address' => $donor->address,
                 ],
                 'editDonorUrl'  => $this->url()->fromRoute($currentRouteName . '/edit', ['lpa-id' => $lpaId]),
                 'nextRoute'     => $this->url()->fromRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId])
             ]);
-        } else {
-            return new ViewModel(['addRoute' => $this->url()->fromRoute($currentRouteName . '/add', ['lpa-id'=>$lpaId])]);
         }
+
+        return $viewModel;
     }
 
     public function addAction()

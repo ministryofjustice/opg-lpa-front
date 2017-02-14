@@ -4027,8 +4027,6 @@ input[type=number] {
   @media (min-width: 641px) {
     .form-popup .use-details-link-panel {
       padding-left: 150px; } }
-  .form-popup .use-these-details-panel {
-    padding: 15px 15px 0; }
 
 .no-js .form-group + .form-group.js-hidden {
   margin-top: 30px; }

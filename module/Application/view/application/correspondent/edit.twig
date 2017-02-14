@@ -86,7 +86,7 @@
 
 {# form fields config #}
 {{ form.setAttributes({
-    'class':'form form-condensed js-PersonForm js-PostcodeLookup'
+    'class':'form js-PersonForm js-PostcodeLookup'
 }) ? '' }}
 
 {{ who.setAttributes({
@@ -172,7 +172,7 @@
 {{ form().openTag( switcherForm )|raw }}
     {{ formElement(sCsrf) }}
 
-    <div class="use-these-details-panel">
+    <div class="form-group">
         <fieldset>
             <legend class="visuallyhidden">Select details from a different person</legend>
 
