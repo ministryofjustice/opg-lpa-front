@@ -3,143 +3,107 @@
 namespace Application\Controller;
 
 use Application\Form\Lpa\AbstractActorForm;
-use Opg\Lpa\DataModel\Lpa\Document\Document;
+use Zend\Session\Container;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
-use Zend\Session\Container;
-
 
 abstract class AbstractLpaActorController extends AbstractLpaController
 {
     /**
-     * @var Application\Model\FormFlowChecker
-     */
-    private $flowChecker;
-
-    /**
-     * Return clone source LPA details from session container, or from the api
-     * if not found in the session container.
+     * Return clone source LPA details from API and then store in a session container for subsequent calls
      *
      * @param bool $trustOnly - when true, only return trust corporation details
-     *
-     * @return Array|Null;
+     * @return array|null;
      */
-    protected function getSeedDetails($trustOnly=false)
+    private function getSeedDetails($trustOnly = false)
     {
-        if($this->getLpa()->seed === null) return null;
+        //  Get the LPA to check the seed value
+        $lpa = $this->getLpa();
+        $seedId = $lpa->seed;
 
-        $seedId = $this->getLpa()->seed;
+        if (is_null($seedId)) {
+            return null;
+        }
+
+        //  Get the seed data and store it in the user session - if it isn't already there
         $cloneContainer = new Container('clone');
 
-        if(!$cloneContainer->offsetExists($seedId)) {
+        if (!$cloneContainer->offsetExists($seedId)) {
+            //  The data isn't in the session - get it now
+            $seedData = $this->getLpaApplicationService()->getSeedDetails($lpa->id);
 
-            // get seed data from the API
-            $seedData = $this->getLpaApplicationService()->getSeedDetails($this->getLpa()->id);
-
-            if(!$seedData) {
+            if (!$seedData) {
                 return null;
             }
 
-            // save seed data into session container
             $cloneContainer->$seedId = $seedData;
-
         }
 
-        // get seed data from session container
+        //  Get seed data from session container
         $seedData = $cloneContainer->$seedId;
 
-        // ordering and filtering the data
+        //  Initialise the seed details array
         $seedDetails = [];
 
-        if(!$trustOnly) {
+        //  If this is not an attempt to get trust details then add the details of the session user
+        if (!$trustOnly) {
             $seedDetails[] = [
                 'label' => (string)$this->getServiceLocator()->get('UserDetailsSession')->user->name . ' (myself)',
                 'data'  => $this->getUserDetailsAsArray(),
             ];
         }
 
-        foreach($seedData as $type => $actorData) {
-            if($trustOnly) {
-                switch($type) {
-                    case 'primaryAttorneys':
-                        foreach($actorData as $singleActorData) {
-                            if($singleActorData['type'] == 'trust') {
-                                $seedDetails[] = [
-                                        'label' => $singleActorData['name'] . ' (was a Primary Attorney)',
-                                        'data' => $this->flattenData($this->seedDataFilter($singleActorData)),
-                                ];
-
-                                // only one trust can be in an LPA
-                                return $seedDetails;
-                            }
-                        }
-                        break;
-                    case 'replacementAttorneys':
-                        foreach($actorData as $singleActorData) {
-                            if($singleActorData['type'] == 'trust') {
-                                $seedDetails[] = [
-                                        'label' => $singleActorData['name'] . ' (was a Replacement Attorney)',
-                                        'data' => $this->flattenData($this->seedDataFilter($singleActorData)),
-                                ];
-
-                                // only one trust can be in an LPA
-                                return $seedDetails;
-                            }
-                        }
-                        break;
-                }
+        foreach ($seedData as $type => $actorData) {
+            //  Trusts can only be attorneys
+            if ($trustOnly && !in_array($type, ['primaryAttorneys', 'replacementAttorneys'])) {
+                continue;
             }
-            else {
 
-                switch($type) {
-                    case 'donor':
-                        $seedDetails[] = [
-                        'label' => $actorData['name']['first'].' '.$actorData['name']['last'] . ' (was the donor)',
-                        'data' => $this->flattenData($this->seedDataFilter($actorData)),
-                        ];
-                        break;
-                    case 'correspondent':
-                        if($actorData['who'] == 'other') {
-                            $seedDetails[] = [
-                            'label' => $actorData['name']['first'].' '.$actorData['name']['last'] . ' (was the correspondent)',
-                            'data' => $this->flattenData($this->seedDataFilter($actorData)),
-                            ];
+            switch ($type) {
+                case 'donor':
+                    $seedDetails[] = $this->getActorSeedDetails($actorData, '(was the donor)');
+                    break;
+                case 'correspondent':
+                    if ($actorData['who'] == 'other') {
+                        $seedDetails[] = $this->getActorSeedDetails($actorData, '(was the correspondent)');
+                    }
+                    break;
+                case 'certificateProvider':
+                    $seedDetails[] = $this->getActorSeedDetails($actorData, '(was the certificate provider)');
+                    break;
+                case 'primaryAttorneys':
+                    foreach ($actorData as $singleActorData) {
+                        if ($singleActorData['type'] == 'trust' xor $trustOnly) {
+                            continue;
                         }
-                        break;
-                    case 'certificateProvider':
-                        $seedDetails[] = [
-                        'label' => $actorData['name']['first'].' '.$actorData['name']['last'] . ' (was the certificate provider)',
-                        'data' => $this->flattenData($this->seedDataFilter($actorData)),
-                        ];
-                        break;
-                    case 'primaryAttorneys':
-                        foreach($actorData as $singleActorData) {
-                            if($singleActorData['type'] == 'trust') continue;
-                            $seedDetails[] = [
-                                    'label' => $singleActorData['name']['first'].' '.$singleActorData['name']['last'] . ' (was a primary attorney)',
-                                    'data' => $this->flattenData($this->seedDataFilter($singleActorData)),
-                            ];
+
+                        $seedDetails[] = $this->getActorSeedDetails($singleActorData, '(was a primary attorney)');
+
+                        if ($trustOnly) {
+                            return $seedDetails;
                         }
-                        break;
-                    case 'replacementAttorneys':
-                        foreach($actorData as $singleActorData) {
-                            if($singleActorData['type'] == 'trust') continue;
-                            $seedDetails[] = [
-                                    'label' => $singleActorData['name']['first'].' '.$singleActorData['name']['last'] . ' (was a replacement attorney)',
-                                    'data' => $this->flattenData($this->seedDataFilter($singleActorData)),
-                            ];
+                    }
+                    break;
+                case 'replacementAttorneys':
+                    foreach ($actorData as $singleActorData) {
+                        if ($singleActorData['type'] == 'trust' xor $trustOnly) {
+                            continue;
                         }
-                        break;
-                    case 'peopleToNotify':
-                        foreach($actorData as $singleActorData) {
-                            $seedDetails[] = [
-                                    'label' => $singleActorData['name']['first'].' '.$singleActorData['name']['last'] . ' (was a person to be notified)',
-                                    'data' => $this->flattenData($this->seedDataFilter($singleActorData)),
-                            ];
+
+                        $seedDetails[] = $this->getActorSeedDetails($singleActorData, '(was a replacement attorney)');
+
+                        if ($trustOnly) {
+                            return $seedDetails;
                         }
-                        break;
-                    default: break;
-                }
+                    }
+                    break;
+                case 'peopleToNotify':
+                    foreach ($actorData as $singleActorData) {
+                        $seedDetails[] = $this->getActorSeedDetails($singleActorData, '(was a person to be notified)');
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -147,81 +111,108 @@ abstract class AbstractLpaActorController extends AbstractLpaController
     }
 
     /**
-     * Filtering seed details - only keep name, address, dob, email, etc.
+     * Simple function to return filtered actor details for seeding
      *
-     * @param array $seedData
+     * @param array $actorData
+     * @param string $suffixText
      * @return array
      */
-    private function seedDataFilter($seedData)
+    private function getActorSeedDetails(array $actorData, $suffixText = '')
     {
-        $filteredData = [];
-        foreach($seedData as $name => $value) {
-            switch($name) {
-                case "name":
-                case "number":
-                case "otherNames":
-                case "address":
-                case "dob":
-                case "email":
-                case "phone":
-                    $filteredData[$name] = $value;
-                    break;
-                default:
-                    break;
+        //  Initialise the label text - this will be the value if the actor is a trust
+        $label = $actorData['name'];
+
+        if (!isset($actorData['type']) || $actorData['type'] != 'trust') {
+            $label = $actorData['name']['first'] . ' ' . $actorData['name']['last'];
+        }
+
+        //  Filter the actor data
+        foreach ($actorData as $actorDataKey => $actorDataValue) {
+            if (!in_array($actorDataKey, ['name', 'number', 'otherNames', 'address', 'dob', 'email', 'case', 'phone'])) {
+                unset($actorData[$actorDataKey]);
             }
         }
 
-        return $filteredData;
+        return [
+            'label' => trim($label . ' ' . $suffixText),
+            'data'  => $this->flattenData($actorData),
+        ];
     }
 
-    protected function seedDataSelector(ViewModel $viewModel, AbstractActorForm $mainForm, $trustOnly=false)
+    /**
+     * Add the seed data selector if appropriate
+     *
+     * @param ViewModel $viewModel
+     * @param AbstractActorForm $mainForm
+     * @param bool $trustOnly
+     * @return void|JsonModel
+     */
+    protected function seedDataSelector(ViewModel $viewModel, AbstractActorForm $mainForm, $trustOnly = false)
     {
         $seedDetails = $this->getSeedDetails($trustOnly);
 
-        if($seedDetails == null) return;
+        //  If there are no seed details then exit early
+        if ($seedDetails == null) {
+            return;
+        }
 
-        $reuseDetailsForm = $this->getServiceLocator()->get('FormElementManager')->get( 'Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails'=>$seedDetails] );
-        $reuseDetailsForm->setAttribute( 'action', $this->url()->fromRoute( $this->getEvent()->getRouteMatch()->getMatchedRouteName(), ['lpa-id' => $this->getLpa()->id] ) );
+        //  Get the seed details picker form and add an appropriate action
+        $reuseDetailsForm = $this->getServiceLocator()
+                                      ->get('FormElementManager')
+                                      ->get('Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails' => $seedDetails]);
 
-        if($trustOnly) {
-            if(!$this->params()->fromQuery('use-trust-details')) {
-                $viewModel->useTrustRoute = $this->url()->fromRoute( $this->getEvent()->getRouteMatch()->getMatchedRouteName(), ['lpa-id' => $this->getLpa()->id] ).'?use-trust-details=1';
+        $thisRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+        $seedDetailsAction = $this->url()->fromRoute($thisRouteName, ['lpa-id' => $this->getLpa()->id]);
+        $reuseDetailsForm->setAttribute('action', $seedDetailsAction);
+
+        //  If this is from an add trust screen then populate the trust details
+        if ($trustOnly) {
+            if (!$this->params()->fromQuery('use-trust-details')) {
+                $viewModel->useTrustRoute = $seedDetailsAction . '?use-trust-details=1';
                 $viewModel->trustName = $seedDetails[0]['label'];
             }
-        }
-        else {
+        } else {
             $viewModel->reuseDetailsForm = $reuseDetailsForm;
         }
 
-        if($this->request->isPost()) {
+        //  Initialise the actor data
+        $actorData = null;
 
+        //  If this is a post request then it may be a request to utilise some of the seed data
+        if ($this->request->isPost()) {
             $postData = $this->request->getPost();
 
-            if(!$postData->offsetExists('pick-details')) return;
+            //  Exit if this is NOT a post from the seed form
+            if (!$postData->offsetExists('is-seed-form')) {
+                return;
+            }
 
-            // load seed data into the form or return form data in json format if request is an ajax
-            $reuseDetailsForm->setData($this->request->getPost());
+            //  Load the data into the form so it can be validated
+            $reuseDetailsForm->setData($postData);
 
-            if(!$reuseDetailsForm->isValid()) return;
+            if (!$reuseDetailsForm->isValid()) {
+                return;
+            }
 
+            //  Only continue if the index selected is in the seed data
             $pickIdx = $this->request->getPost('pick-details');
 
-            if(!(is_array($seedDetails) && array_key_exists($pickIdx, $seedDetails))) return;
+            if (is_array($seedDetails) && array_key_exists($pickIdx, $seedDetails)) {
+                $actorData = $seedDetails[$pickIdx]['data'];
 
-            $actorData = $seedDetails[$pickIdx]['data'];
-
-            if ( $this->getRequest()->isXmlHttpRequest() ) {
-                return new JsonModel($actorData);
+                //  If this is an AJAX request then just return the data as json
+                if ($this->getRequest()->isXmlHttpRequest()) {
+                    return new JsonModel($actorData);
+                }
             }
-            else {
-                $mainForm->bind($actorData);
-            }
+        } elseif ($this->params()->fromQuery('use-trust-details')) {
+            //  If we're trying to use the trust details then just use the first array item - there should only be one
+            $actorData = $seedDetails[0]['data'];
         }
-        else {
-            if($this->params()->fromQuery('use-trust-details')) {
-                $actorData = $seedDetails[0]['data'];
-                $mainForm->bind($actorData);
-            }
+
+        //  This was not an AJAX request so bind the actor data to the main form
+        if (!is_null($actorData)) {
+            $mainForm->bind($actorData);
         }
     }
 
