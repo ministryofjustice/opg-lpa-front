@@ -75,7 +75,7 @@
     {% if (reuseDetailsForm) %}
         {# form fields config #}
         {{ reuseDetailsForm.setAttributes({
-            'class':'form'
+            'class':'form hard--bottom'
         }) ? '' }}
 
         {# Set form fields variables #}
@@ -103,24 +103,23 @@
         {{ reuseDetailsForm.prepare() ? '' }}
         {{ form().openTag( reuseDetailsForm )|raw }}
 
-            <div class="form-group">
-                <fieldset>
-                    <legend class="visuallyhidden">Select person from previous LPA</legend>
+        <fieldset>
+            <div class="form-group flush--bottom">
+                <legend class="visuallyhidden">Select person from previous LPA</legend>
 
-                    <div class="form-group flush--bottom">
-                        <label class="form-label" for="{{ reuseDetailsOptions.getAttribute('id') }}">{{ reuseDetailsOptions.getOption('label') }}</label>
+                <div class="form-group flush--bottom">
+                    <label class="form-label" for="{{ reuseDetailsOptions.getAttribute('id') }}">{{ reuseDetailsOptions.getOption('label') }}</label>
 
-                        {{ formSelect(reuseDetailsOptions) }}
-                        {{ formElementErrors(reuseDetailsOptions) }}
-                    </div>
+                    {{ formSelect(reuseDetailsOptions) }}
+                    {{ formElementErrors(reuseDetailsOptions) }}
+                </div>
 
-                    <div class="form-group js-hidden">
-                        {{ formSubmit(reuseDetailsSubmit) }}
-                    </div>
-
-                </fieldset>
+                <div class="form-group js-hidden">
+                    {{ formSubmit(reuseDetailsSubmit) }}
+                </div>
 
             </div>
+        </fieldset>
 
         {{ form().closeTag|raw }}
 
@@ -132,7 +131,7 @@
             {% set queryJoiner = '&' %}
         {% endif %}
 
-        <div class="use-details-link-panel form-group js-UseMyDetails">
+        <div class="use-details-link-panel js-UseMyDetails">
             <a class="js-form-popup" href="{{ currentUrl }}{{ queryJoiner }}use-my-details=1">Use my details</a>
         </div>
     {% endif %}
@@ -140,7 +139,7 @@
 
 {% macro addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, trustLink) %}
     {% if (switchAttorneyTypeRoute) %}
-        <div class="use-details-link-panel form-group">
+        <div class="use-details-link-panel">
             <a class="js-form-popup" href="{{ url(switchAttorneyTypeRoute, {'lpa-id': lpa.id}) }}">Using {{ trustLink ? 'a trust corporation' : 'an individual' }}?</a>
         </div>
     {% endif %}

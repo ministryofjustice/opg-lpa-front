@@ -98,6 +98,9 @@
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
+{# Add switch attorney type link #}
+{{ macros.addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, false) }}
+
 {# begin form #}
 {{ form().openTag( form )|raw }}
     {{ formElement(form.get( form.csrfName )) }}
@@ -112,9 +115,6 @@
                 <a href="{{ useTrustRoute }}" class="js-form-popup" >Use details of the {{ trustName }}</a>
             </div>
         {% endif %}
-
-        {# Add switch attorney type link #}
-        {{ macros.addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, false) }}
 
         {{ macros.formGroup(companyName) }}
         {{ macros.formGroup(registrationNumber) }}

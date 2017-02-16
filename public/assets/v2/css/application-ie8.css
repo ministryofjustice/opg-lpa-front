@@ -3241,7 +3241,8 @@ input[type=number] {
     top: 80px;
     left: 0; }
   .form-popup .use-details-link-panel {
-    padding-left: 150px; }
+    padding: 15px;
+    padding: 15px 15px 0 165px; }
 
 .no-js .form-group + .form-group.js-hidden {
   margin-top: 30px; }
