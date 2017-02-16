@@ -78,7 +78,8 @@
         } else {
           // render form
           self.renderForm(html);
-          // checking date when 'my details' are populated
+          // If the user clicked the user my details link then automatically trigger the date of birth change
+          // so that any warning message can be displayed
           if (url.indexOf('use-my-details') !== -1) {
             $('#dob-date-day').trigger('change');
           }

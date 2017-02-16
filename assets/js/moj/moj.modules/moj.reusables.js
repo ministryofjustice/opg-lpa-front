@@ -111,7 +111,7 @@
         }
 
       }
-      
+
       // empty existing form element values before populating data into the form.
       $('form.js-PersonForm')
         .find('input[type=text],input[type=email],select')
@@ -120,7 +120,7 @@
         });
 
         // Show any fields which were hidden
-        
+
         $('.js-PostcodeLookup').data('moj.PostcodeLookup').hideSearchForm();
         $('.js-PostcodeLookup').data('moj.PostcodeLookup').toggleAddress();
 

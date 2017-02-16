@@ -9,16 +9,8 @@
 {% import "application/macros.twig" as macros %}
 
 <script type="text/javascript">
-	var actorNames = {{ actorsList(lpa, routeMatch)|json_encode()|raw }};
-	var actors = {names: actorNames};
-    var user = {
-        firstName: '{{ signedInUser.name.first }}',
-        lastName: '{{ signedInUser.name.last }}'
-    }
-
-    moj.Modules.UseMyDetails.init();
-
-	{{ macros.addDobCheckOnUseMyDetails(isUseMyDetailsDetails) }}
+    var actorNames = {{ actorsList(lpa, routeMatch)|json_encode()|raw }};
+    var actors = {names: actorNames};
 </script>
 
 {# Error messages #}

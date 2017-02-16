@@ -61,15 +61,6 @@
 
 {% endmacro %}
 
-{# JS check dob #}
-{% macro addDobCheckOnUseMyDetails(isUseMyDetails) %}
-	{% if (isUseMyDetails) %}
-		if ($('#dob-date-day').val()) {
-			dobChecks($('.dob-element'));
-		}
-	{% endif %}
-{% endmacro %}
-
 {# Add reuse details options #}
 {% macro renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails) %}
     {% if (reuseDetailsForm) %}
@@ -131,7 +122,7 @@
             {% set queryJoiner = '&' %}
         {% endif %}
 
-        <div class="use-details-link-panel js-UseMyDetails">
+        <div class="use-details-link-panel">
             <a class="js-form-popup" href="{{ currentUrl }}{{ queryJoiner }}use-my-details=1">Use my details</a>
         </div>
     {% endif %}
