@@ -149,6 +149,11 @@ abstract class AbstractLpaActorController extends AbstractLpaController
      */
     protected function seedDataSelector(ViewModel $viewModel, AbstractActorForm $mainForm, $trustOnly = false)
     {
+        //  If the user details aren't being used already (determined by the query params) then allow the link to be displayed
+        if (!$trustOnly && !$this->params()->fromQuery('use-my-details')) {
+            $viewModel->allowUseMyDetails = true;
+        }
+
         $seedDetails = $this->getSeedDetails($trustOnly);
 
         //  If there are no seed details then exit early
@@ -158,21 +163,22 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
         //  Get the seed details picker form and add an appropriate action
         $reuseDetailsForm = $this->getServiceLocator()
-                                      ->get('FormElementManager')
-                                      ->get('Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails' => $seedDetails]);
-
-        $thisRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
-        $seedDetailsAction = $this->url()->fromRoute($thisRouteName, ['lpa-id' => $this->getLpa()->id]);
-        $reuseDetailsForm->setAttribute('action', $seedDetailsAction);
+                                 ->get('FormElementManager')
+                                 ->get('Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails' => $seedDetails]);
 
         //  If this is from an add trust screen then populate the trust details
         if ($trustOnly) {
             if (!$this->params()->fromQuery('use-trust-details')) {
-                $viewModel->useTrustRoute = $seedDetailsAction . '?use-trust-details=1';
-                $viewModel->trustName = $seedDetails[0]['label'];
+                $viewModel->reuseTrustName = $seedDetails[0]['label'];
             }
+
+            //  Don't show the allow my details link to be displayed on the trust forms
+            $viewModel->allowUseMyDetails = false;
         } else {
             $viewModel->reuseDetailsForm = $reuseDetailsForm;
+
+            //  As we are going to display the reuse details form - don't allow the link to be displayed
+            $viewModel->allowUseMyDetails = false;
         }
 
         //  Initialise the actor data

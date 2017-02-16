@@ -101,6 +101,9 @@
 {# Add switch attorney type link #}
 {{ macros.addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, false) }}
 
+{# Add reuse details options #}
+{{ macros.renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails, reuseTrustName) }}
+
 {# begin form #}
 {{ form().openTag( form )|raw }}
     {{ formElement(form.get( form.csrfName )) }}
@@ -109,12 +112,6 @@
 
     <fieldset>
         <legend class="visuallyhidden">Add company details</legend>
-
-        {% if (useTrustRoute) %}
-            <div class="use-details-link-panel form-group">
-                <a href="{{ useTrustRoute }}" class="js-form-popup" >Use details of the {{ trustName }}</a>
-            </div>
-        {% endif %}
 
         {{ macros.formGroup(companyName) }}
         {{ macros.formGroup(registrationNumber) }}

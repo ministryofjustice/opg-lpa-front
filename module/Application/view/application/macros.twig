@@ -62,7 +62,7 @@
 {% endmacro %}
 
 {# Add reuse details options #}
-{% macro renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails) %}
+{% macro renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails, reuseTrustName) %}
     {% if (reuseDetailsForm) %}
         {# form fields config #}
         {{ reuseDetailsForm.setAttributes({
@@ -114,7 +114,7 @@
 
         {{ form().closeTag|raw }}
 
-    {% elseif (allowUseMyDetails) %}
+    {% elseif (allowUseMyDetails or reuseTrustName is not empty) %}
         {% set queryJoiner = '?' %}
         {% set currentUrl = serverUrl(true) %}
 
@@ -122,8 +122,16 @@
             {% set queryJoiner = '&' %}
         {% endif %}
 
+        {% set queryParam = 'use-my-details' %}
+        {% set linkText = 'Use my details' %}
+
+        {% if (reuseTrustName is not empty) %}
+            {% set queryParam = 'use-trust-details' %}
+            {% set linkText = 'Use details of the ' ~ reuseTrustName %}
+        {% endif %}
+
         <div class="use-details-link-panel">
-            <a class="js-form-popup" href="{{ currentUrl }}{{ queryJoiner }}use-my-details=1">Use my details</a>
+            <a class="js-form-popup" href="{{ currentUrl }}{{ queryJoiner }}{{ queryParam }}=1">{{ linkText }}</a>
         </div>
     {% endif %}
 {% endmacro %}
