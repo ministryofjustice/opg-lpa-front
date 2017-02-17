@@ -116,6 +116,8 @@
             if (($target.attr('name') === 'name-first') || ($target.attr('name') === 'name-last')) {
 
               // Check for duplicate names
+              var actorNames = $form.data('actor-names');
+
               if ((typeof actorNames !== 'undefined') && actorNames.length) {
                 for (loop = 0; loop < actorNames.length; loop++) {
                   item = actorNames[loop];

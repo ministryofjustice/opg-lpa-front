@@ -37,16 +37,18 @@ class DonorController extends AbstractLpaActorController
 
     public function addAction()
     {
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
+
         $routeMatch = $this->getEvent()->getRouteMatch();
 
-        if ($this->getLpa()->document->donor instanceof Donor) {
+        if ($lpa->document->donor instanceof Donor) {
             return $this->redirect()->toRoute('lpa/donor', ['lpa-id'=>$lpaId]);
         }
 
         $isPopup = $this->getRequest()->isXmlHttpRequest();
 
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
         $viewModel->setTemplate('application/donor/form.twig');
 
         if ($isPopup) {
@@ -55,6 +57,7 @@ class DonorController extends AbstractLpaActorController
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\DonorForm');
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         $seedSelection = $this->seedDataSelector($viewModel, $form);
 
@@ -92,14 +95,15 @@ class DonorController extends AbstractLpaActorController
 
     public function editAction()
     {
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
 
         $routeMatch = $this->getEvent()->getRouteMatch();
         $currentRouteName = $routeMatch->getMatchedRouteName();
 
         $isPopup = $this->getRequest()->isXmlHttpRequest();
 
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
         $viewModel->setTemplate('application/donor/form.twig');
 
         if ($isPopup) {
@@ -108,6 +112,7 @@ class DonorController extends AbstractLpaActorController
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\DonorForm');
         $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         if ($this->request->isPost()) {
             $postData = $this->request->getPost();
@@ -130,8 +135,8 @@ class DonorController extends AbstractLpaActorController
                 }
             }
         } else {
-            $donor = $this->getLpa()->document->donor->flatten();
-            $dob = $this->getLpa()->document->donor->dob->date;
+            $donor = $lpa->document->donor->flatten();
+            $dob = $lpa->document->donor->dob->date;
 
             $donor['dob-date'] = [
                 'day'   => $dob->format('d'),

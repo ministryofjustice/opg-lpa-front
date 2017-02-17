@@ -32,23 +32,26 @@ class CertificateProviderController extends AbstractLpaActorController
 
     public function addAction()
     {
-        if ($this->getLpa()->document->certificateProvider instanceof CertificateProvider) {
+        $lpa = $this->getLpa();
+
+        if ($lpa->document->certificateProvider instanceof CertificateProvider) {
             return $this->redirect()->toRoute('lpa/certificate-provider', ['lpa-id' => $lpaId]);
         }
 
         $routeMatch = $this->getEvent()->getRouteMatch();
         $isPopup = $this->getRequest()->isXmlHttpRequest();
 
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
         $viewModel->setTemplate('application/certificate-provider/form.twig');
         if ($isPopup) {
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpaId = $lpa->id;
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CertificateProviderForm');
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         $seedSelection = $this->seedDataSelector($viewModel, $form);
 
@@ -88,7 +91,7 @@ class CertificateProviderController extends AbstractLpaActorController
     {
         $routeMatch = $this->getEvent()->getRouteMatch();
         $isPopup = $this->getRequest()->isXmlHttpRequest();
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
 
         $viewModel->setTemplate('application/certificate-provider/form.twig');
 
@@ -96,12 +99,14 @@ class CertificateProviderController extends AbstractLpaActorController
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
 
         $currentRouteName = $routeMatch->getMatchedRouteName();
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CertificateProviderForm');
         $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         if ($this->request->isPost()) {
             $postData = $this->request->getPost();
@@ -123,7 +128,7 @@ class CertificateProviderController extends AbstractLpaActorController
                 }
             }
         } else {
-            $cp = $this->getLpa()->document->certificateProvider->flatten();
+            $cp = $lpa->document->certificateProvider->flatten();
             $form->bind($cp);
         }
 

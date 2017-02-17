@@ -77,7 +77,6 @@ return [
         'invokables' => [
             'accordion'             => 'Application\View\Helper\Accordion',
             'accountInfo'           => 'Application\View\Helper\AccountInfo',
-            'actorsList'            => 'Application\View\Helper\ActorsList',
             'pageHeaders'           => 'Application\View\Helper\PageHeaders',
             'elementGroupClass'     => 'Application\View\Helper\ElementGroupClass',
             'routeName'             => 'Application\View\Helper\RouteName',

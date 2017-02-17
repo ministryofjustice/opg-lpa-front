@@ -8,10 +8,6 @@
 
 {% import "application/macros.twig" as macros %}
 
-<script type="text/javascript">
-    var actorNames = {{ actorsList(lpa, routeMatch)|json_encode()|raw }};
-</script>
-
 {# Error messages #}
 {% set form = formErrorTextExchange(form,  {
     'name-title' : {

@@ -57,17 +57,19 @@ class PrimaryAttorneyController extends AbstractLpaActorController
 
         $isPopup = $this->getRequest()->isXmlHttpRequest();
 
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
 
         $viewModel->setTemplate('application/primary-attorney/person-form.twig');
         if ($isPopup) {
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\AttorneyForm');
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         $seedSelection = $this->seedDataSelector($viewModel, $form);
         if ($seedSelection instanceof JsonModel) {
@@ -101,7 +103,7 @@ class PrimaryAttorneyController extends AbstractLpaActorController
         $viewModel->form = $form;
 
         //  If appropriate add an add trust link route
-        if (!$this->hasTrust() && ($this->getLpa()->document->type == Document::LPA_TYPE_PF)) {
+        if (!$this->hasTrust() && ($lpa->document->type == Document::LPA_TYPE_PF)) {
             $viewModel->switchAttorneyTypeRoute = 'lpa/primary-attorney/add-trust';
         }
 
@@ -116,20 +118,21 @@ class PrimaryAttorneyController extends AbstractLpaActorController
         $routeMatch = $this->getEvent()->getRouteMatch();
 
         $isPopup = $this->getRequest()->isXmlHttpRequest();
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
 
         if ($isPopup) {
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
 
         $currentRouteName = $routeMatch->getMatchedRouteName();
 
         $attorneyIdx = $routeMatch->getParam('idx');
 
-        if (array_key_exists($attorneyIdx, $this->getLpa()->document->primaryAttorneys)) {
-            $attorney = $this->getLpa()->document->primaryAttorneys[$attorneyIdx];
+        if (array_key_exists($attorneyIdx, $lpa->document->primaryAttorneys)) {
+            $attorney = $lpa->document->primaryAttorneys[$attorneyIdx];
         }
 
         // if attorney idx does not exist in lpa, return 404.
@@ -139,6 +142,7 @@ class PrimaryAttorneyController extends AbstractLpaActorController
 
         if ($attorney instanceof Human) {
             $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\AttorneyForm');
+            $form->setExistingActorNamesData($this->getActorsList($routeMatch));
             $viewModel->setTemplate('application/primary-attorney/person-form.twig');
         } else {
             $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\TrustCorporationForm');
@@ -263,7 +267,7 @@ class PrimaryAttorneyController extends AbstractLpaActorController
         $routeMatch = $this->getEvent()->getRouteMatch();
 
         $isPopup = $this->getRequest()->isXmlHttpRequest();
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
         $viewModel->setTemplate('application/primary-attorney/trust-form.twig');
 
         if ($isPopup) {

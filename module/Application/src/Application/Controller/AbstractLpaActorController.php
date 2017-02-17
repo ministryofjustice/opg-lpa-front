@@ -3,8 +3,14 @@
 namespace Application\Controller;
 
 use Application\Form\Lpa\AbstractActorForm;
+use Opg\Lpa\DataModel\AbstractData;
+use Opg\Lpa\DataModel\Lpa\Document\Attorneys\Human;
+use Opg\Lpa\DataModel\Lpa\Document\CertificateProvider;
+use Opg\Lpa\DataModel\Lpa\Document\Donor;
+use Opg\Lpa\DataModel\Lpa\Elements\Name;
 use Opg\Lpa\DataModel\Lpa\Lpa;
 use Opg\Lpa\DataModel\User\Dob;
+use Zend\Mvc\Router\Http\RouteMatch;
 use Zend\Session\Container;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
@@ -22,12 +28,42 @@ abstract class AbstractLpaActorController extends AbstractLpaController
         //  Initialise the reuse details details array
         $actorReuseDetails = [];
 
-        //  If this is not a request to get trust data add the current user data to the details
+        //  If this is not a request to get trust data, and the session user data hasn't already been used, add it now
         if (!$trustOnly) {
-            $actorReuseDetails[] = [
-                'label' => (string)$this->getServiceLocator()->get('UserDetailsSession')->user->name . ' (myself)',
-                'data'  => $this->getUserDetailsAsArray(),
-            ];
+            //  Check that the current session user details have not already been used
+            $addSessionUserDetails = true;
+            $userDetailsObj = $this->getUserDetails();
+
+            foreach ($this->getActorsList() as $actorsListItem) {
+                if (strtolower($userDetailsObj->name->first) == strtolower($actorsListItem['firstname'])
+                    && strtolower($userDetailsObj->name->last) == strtolower($actorsListItem['lastname'])) {
+
+                    $addSessionUserDetails = false;
+                    break;
+                }
+            }
+
+
+
+            if ($addSessionUserDetails) {
+                //  Flatten the user details and reformat the DOB before adding the details to the reuse details array
+                $userDetails = $userDetailsObj->flatten();
+                $dateOfBirth = $userDetailsObj->dob;
+
+                //  If a date of birth is present then replace it as an array of day, month and year
+                if ($dateOfBirth instanceof Dob) {
+                    $userDetails['dob-date'] = [
+                        'day'   => $dateOfBirth->date->format('d'),
+                        'month' => $dateOfBirth->date->format('m'),
+                        'year'  => $dateOfBirth->date->format('Y'),
+                    ];
+                }
+
+                $actorReuseDetails[] = [
+                    'label' => (string)$this->getServiceLocator()->get('UserDetailsSession')->user->name . ' (myself)',
+                    'data'  => $userDetails,
+                ];
+            }
         }
 
         //  Get any seed details for this LPA
@@ -41,15 +77,15 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
             switch ($type) {
                 case 'donor':
-                    $actorReuseDetails[] = $this->getActorDetails($actorData, '(was the donor)');
+                    $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the donor)');
                     break;
                 case 'correspondent':
                     if ($actorData['who'] == 'other') {
-                        $actorReuseDetails[] = $this->getActorDetails($actorData, '(was the correspondent)');
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the correspondent)');
                     }
                     break;
                 case 'certificateProvider':
-                    $actorReuseDetails[] = $this->getActorDetails($actorData, '(was the certificate provider)');
+                    $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the certificate provider)');
                     break;
                 case 'primaryAttorneys':
                     foreach ($actorData as $singleActorData) {
@@ -57,7 +93,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                             continue;
                         }
 
-                        $actorReuseDetails[] = $this->getActorDetails($singleActorData, '(was a primary attorney)');
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, '(was a primary attorney)');
                     }
                     break;
                 case 'replacementAttorneys':
@@ -69,7 +105,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                     break;
                 case 'peopleToNotify':
                     foreach ($actorData as $singleActorData) {
-                        $actorReuseDetails[] = $this->getActorDetails($singleActorData, '(was a person to be notified)');
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, '(was a person to be notified)');
                     }
                     break;
                 default:
@@ -78,29 +114,6 @@ abstract class AbstractLpaActorController extends AbstractLpaController
         }
 
         return $actorReuseDetails;
-    }
-
-    /**
-     * Return the user details of the current user in an array
-     *
-     * @return array
-     */
-    private function getUserDetailsAsArray()
-    {
-        $userDetailsObj = $this->getUserDetails();
-        $userDetails = $userDetailsObj->flatten();
-        $dateOfBirth = $userDetailsObj->dob;
-
-        //  If a date of birth is present then replace it as an array of day, month and year
-        if ($dateOfBirth instanceof Dob) {
-            $userDetails['dob-date'] = [
-                'day'   => $dateOfBirth->date->format('d'),
-                'month' => $dateOfBirth->date->format('m'),
-                'year'  => $dateOfBirth->date->format('Y'),
-            ];
-        }
-
-        return $userDetails;
     }
 
     /**
@@ -131,13 +144,13 @@ abstract class AbstractLpaActorController extends AbstractLpaController
     }
 
     /**
-     * Simple function to return filtered actor details
+     * Simple function to return filtered actor details for reuse
      *
      * @param array $actorData
      * @param string $suffixText
      * @return array
      */
-    private function getActorDetails(array $actorData, $suffixText = '')
+    private function getReuseDetailsForActor(array $actorData, $suffixText = '')
     {
         //  Initialise the label text - this will be the value if the actor is a trust
         $label = $actorData['name'];
@@ -185,10 +198,10 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
             $reuseDetailsForm->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $this->getLpa()->id]));
 
-            //  Get the reuse-details index from the query parameters if it is present
+            //  Get the reuse details index from the query parameters if it is present
             $reuseDetailsIndex = $this->params()->fromQuery('reuse-details');
 
-            //  If a valid reuse-details query param has been passed then try to retrieve the appropriate details
+            //  If a valid reuse details query param has been passed then try to retrieve the appropriate details
             if (is_numeric($reuseDetailsIndex) && array_key_exists($reuseDetailsIndex, $actorReuseDetails)) {
                 //  Get the actor data
                 $actorData = $actorReuseDetails[$reuseDetailsIndex]['data'];
@@ -204,5 +217,95 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
             $viewModel->reuseDetailsForm = $reuseDetailsForm;
         }
+    }
+
+
+
+    /**
+     * Generate a list of actors already associated with the current LPA
+     *
+     * @param Lpa $lpa
+     * @param RouteMatch $routeMatch
+     * @return array
+     */
+    protected function getActorsList(RouteMatch $routeMatch = null)
+    {
+        $actorsList = [];
+
+        //  Get the route details
+        $matchedRoute = null;
+        $routeIndex = null;
+
+        if ($routeMatch instanceof RouteMatch) {
+            $matchedRoute = $routeMatch->getMatchedRouteName();
+            $routeIndex = $routeMatch->getParam('idx');
+        }
+
+        $lpa = $this->getLpa();
+
+        if (($matchedRoute != 'lpa/donor/edit') && ($lpa->document->donor instanceof Donor)) {
+            $actorsList[] = $this->getActorDetails($lpa->document->donor, 'donor');
+        }
+
+        // when edit a cp or on np add/edit page, do not include this cp
+        if (($lpa->document->certificateProvider instanceof CertificateProvider) && !in_array($matchedRoute, ['lpa/certificate-provider/edit','lpa/people-to-notify/add','lpa/people-to-notify/edit'])) {
+            $actorsList[] = $this->getActorDetails($lpa->document->certificateProvider, 'certificate provider');
+        }
+
+        foreach ($lpa->document->primaryAttorneys as $idx => $attorney) {
+            if ($matchedRoute == 'lpa/primary-attorney/edit' && $routeIndex == $idx) {
+                continue;
+            }
+
+            if ($attorney instanceof Human) {
+                $actorsList[] = $this->getActorDetails($attorney, 'attorney');
+            }
+        }
+
+        foreach ($lpa->document->replacementAttorneys as $idx => $attorney) {
+            if ($matchedRoute == 'lpa/replacement-attorney/edit' && $routeIndex == $idx) {
+                continue;
+            }
+
+            if ($attorney instanceof Human) {
+                $actorsList[] = $this->getActorDetails($attorney, 'replacement attorney');
+            }
+        }
+
+        // on cp page, do not include np names for duplication check
+        if ($matchedRoute != 'lpa/certificate-provider/add' && $matchedRoute != 'lpa/certificate-provider/edit') {
+            foreach ($lpa->document->peopleToNotify as $idx => $notifiedPerson) {
+                // when edit an np, do not include this np
+                if ($matchedRoute == 'lpa/people-to-notify/edit' && $routeIndex == $idx) {
+                    continue;
+                }
+
+                $actorsList[] = $this->getActorDetails($notifiedPerson, 'people to notify');
+            }
+        }
+
+        return $actorsList;
+    }
+
+    /**
+     * Simple function to format the actor details is a consistent manner
+     *
+     * @param AbstractData $actorData
+     * @param $actorType
+     * @return array
+     */
+    private function getActorDetails(AbstractData $actorData, $actorType)
+    {
+        $actorDetails = [];
+
+        if (isset($actorData->name) && $actorData->name instanceof Name) {
+            $actorDetails = [
+                'firstname' => $actorData->name->first,
+                'lastname'  => $actorData->name->last,
+                'type'      => $actorType
+            ];
+        }
+
+        return $actorDetails;
     }
 }

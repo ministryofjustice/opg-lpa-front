@@ -57,21 +57,23 @@ class PeopleToNotifyController extends AbstractLpaActorController
         $routeMatch = $this->getEvent()->getRouteMatch();
         $isPopup = $this->getRequest()->isXmlHttpRequest();
 
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
 
         $viewModel->setTemplate('application/people-to-notify/form.twig');
         if ($isPopup) {
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
 
-        if (count($this->getLpa()->document->peopleToNotify) >= 5) {
+        if (count($lpa->document->peopleToNotify) >= 5) {
             return $this->redirect()->toRoute('lpa/people-to-notify', ['lpa-id'=>$lpaId]);
         }
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\PeopleToNotifyForm');
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         $seedSelection = $this->seedDataSelector($viewModel, $form);
         if ($seedSelection instanceof JsonModel) {
@@ -90,8 +92,8 @@ class PeopleToNotifyController extends AbstractLpaActorController
                 }
 
                 // remove metadata flag value if exists
-                if (!array_key_exists(Metadata::PEOPLE_TO_NOTIFY_CONFIRMED, $this->getLpa()->metadata)) {
-                        $this->getServiceLocator()->get('Metadata')->setPeopleToNotifyConfirmed($this->getLpa());
+                if (!array_key_exists(Metadata::PEOPLE_TO_NOTIFY_CONFIRMED, $lpa->metadata)) {
+                        $this->getServiceLocator()->get('Metadata')->setPeopleToNotifyConfirmed($lpa);
                 }
 
                 // redirect to next page for non-js, or return a json to ajax call.
@@ -115,19 +117,20 @@ class PeopleToNotifyController extends AbstractLpaActorController
     {
         $routeMatch = $this->getEvent()->getRouteMatch();
         $isPopup = $this->getRequest()->isXmlHttpRequest();
-        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['isPopup' => $isPopup]);
 
         $viewModel->setTemplate('application/people-to-notify/form.twig');
         if ($isPopup) {
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
         $currentRouteName = $routeMatch->getMatchedRouteName();
 
         $personIdx = $routeMatch->getParam('idx');
-        if (array_key_exists($personIdx, $this->getLpa()->document->peopleToNotify)) {
-            $notifiedPerson = $this->getLpa()->document->peopleToNotify[$personIdx];
+        if (array_key_exists($personIdx, $lpa->document->peopleToNotify)) {
+            $notifiedPerson = $lpa->document->peopleToNotify[$personIdx];
         }
 
         // if notified person idx does not exist in lpa, return 404.
@@ -137,6 +140,7 @@ class PeopleToNotifyController extends AbstractLpaActorController
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\PeopleToNotifyForm');
         $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId, 'idx' => $personIdx]));
+        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         if ($this->request->isPost()) {
             $postData = $this->request->getPost();
