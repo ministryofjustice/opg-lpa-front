@@ -9,44 +9,7 @@
 {% import "application/macros.twig" as macros %}
 
 {# Error messages #}
-
-{# -- Switcher form -- #}
-{# Error messages #}
-{% set switcherForm = formErrorTextExchange(switcherForm,  {
-    'switch-to-type' : {
-        'Value is required and can\'t be empty' : 'Please select a person'
-    }
-}) %}
-
-{# Set form fields variables #}
-{% set sCsrf = switcherForm.get(switcherForm.csrfName()) %}
-{% set switchTo = switcherForm.get('switch-to-type') %}
-{% set switchSubmit = switcherForm.get('submit') %}
-
-{# form fields config #}
-{{ sCsrf.setAttributes({id:'secret'}) ? '' }}
-{{ switchSubmit.setAttributes({value:'switch'}) ? '' }}
-{{ switchTo.setAttributes({
-    'id':'switch-to-type',
-    'class':'js-reusable form-control'
-}) ? '' }}
-{{ switchTo.setOptions({
-    empty_option: 'Select a person'
-}) ? '' }}
-{{ switcherForm.prepare() ? '' }}
-
-{# form fields labels #}
-{{ switchTo.setOptions({
-    label:'Use these details'
-}) ? '' }}
-
-{# -- Correspondent form -- #}
-{# Set form fields variables #}
-{% set form = correspondentForm %}
-
-
-{# Error messages #}
-    {% set form = formErrorTextExchange(form,  {
+{% set form = formErrorTextExchange(form,  {
     'name-title' : {
         'must-be-less-than-or-equal:5' : 'Title must be five letters or fewer - please abbreviate, if necessary'
     },
@@ -71,7 +34,6 @@
     }
 }) %}
 
-{% set csrf = form.get(form.csrfName) %}
 {% set who = form.get('who') %}
 {% set title = form.get('name-title') %}
 {% set firstname = form.get('name-first') %}
@@ -157,42 +119,24 @@
 {{ email.setOptions({label:'Email'}) ? '' }}
 {{ phone.setOptions({label:'Phone number'}) ? '' }}
 
-{{ form.prepare() ? '' }}
-
 <header class="popup-header">
     <i class="icon icon-person"></i>
     <h2 class="heading-small popup-header-title">Correspondent details</h2>
 </header>
 
-{# switcher form - error summary #}
-{{ macros.formErrorSummary(error, switcherForm, 'There was a problem submitting the form') }}
+{{ form.prepare() ? '' }}
 
-{# switcher form - begin form #}
-{{ switcherForm.prepare() ? '' }}
-{{ form().openTag( switcherForm )|raw }}
-    {{ formElement(sCsrf) }}
-
-    <div class="form-group">
-        <fieldset>
-            <legend class="visuallyhidden">Select details from a different person</legend>
-
-            {{ macros.formGroup(switchTo) }}
-
-        </fieldset>
-
-        <div class="form-group">
-            <input type="submit" name="switcher-submit" value="Switch to selected person" class="button">
-        </div>
-    </div>
-{{ form().closeTag|raw }}
+{############################ correspondent form ##########################}
 
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-{# correspondent form - begin form #}
-{{ form.prepare() ? '' }}
+{#Add reuse details options #}
+{{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+
+{# begin form #}
 {{ form().openTag( form )|raw }}
-    {{ formElement(csrf) }}
+    {{ formElement(form.get( form.csrfName )) }}
 
     <h2 class="heading-medium">Correspondent's details?</h2>
 

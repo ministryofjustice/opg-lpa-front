@@ -100,25 +100,25 @@
             {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
 
             {{ reuseDetailsSelect.setAttributes({
-                'id':'reuse-details',
-                'class':'form-control js-reusable'
+                'id':    'reuse-details',
+                'class': 'form-control js-reusable'
             }) ? '' }}
 
             {# form fields labels #}
             {{ reuseDetailsSelect.setOptions({
-                'label': 'Use these details',
-                'empty_option' : 'Select a person'
+                'label':        'Use these details',
+                'empty_option': 'Select a person'
             }) ? '' }}
 
             {# form fields config #}
             {{ reuseDetailsSubmit.setAttributes({
-                'value': "Use this person's details",
-                'class' : 'button'
+                'value': 'Use this person\'s details',
+                'class': 'button'
             }) ? '' }}
 
             {# begin form #}
             {{ reuseDetailsForm.prepare() ? '' }}
-            {{ form().openTag( reuseDetailsForm )|raw }}
+            {{ form().openTag(reuseDetailsForm)|raw }}
 
             <fieldset>
                 <div class="form-group flush--bottom">
@@ -126,13 +126,11 @@
 
                     <div class="form-group flush--bottom">
                         <label class="form-label" for="{{ reuseDetailsSelect.getAttribute('id') }}">{{ reuseDetailsSelect.getOption('label') }}</label>
-
                         {{ formSelect(reuseDetailsSelect) }}
-                        {{ formElementErrors(reuseDetailsSelect) }}
                     </div>
 
                     <div class="form-group js-hidden">
-                        {{ formSubmit(reuseDetailsSubmit) }}
+                        {{ formElement(reuseDetailsSubmit) }}
                     </div>
 
                 </div>

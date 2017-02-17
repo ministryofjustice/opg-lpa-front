@@ -13,6 +13,12 @@ class SeedDetailsPickerForm extends Form
      */
     private $trustDataOnly = false;
 
+    /**
+     * SeedDetailsPickerForm constructor
+     *
+     * @param int|null|string $name
+     * @param array $options
+     */
     public function __construct($name, $options)
     {
         //  Populate the reuse details value options from the seed details

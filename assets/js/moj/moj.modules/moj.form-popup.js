@@ -103,9 +103,6 @@
         }
       });
 
-      // hide use button and switch button
-      $('#form-correspondent-selector').find('input[type=submit]').hide();
-
       this.renderSelectionButtons();
     },
 

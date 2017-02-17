@@ -4193,9 +4193,6 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
         }
       });
 
-      // hide use button and switch button
-      $('#form-correspondent-selector').find('input[type=submit]').hide();
-
       this.renderSelectionButtons();
     },
 
@@ -4443,12 +4440,8 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
         selected = $el.val();
 
-        if ($personForm.find('[name=switch-to-type]').length === 0) {
-          // Normal form - not from correspondence edit screen
-          requestData = { 'reuse-details': $form.find('[name=reuse-details]').val() };
-        } else {
-          requestData = { 'switch-to-type': $form.find('[name=switch-to-type]').val(), 'switcher-submit': $form.find('[name=switcher-submit]').val() };
-        }
+        //  Get the value of the reuse details input
+        requestData = { 'reuse-details': $form.find('[name=reuse-details]').val() };
 
         $.get(url, requestData).done(function(data) {
           $el.spinner('off');

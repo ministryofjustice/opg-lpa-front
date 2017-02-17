@@ -23,47 +23,14 @@ abstract class AbstractLpaActorController extends AbstractLpaController
      * @param bool $trustOnly - when true, only return trust corporation details
      * @return array
      */
-    private function getActorReuseDetails($trustOnly = false)
+    protected function getActorReuseDetails($trustOnly = false)
     {
         //  Initialise the reuse details details array
         $actorReuseDetails = [];
 
         //  If this is not a request to get trust data, and the session user data hasn't already been used, add it now
         if (!$trustOnly) {
-            //  Check that the current session user details have not already been used
-            $addSessionUserDetails = true;
-            $userDetailsObj = $this->getUserDetails();
-
-            foreach ($this->getActorsList() as $actorsListItem) {
-                if (strtolower($userDetailsObj->name->first) == strtolower($actorsListItem['firstname'])
-                    && strtolower($userDetailsObj->name->last) == strtolower($actorsListItem['lastname'])) {
-
-                    $addSessionUserDetails = false;
-                    break;
-                }
-            }
-
-
-
-            if ($addSessionUserDetails) {
-                //  Flatten the user details and reformat the DOB before adding the details to the reuse details array
-                $userDetails = $userDetailsObj->flatten();
-                $dateOfBirth = $userDetailsObj->dob;
-
-                //  If a date of birth is present then replace it as an array of day, month and year
-                if ($dateOfBirth instanceof Dob) {
-                    $userDetails['dob-date'] = [
-                        'day'   => $dateOfBirth->date->format('d'),
-                        'month' => $dateOfBirth->date->format('m'),
-                        'year'  => $dateOfBirth->date->format('Y'),
-                    ];
-                }
-
-                $actorReuseDetails[] = [
-                    'label' => (string)$this->getServiceLocator()->get('UserDetailsSession')->user->name . ' (myself)',
-                    'data'  => $userDetails,
-                ];
-            }
+            $this->addCurrentUserDetailsForReuse($actorReuseDetails);
         }
 
         //  Get any seed details for this LPA
@@ -80,6 +47,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                     $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the donor)');
                     break;
                 case 'correspondent':
+                    //  Only add the correspondent details if it is not the donor or an attorney
                     if ($actorData['who'] == 'other') {
                         $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the correspondent)');
                     }
@@ -101,6 +69,8 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                         if ($singleActorData['type'] == 'trust' xor $trustOnly) {
                             continue;
                         }
+
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, '(was a replacement attorney)');
                     }
                     break;
                 case 'peopleToNotify':
@@ -114,6 +84,51 @@ abstract class AbstractLpaActorController extends AbstractLpaController
         }
 
         return $actorReuseDetails;
+    }
+
+    /**
+     * Add the current user details to the reuse details array
+     *
+     * @param array $actorReuseDetails
+     * @param bool $checkIfAlreadyUsed
+     */
+    protected function addCurrentUserDetailsForReuse(array &$actorReuseDetails, $checkIfAlreadyUsed = true)
+    {
+        //  Check that the current session user details have not already been used
+        $currentUserDetailsUsedToBeAdded = true;
+        $userDetailsObj = $this->getUserDetails();
+
+        //  Check to see if the user details have already been used if necessary
+        if ($checkIfAlreadyUsed) {
+            foreach ($this->getActorsList() as $actorsListItem) {
+                if (strtolower($userDetailsObj->name->first) == strtolower($actorsListItem['firstname'])
+                    && strtolower($userDetailsObj->name->last) == strtolower($actorsListItem['lastname'])
+                ) {
+                    $currentUserDetailsUsedToBeAdded = false;
+                    break;
+                }
+            }
+        }
+
+        if ($currentUserDetailsUsedToBeAdded) {
+            //  Flatten the user details and reformat the DOB before adding the details to the reuse details array
+            $userDetails = $userDetailsObj->flatten();
+            $dateOfBirth = $userDetailsObj->dob;
+
+            //  If a date of birth is present then replace it as an array of day, month and year
+            if ($dateOfBirth instanceof Dob) {
+                $userDetails['dob-date'] = [
+                    'day'   => $dateOfBirth->date->format('d'),
+                    'month' => $dateOfBirth->date->format('m'),
+                    'year'  => $dateOfBirth->date->format('Y'),
+                ];
+            }
+
+            $actorReuseDetails[] = [
+                'label' => $userDetailsObj->name . ' (myself)',
+                'data'  => $userDetails,
+            ];
+        }
     }
 
     /**
@@ -150,7 +165,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
      * @param string $suffixText
      * @return array
      */
-    private function getReuseDetailsForActor(array $actorData, $suffixText = '')
+    protected function getReuseDetailsForActor(array $actorData, $suffixText = '')
     {
         //  Initialise the label text - this will be the value if the actor is a trust
         $label = $actorData['name'];
@@ -218,8 +233,6 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             $viewModel->reuseDetailsForm = $reuseDetailsForm;
         }
     }
-
-
 
     /**
      * Generate a list of actors already associated with the current LPA
