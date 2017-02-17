@@ -80,7 +80,7 @@
           self.renderForm(html);
           // If the user clicked the user my details link then automatically trigger the date of birth change
           // so that any warning message can be displayed
-          if (url.indexOf('use-my-details') !== -1) {
+          if (url.indexOf('reuse-details') !== -1) {
             $('#dob-date-day').trigger('change');
           }
         }
@@ -104,7 +104,7 @@
       });
 
       // hide use button and switch button
-      $('#form-seed-details-picker, #form-correspondent-selector').find('input[type=submit]').hide();
+      $('#form-correspondent-selector').find('input[type=submit]').hide();
 
       this.renderSelectionButtons();
     },

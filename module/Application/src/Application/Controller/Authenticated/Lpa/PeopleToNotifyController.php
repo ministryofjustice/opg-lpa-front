@@ -79,37 +79,27 @@ class PeopleToNotifyController extends AbstractLpaActorController
         }
 
         if ($this->request->isPost()) {
-            $postData = $this->request->getPost();
+            //  Set the post data
+            $form->setData($this->request->getPost());
 
-            // received a POST from the peopleToNotify form submission
-            if (!$postData->offsetExists('pick-details')) {
-                // handle notified person form submission
-                $form->setData($postData);
-
-                if ($form->isValid()) {
-                    // persist data
-                    $np = new NotifiedPerson($form->getModelDataFromValidatedForm());
-                    if (!$this->getLpaApplicationService()->addNotifiedPerson($lpaId, $np)) {
-                        throw new \RuntimeException('API client failed to add a notified person for id: '.$lpaId);
-                    }
-
-                    // remove metadata flag value if exists
-                    if (!array_key_exists(Metadata::PEOPLE_TO_NOTIFY_CONFIRMED, $this->getLpa()->metadata)) {
-                            $this->getServiceLocator()->get('Metadata')->setPeopleToNotifyConfirmed($this->getLpa());
-                    }
-
-                    // redirect to next page for non-js, or return a json to ajax call.
-                    if ($this->getRequest()->isXmlHttpRequest()) {
-                        return new JsonModel(['success' => true]);
-                    } else {
-                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
-                    }
+            if ($form->isValid()) {
+                // persist data
+                $np = new NotifiedPerson($form->getModelDataFromValidatedForm());
+                if (!$this->getLpaApplicationService()->addNotifiedPerson($lpaId, $np)) {
+                    throw new \RuntimeException('API client failed to add a notified person for id: '.$lpaId);
                 }
-            }
-        } else {
-            // load user's details into the form
-            if ($this->params()->fromQuery('use-my-details')) {
-                $form->bind($this->getUserDetailsAsArray());
+
+                // remove metadata flag value if exists
+                if (!array_key_exists(Metadata::PEOPLE_TO_NOTIFY_CONFIRMED, $this->getLpa()->metadata)) {
+                        $this->getServiceLocator()->get('Metadata')->setPeopleToNotifyConfirmed($this->getLpa());
+                }
+
+                // redirect to next page for non-js, or return a json to ajax call.
+                if ($this->getRequest()->isXmlHttpRequest()) {
+                    return new JsonModel(['success' => true]);
+                } else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
+                }
             }
         }
 

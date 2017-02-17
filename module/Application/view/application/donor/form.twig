@@ -10,7 +10,6 @@
 
 <script type="text/javascript">
     var actorNames = {{ actorsList(lpa, routeMatch)|json_encode()|raw }};
-    var actors = {names: actorNames};
 </script>
 
 {# Error messages #}
@@ -166,7 +165,7 @@
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
 {# Add reuse details options #}
-{{ macros.renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails, false) }}
+{{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
 
 {# begin form #}
 {{ form().openTag( form )|raw }}

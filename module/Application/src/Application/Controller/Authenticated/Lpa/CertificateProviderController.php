@@ -57,31 +57,22 @@ class CertificateProviderController extends AbstractLpaActorController
         }
 
         if ($this->request->isPost()) {
-            $postData = $this->request->getPost();
+            //  Set the post data
+            $form->setData($this->request->getPost());
 
-            if (!$postData->offsetExists('pick-details')) {
-                // handle certificate provider form submission
-                $form->setData($postData);
+            if ($form->isValid()) {
+                // persist data
+                $cp = new CertificateProvider($form->getModelDataFromValidatedForm());
 
-                if ($form->isValid()) {
-                    // persist data
-                    $cp = new CertificateProvider($form->getModelDataFromValidatedForm());
-
-                    if (!$this->getLpaApplicationService()->setCertificateProvider($lpaId, $cp)) {
-                        throw new \RuntimeException('API client failed to save certificate provider for id: '.$lpaId);
-                    }
-
-                    if ($this->getRequest()->isXmlHttpRequest()) {
-                        return new JsonModel(['success' => true]);
-                    } else {
-                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
-                    }
+                if (!$this->getLpaApplicationService()->setCertificateProvider($lpaId, $cp)) {
+                    throw new \RuntimeException('API client failed to save certificate provider for id: '.$lpaId);
                 }
-            }
-        } else {
-            // load user's details into the form
-            if ($this->params()->fromQuery('use-my-details')) {
-                $form->bind($this->getUserDetailsAsArray());
+
+                if ($this->getRequest()->isXmlHttpRequest()) {
+                    return new JsonModel(['success' => true]);
+                } else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
+                }
             }
         }
 

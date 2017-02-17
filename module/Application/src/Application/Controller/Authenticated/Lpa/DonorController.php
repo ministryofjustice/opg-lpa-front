@@ -62,36 +62,23 @@ class DonorController extends AbstractLpaActorController
             return $seedSelection;
         }
 
-        $viewModel->isUseMyDetails = false;
-
         if ($this->request->isPost()) {
-            $postData = $this->request->getPost();
+            //  Set the post data
+            $form->setData($this->request->getPost());
 
-            // received POST from donor form submission
-            if (!$postData->offsetExists('pick-details')) {
-                // handle donor form submission
-                $form->setData($postData);
+            if ($form->isValid()) {
+                // persist data
+                $donor = new Donor($form->getModelDataFromValidatedForm());
 
-                if ($form->isValid()) {
-                    // persist data
-                    $donor = new Donor($form->getModelDataFromValidatedForm());
-
-                    if (!$this->getLpaApplicationService()->setDonor($lpaId, $donor)) {
-                        throw new \RuntimeException('API client failed to save LPA donor for id: '.$lpaId);
-                    }
-
-                    if ($this->getRequest()->isXmlHttpRequest()) {
-                        return new JsonModel(['success' => true]);
-                    } else {
-                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
-                    }
+                if (!$this->getLpaApplicationService()->setDonor($lpaId, $donor)) {
+                    throw new \RuntimeException('API client failed to save LPA donor for id: '.$lpaId);
                 }
-            }
-        } else {
-            // load user's details into the form
-            if ($this->params()->fromQuery('use-my-details')) {
-                $form->bind($this->getUserDetailsAsArray());
-                $viewModel->isUseMyDetails = true;
+
+                if ($this->getRequest()->isXmlHttpRequest()) {
+                    return new JsonModel(['success' => true]);
+                } else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
+                }
             }
         }
 

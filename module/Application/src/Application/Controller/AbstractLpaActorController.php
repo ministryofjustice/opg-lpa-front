@@ -3,6 +3,8 @@
 namespace Application\Controller;
 
 use Application\Form\Lpa\AbstractActorForm;
+use Opg\Lpa\DataModel\Lpa\Lpa;
+use Opg\Lpa\DataModel\User\Dob;
 use Zend\Session\Container;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
@@ -10,50 +12,28 @@ use Zend\View\Model\JsonModel;
 abstract class AbstractLpaActorController extends AbstractLpaController
 {
     /**
-     * Return clone source LPA details from API and then store in a session container for subsequent calls
+     * Return an array of actor details that can be utilised in a "reuse" scenario
      *
      * @param bool $trustOnly - when true, only return trust corporation details
-     * @return array|null;
+     * @return array
      */
-    private function getSeedDetails($trustOnly = false)
+    private function getActorReuseDetails($trustOnly = false)
     {
-        //  Get the LPA to check the seed value
-        $lpa = $this->getLpa();
-        $seedId = $lpa->seed;
+        //  Initialise the reuse details details array
+        $actorReuseDetails = [];
 
-        if (is_null($seedId)) {
-            return null;
-        }
-
-        //  Get the seed data and store it in the user session - if it isn't already there
-        $cloneContainer = new Container('clone');
-
-        if (!$cloneContainer->offsetExists($seedId)) {
-            //  The data isn't in the session - get it now
-            $seedData = $this->getLpaApplicationService()->getSeedDetails($lpa->id);
-
-            if (!$seedData) {
-                return null;
-            }
-
-            $cloneContainer->$seedId = $seedData;
-        }
-
-        //  Get seed data from session container
-        $seedData = $cloneContainer->$seedId;
-
-        //  Initialise the seed details array
-        $seedDetails = [];
-
-        //  If this is not an attempt to get trust details then add the details of the session user
+        //  If this is not a request to get trust data add the current user data to the details
         if (!$trustOnly) {
-            $seedDetails[] = [
+            $actorReuseDetails[] = [
                 'label' => (string)$this->getServiceLocator()->get('UserDetailsSession')->user->name . ' (myself)',
                 'data'  => $this->getUserDetailsAsArray(),
             ];
         }
 
-        foreach ($seedData as $type => $actorData) {
+        //  Get any seed details for this LPA
+        $seedDetails = $this->getSeedDetails($this->getLpa());
+
+        foreach ($seedDetails as $type => $actorData) {
             //  Trusts can only be attorneys
             if ($trustOnly && !in_array($type, ['primaryAttorneys', 'replacementAttorneys'])) {
                 continue;
@@ -61,15 +41,15 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
             switch ($type) {
                 case 'donor':
-                    $seedDetails[] = $this->getActorSeedDetails($actorData, '(was the donor)');
+                    $actorReuseDetails[] = $this->getActorDetails($actorData, '(was the donor)');
                     break;
                 case 'correspondent':
                     if ($actorData['who'] == 'other') {
-                        $seedDetails[] = $this->getActorSeedDetails($actorData, '(was the correspondent)');
+                        $actorReuseDetails[] = $this->getActorDetails($actorData, '(was the correspondent)');
                     }
                     break;
                 case 'certificateProvider':
-                    $seedDetails[] = $this->getActorSeedDetails($actorData, '(was the certificate provider)');
+                    $actorReuseDetails[] = $this->getActorDetails($actorData, '(was the certificate provider)');
                     break;
                 case 'primaryAttorneys':
                     foreach ($actorData as $singleActorData) {
@@ -77,11 +57,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                             continue;
                         }
 
-                        $seedDetails[] = $this->getActorSeedDetails($singleActorData, '(was a primary attorney)');
-
-                        if ($trustOnly) {
-                            return $seedDetails;
-                        }
+                        $actorReuseDetails[] = $this->getActorDetails($singleActorData, '(was a primary attorney)');
                     }
                     break;
                 case 'replacementAttorneys':
@@ -89,17 +65,11 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                         if ($singleActorData['type'] == 'trust' xor $trustOnly) {
                             continue;
                         }
-
-                        $seedDetails[] = $this->getActorSeedDetails($singleActorData, '(was a replacement attorney)');
-
-                        if ($trustOnly) {
-                            return $seedDetails;
-                        }
                     }
                     break;
                 case 'peopleToNotify':
                     foreach ($actorData as $singleActorData) {
-                        $seedDetails[] = $this->getActorSeedDetails($singleActorData, '(was a person to be notified)');
+                        $actorReuseDetails[] = $this->getActorDetails($singleActorData, '(was a person to be notified)');
                     }
                     break;
                 default:
@@ -107,17 +77,67 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             }
         }
 
+        return $actorReuseDetails;
+    }
+
+    /**
+     * Return the user details of the current user in an array
+     *
+     * @return array
+     */
+    private function getUserDetailsAsArray()
+    {
+        $userDetailsObj = $this->getUserDetails();
+        $userDetails = $userDetailsObj->flatten();
+        $dateOfBirth = $userDetailsObj->dob;
+
+        //  If a date of birth is present then replace it as an array of day, month and year
+        if ($dateOfBirth instanceof Dob) {
+            $userDetails['dob-date'] = [
+                'day'   => $dateOfBirth->date->format('d'),
+                'month' => $dateOfBirth->date->format('m'),
+                'year'  => $dateOfBirth->date->format('Y'),
+            ];
+        }
+
+        return $userDetails;
+    }
+
+    /**
+     * Simple function to get the seed details from the backend or from the user session if already retrieved
+     *
+     * @param  Lpa $lpa
+     * @return array
+     */
+    private function getSeedDetails(Lpa $lpa)
+    {
+        $seedDetails = [];
+        $seedId = $lpa->seed;
+
+        if (!is_null($seedId)) {
+            $cloneContainer = new Container('clone');
+
+            if (!$cloneContainer->offsetExists($seedId)) {
+                //  The data isn't in the session - get it now
+                $cloneContainer->$seedId = $this->getLpaApplicationService()->getSeedDetails($lpa->id);
+            }
+
+            if (is_array($cloneContainer->$seedId)) {
+                $seedDetails = $cloneContainer->$seedId;
+            }
+        }
+
         return $seedDetails;
     }
 
     /**
-     * Simple function to return filtered actor details for seeding
+     * Simple function to return filtered actor details
      *
      * @param array $actorData
      * @param string $suffixText
      * @return array
      */
-    private function getActorSeedDetails(array $actorData, $suffixText = '')
+    private function getActorDetails(array $actorData, $suffixText = '')
     {
         //  Initialise the label text - this will be the value if the actor is a trust
         $label = $actorData['name'];
@@ -149,90 +169,40 @@ abstract class AbstractLpaActorController extends AbstractLpaController
      */
     protected function seedDataSelector(ViewModel $viewModel, AbstractActorForm $mainForm, $trustOnly = false)
     {
-        //  If the user details aren't being used already (determined by the query params) then allow the link to be displayed
-        if (!$trustOnly && !$this->params()->fromQuery('use-my-details')) {
-            $viewModel->allowUseMyDetails = true;
-        }
+        //  Attempt to get the seed details
+        $actorReuseDetails = $this->getActorReuseDetails($trustOnly);
 
-        $seedDetails = $this->getSeedDetails($trustOnly);
+        if (is_array($actorReuseDetails)) {
+            //  Get the seed details picker form and add an appropriate action
+            $reuseDetailsForm = $this->getServiceLocator()
+                                     ->get('FormElementManager')
+                                     ->get('Application\Form\Lpa\SeedDetailsPickerForm', [
+                                         'seedDetails' => $actorReuseDetails,
+                                         'trustOnly'   => $trustOnly,
+                                     ]);
 
-        //  If there are no seed details then exit early
-        if ($seedDetails == null) {
-            return;
-        }
+            //  Set the action for the form
+            $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+            $reuseDetailsForm->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $this->getLpa()->id]));
 
-        //  Get the seed details picker form and add an appropriate action
-        $reuseDetailsForm = $this->getServiceLocator()
-                                 ->get('FormElementManager')
-                                 ->get('Application\Form\Lpa\SeedDetailsPickerForm', ['seedDetails' => $seedDetails]);
+            //  Get the reuse-details index from the query parameters if it is present
+            $reuseDetailsIndex = $this->params()->fromQuery('reuse-details');
 
-        //  If this is from an add trust screen then populate the trust details
-        if ($trustOnly) {
-            if (!$this->params()->fromQuery('use-trust-details')) {
-                $viewModel->reuseTrustName = $seedDetails[0]['label'];
-            }
-
-            //  Don't show the allow my details link to be displayed on the trust forms
-            $viewModel->allowUseMyDetails = false;
-        } else {
-            $viewModel->reuseDetailsForm = $reuseDetailsForm;
-
-            //  As we are going to display the reuse details form - don't allow the link to be displayed
-            $viewModel->allowUseMyDetails = false;
-        }
-
-        //  Initialise the actor data
-        $actorData = null;
-
-        //  If this is a post request then it may be a request to utilise some of the seed data
-        if ($this->request->isPost()) {
-            $postData = $this->request->getPost();
-
-            //  Exit if this is NOT a post from the seed form
-            if (!$postData->offsetExists('is-seed-form')) {
-                return;
-            }
-
-            //  Load the data into the form so it can be validated
-            $reuseDetailsForm->setData($postData);
-
-            if (!$reuseDetailsForm->isValid()) {
-                return;
-            }
-
-            //  Only continue if the index selected is in the seed data
-            $pickIdx = $this->request->getPost('pick-details');
-
-            if (is_array($seedDetails) && array_key_exists($pickIdx, $seedDetails)) {
-                $actorData = $seedDetails[$pickIdx]['data'];
+            //  If a valid reuse-details query param has been passed then try to retrieve the appropriate details
+            if (is_numeric($reuseDetailsIndex) && array_key_exists($reuseDetailsIndex, $actorReuseDetails)) {
+                //  Get the actor data
+                $actorData = $actorReuseDetails[$reuseDetailsIndex]['data'];
 
                 //  If this is an AJAX request then just return the data as json
                 if ($this->getRequest()->isXmlHttpRequest()) {
                     return new JsonModel($actorData);
                 }
+
+                //  This is not an AJAX request so just bind the data to the main form
+                $mainForm->bind($actorData);
             }
-        } elseif ($this->params()->fromQuery('use-trust-details')) {
-            //  If we're trying to use the trust details then just use the first array item - there should only be one
-            $actorData = $seedDetails[0]['data'];
-        }
 
-        //  This was not an AJAX request so bind the actor data to the main form
-        if (!is_null($actorData)) {
-            $mainForm->bind($actorData);
+            $viewModel->reuseDetailsForm = $reuseDetailsForm;
         }
-    }
-
-    protected function getUserDetailsAsArray()
-    {
-        $userDetails = $this->getUserDetails()->flatten();
-        if(array_key_exists('dob-date', $userDetails)) {
-            $userDetails['dob-date'] = [
-                'day'   => $this->getUserDetails()->dob->date->format('d'),
-                'month' => $this->getUserDetails()->dob->date->format('m'),
-                'year'  => $this->getUserDetails()->dob->date->format('Y'),
-            ];
-        }
-
-        return $userDetails;
     }
 }

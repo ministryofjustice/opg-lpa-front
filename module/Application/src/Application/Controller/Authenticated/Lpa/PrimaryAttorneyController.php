@@ -75,36 +75,26 @@ class PrimaryAttorneyController extends AbstractLpaActorController
         }
 
         if ($this->request->isPost()) {
-            $postData = $this->request->getPost();
+            //  Set the post data
+            $form->setData($this->request->getPost());
 
-            // reveived POST from attorney form submission.
-            if (!$postData->offsetExists('pick-details')) {
-                // handle primary attorney form submission
-                $form->setData($postData);
+            if ($form->isValid()) {
+                // persist data
+                $attorney = new Human($form->getModelDataFromValidatedForm());
 
-                if ($form->isValid()) {
-                    // persist data
-                    $attorney = new Human($form->getModelDataFromValidatedForm());
-
-                    if (!$this->getLpaApplicationService()->addPrimaryAttorney($lpaId, $attorney)) {
-                        throw new \RuntimeException('API client failed to add a primary attorney for id: '.$lpaId);
-                    }
-
-                    // set this attorney as applicant if primary attorney acts jointly
-                    // and applicant are primary attorneys
-                    $this->resetApplicants();
-
-                    if ($this->getRequest()->isXmlHttpRequest()) {
-                        return new JsonModel(['success' => true]);
-                    } else {
-                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
-                    }
+                if (!$this->getLpaApplicationService()->addPrimaryAttorney($lpaId, $attorney)) {
+                    throw new \RuntimeException('API client failed to add a primary attorney for id: '.$lpaId);
                 }
-            }
-        } else {
-            // load user's details into the form
-            if ($this->params()->fromQuery('use-my-details')) {
-                $form->bind($this->getUserDetailsAsArray());
+
+                // set this attorney as applicant if primary attorney acts jointly
+                // and applicant are primary attorneys
+                $this->resetApplicants();
+
+                if ($this->getRequest()->isXmlHttpRequest()) {
+                    return new JsonModel(['success' => true]);
+                } else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
+                }
             }
         }
 
@@ -296,28 +286,24 @@ class PrimaryAttorneyController extends AbstractLpaActorController
         }
 
         if ($this->request->isPost()) {
-            $postData = $this->request->getPost();
+            //  Set the post data
+            $form->setData($this->request->getPost());
 
-            if (!$postData->offsetExists('pick-details')) {
-                // handle trust corp form submission
-                $form->setData($postData);
+            if ($form->isValid()) {
+                // persist data
+                $attorney = new TrustCorporation($form->getModelDataFromValidatedForm());
+                if (!$this->getLpaApplicationService()->addPrimaryAttorney($lpaId, $attorney)) {
+                    throw new \RuntimeException('API client failed to add a trust corporation attorney for id: ' . $lpaId);
+                }
 
-                if ($form->isValid()) {
-                    // persist data
-                    $attorney = new TrustCorporation($form->getModelDataFromValidatedForm());
-                    if (!$this->getLpaApplicationService()->addPrimaryAttorney($lpaId, $attorney)) {
-                        throw new \RuntimeException('API client failed to add a trust corporation attorney for id: ' . $lpaId);
-                    }
+                // set this attorney as applicant if primary attorney acts jointly
+                // and applicant are primary attorneys
+                $this->resetApplicants();
 
-                    // set this attorney as applicant if primary attorney acts jointly
-                    // and applicant are primary attorneys
-                    $this->resetApplicants();
-
-                    if ($this->getRequest()->isXmlHttpRequest()) {
-                        return new JsonModel(['success' => true]);
-                    } else {
-                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
-                    }
+                if ($this->getRequest()->isXmlHttpRequest()) {
+                    return new JsonModel(['success' => true]);
+                } else {
+                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
                 }
             }
         }

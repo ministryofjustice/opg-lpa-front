@@ -62,77 +62,84 @@
 {% endmacro %}
 
 {# Add reuse details options #}
-{% macro renderReuseDetailsOptions(reuseDetailsForm, allowUseMyDetails, reuseTrustName) %}
+{% macro renderReuseDetailsOptions(reuseDetailsForm) %}
     {% if (reuseDetailsForm) %}
         {# form fields config #}
         {{ reuseDetailsForm.setAttributes({
             'class':'form hard--bottom'
         }) ? '' }}
 
-        {# Set form fields variables #}
-        {% set reuseDetailsOptions = reuseDetailsForm.get('pick-details') %}
-        {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
+        {# Check how many value options are in the select in the form - if there is only one we will display as a hyperlink #}
+        {% set reuseDetailsSelect = reuseDetailsForm.get('reuse-details') %}
+        {% set reuseDetailsOptions = reuseDetailsSelect.getValueOptions() %}
 
-        {{ reuseDetailsOptions.setAttributes({
-            'id':'pick-details',
-            'class':'form-control js-reusable'
-        }) ? '' }}
+        {% if (reuseDetailsOptions|length == 1) %}
+            {% set currentUrl = serverUrl(true) %}
 
-        {# form fields labels #}
-        {{ reuseDetailsOptions.setOptions({
-            'label': 'Use these details',
-            'empty_option' : 'Select a person'
-        }) ? '' }}
+            {% if ('reuse-details' not in currentUrl) %}
+                {% set queryJoiner = '?' %}
 
-        {# form fields config #}
-        {{ reuseDetailsSubmit.setAttributes({
-            'value': "Use this person's details",
-            'class' : 'button js-details-picker'
-        }) ? '' }}
+                {% if (queryJoiner in currentUrl) %}
+                    {% set queryJoiner = '&' %}
+                {% endif %}
 
-        {# begin form #}
-        {{ reuseDetailsForm.prepare() ? '' }}
-        {{ form().openTag( reuseDetailsForm )|raw }}
+                {% set linkText = 'Use my details' %}
 
-        <fieldset>
-            <div class="form-group flush--bottom">
-                <legend class="visuallyhidden">Select person from previous LPA</legend>
+                {% if (reuseDetailsForm.hasTrustDataOnly()) %}
+                    {% set linkText = 'Use details of the ' ~ reuseDetailsOptions|first %}
+                {% endif %}
 
+                <div class="use-details-link-panel">
+                    {# TODO - data-target added due to problems retriving the href attribute in jQuery #}
+                    <a class="js-reusable" href="{{ currentUrl }}{{ queryJoiner }}reuse-details=0"
+                        data-target="{{ currentUrl }}{{ queryJoiner }}reuse-details=0">{{ linkText }}</a>
+                </div>
+            {% endif %}
+        {% elseif (reuseDetailsOptions|length > 1) %}
+            {# Set form fields variables #}
+            {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
+
+            {{ reuseDetailsSelect.setAttributes({
+                'id':'reuse-details',
+                'class':'form-control js-reusable'
+            }) ? '' }}
+
+            {# form fields labels #}
+            {{ reuseDetailsSelect.setOptions({
+                'label': 'Use these details',
+                'empty_option' : 'Select a person'
+            }) ? '' }}
+
+            {# form fields config #}
+            {{ reuseDetailsSubmit.setAttributes({
+                'value': "Use this person's details",
+                'class' : 'button'
+            }) ? '' }}
+
+            {# begin form #}
+            {{ reuseDetailsForm.prepare() ? '' }}
+            {{ form().openTag( reuseDetailsForm )|raw }}
+
+            <fieldset>
                 <div class="form-group flush--bottom">
-                    <label class="form-label" for="{{ reuseDetailsOptions.getAttribute('id') }}">{{ reuseDetailsOptions.getOption('label') }}</label>
+                    <legend class="visuallyhidden">Select person from previous LPA</legend>
 
-                    {{ formSelect(reuseDetailsOptions) }}
-                    {{ formElementErrors(reuseDetailsOptions) }}
+                    <div class="form-group flush--bottom">
+                        <label class="form-label" for="{{ reuseDetailsSelect.getAttribute('id') }}">{{ reuseDetailsSelect.getOption('label') }}</label>
+
+                        {{ formSelect(reuseDetailsSelect) }}
+                        {{ formElementErrors(reuseDetailsSelect) }}
+                    </div>
+
+                    <div class="form-group js-hidden">
+                        {{ formSubmit(reuseDetailsSubmit) }}
+                    </div>
+
                 </div>
+            </fieldset>
 
-                <div class="form-group js-hidden">
-                    {{ formSubmit(reuseDetailsSubmit) }}
-                </div>
-
-            </div>
-        </fieldset>
-
-        {{ form().closeTag|raw }}
-
-    {% elseif (allowUseMyDetails or reuseTrustName is not empty) %}
-        {% set queryJoiner = '?' %}
-        {% set currentUrl = serverUrl(true) %}
-
-        {% if (queryJoiner in currentUrl) %}
-            {% set queryJoiner = '&' %}
+            {{ form().closeTag|raw }}
         {% endif %}
-
-        {% set queryParam = 'use-my-details' %}
-        {% set linkText = 'Use my details' %}
-
-        {% if (reuseTrustName is not empty) %}
-            {% set queryParam = 'use-trust-details' %}
-            {% set linkText = 'Use details of the ' ~ reuseTrustName %}
-        {% endif %}
-
-        <div class="use-details-link-panel">
-            <a class="js-form-popup" href="{{ currentUrl }}{{ queryJoiner }}{{ queryParam }}=1">{{ linkText }}</a>
-        </div>
     {% endif %}
 {% endmacro %}
 

@@ -10,7 +10,7 @@
     message: 'This will replace the information which you have already entered, are you sure?',
 
     init: function () {
-      _.bindAll(this, 'render', 'linkClicked', 'selectChanged', 'useDetailsReset');
+      _.bindAll(this, 'linkClicked', 'selectChanged');
       this.bindEvents();
     },
 
@@ -18,25 +18,27 @@
       $('body')
         .on('click.moj.Modules.Reusables', 'a' + this.selector, this.linkClicked)
         .on('change.moj.Modules.Reusables', 'select' + this.selector, this.selectChanged);
-      // custom render event
-      moj.Events.on('Reusables.render', this.render);
     },
 
     // <a> click
     linkClicked: function (e, params) {
       var $el = $(e.target),
-        $form = $el.closest('form'),
-        url = $el.data('service'),
-        proceed = this.isFormClean($form) ? true : confirm(this.message),
+        $personForm = $('form.js-PersonForm'),
+        url = $el.data('target'),
         _this = this;
 
-      $el.spinner();
-      $.get(url, function (data) {
-        $el.spinner('off');
-        if (proceed) {
+      if (this.isFormClean($personForm) || confirm(this.message)) {
+        $el.spinner();
+
+        $.get(url, function(data) {
+          $el.spinner('off');
+
           _this.populateForm(data);
-        }
-      });
+
+          //  Once the data has been populated successfully remove the link
+          $el.closest('.use-details-link-panel').remove();
+        });
+      }
       return false;
     },
 
@@ -44,41 +46,36 @@
     selectChanged: function (e, params) {
       var $el = $(e.target),
         $form = $el.closest('form'),
+        $personForm = $('form.js-PersonForm'),
         url = $form.attr('action'),
-        postData,
-        _this = this,
-        proceed;
+        requestData,
+        _this = this;
 
+      //  Stop processing if the selected value is blank or the currently selected value
       if (($el.val() === '') || ($el.val() === selected)) {
         return;
       }
 
-      proceed = this.isFormClean($form.next('form')) ? true : confirm(this.message);
-
-      if (proceed) {
+      if (this.isFormClean($personForm) || confirm(this.message)) {
         $el.spinner();
 
         selected = $el.val();
 
-        if ($form.find('[name=switch-to-type]').length === 0) {
-            postData = { 'pick-details': $form.find('[name=pick-details]').val() };
-            postData[$form.find('#secret').attr('name')] = $form.find('#secret').val();
-          }
-          else {
-            postData = { 'switch-to-type': $form.find('[name=switch-to-type]').val(), 'switcher-submit': $form.find('[name=switcher-submit]').val() };
-            postData[$form.find('#secret').attr('name')] = $form.find('#secret').val();
+        if ($personForm.find('[name=switch-to-type]').length === 0) {
+          // Normal form - not from correspondence edit screen
+          requestData = { 'reuse-details': $form.find('[name=reuse-details]').val() };
+        } else {
+          requestData = { 'switch-to-type': $form.find('[name=switch-to-type]').val(), 'switcher-submit': $form.find('[name=switcher-submit]').val() };
         }
 
-        $.post(url, postData, function (data) {
+        $.get(url, requestData).done(function(data) {
           $el.spinner('off');
-          if (proceed) {
-            _this.populateForm(data);
-          }
+
+          _this.populateForm(data);
         });
       } else {
-        // In case the user chose not to overwrite the details, we must select something
-        // neutral to allow re-selecting that option (on change)
-        $el.val($el.find('option:first').val());
+        //  Return to the selected value
+        $el.val(selected);
       }
     },
 
@@ -105,11 +102,8 @@
               value2 = value[property];
               data[props + '[' + property + ']'] = value2;
             }
-
           }
-
         }
-
       }
 
       // empty existing form element values before populating data into the form.
@@ -168,15 +162,6 @@
       });
       return clean;
     },
-
-    render: function(e, params) {
-      $(this.selector, params.wrap).each(this.useDetailsReset);
-    },
-
-    useDetailsReset: function(i, el){
-      // Hide the non-js button
-      $('.js-details-picker').hide();
-    }
   };
 
 })();

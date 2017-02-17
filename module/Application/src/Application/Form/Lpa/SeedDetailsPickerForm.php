@@ -6,32 +6,45 @@ use Zend\Form\Form;
 
 class SeedDetailsPickerForm extends Form
 {
+    /**
+     * Flag to indicate if the form contains only trust data
+     *
+     * @var bool
+     */
+    private $trustDataOnly = false;
+
     public function __construct($name, $options)
     {
-        //  Populate the pick details value options from the seed details
-        $pickDetailsValueOptions = [];
+        //  Populate the reuse details value options from the seed details
+        $reuseDetailsValueOptions = [];
 
         if (array_key_exists('seedDetails', $options)) {
             foreach ($options['seedDetails'] as $idx => $actor) {
-                $pickDetailsValueOptions[$idx] = $actor['label'];
+                $reuseDetailsValueOptions[$idx] = $actor['label'];
             }
 
             unset($options['seedDetails']);
         }
 
+        if (array_key_exists('trustOnly', $options)) {
+            $this->trustDataOnly = (bool) $options['trustOnly'];
+
+            unset($options['trustOnly']);
+        }
+
         //  Trigger the parent constructor now
-        parent::__construct('form-seed-details-picker', $options);
+        parent::__construct($name, $options);
 
         //  Set the method to GET
         $this->setAttribute('method', 'GET');
 
         //  Add the required inputs
         $this->add([
-            'name' => 'pick-details',
+            'name' => 'reuse-details',
             'type' => 'Select',
             'required' => true,
             'options' => [
-                'value_options' => $pickDetailsValueOptions,
+                'value_options' => $reuseDetailsValueOptions,
             ],
         ]);
 
@@ -39,5 +52,15 @@ class SeedDetailsPickerForm extends Form
             'name' => 'submit',
             'type' => 'Submit',
         ]);
+    }
+
+    /**
+     * Simple function to indicate if the form contains trust data only
+     *
+     * @return bool
+     */
+    public function hasTrustDataOnly()
+    {
+        return (bool) $this->trustDataOnly;
     }
 }
