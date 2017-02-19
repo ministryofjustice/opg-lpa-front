@@ -171,7 +171,10 @@ class CorrespondentController extends AbstractLpaActorController
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $this->getLpa()->id;
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
+        $lpaDocument = $lpa->document;
+        $lpaCorrespondent = $lpaDocument->correspondent;
         $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CorrespondentForm');
@@ -187,24 +190,24 @@ class CorrespondentController extends AbstractLpaActorController
             $form->setData($this->request->getPost());
 
             if ($form->isValid()) {
-                $formData = $form->getData();
+                //  Set aside any data to retain that is not present in the form
+                $existingDataToRetain = [];
 
-                if ($this->getLpa()->document->correspondent == null) {
-                    $correspondent = new Correspondence($form->getModelDataFromValidatedForm());
-                } else {
-                    // If correspondent has been previously saved,
-                    // merge form data with non-form data from current record
-
-                    $correspondent = new Correspondence(array_merge($form->getModelDataFromValidatedForm(), [
-                        'contactByPost'  => $this->getLpa()->document->correspondent->contactByPost,
-                        'contactInWelsh' => $this->getLpa()->document->correspondent->contactInWelsh,
-                    ]));
+                if ($lpaCorrespondent instanceof Correspondence) {
+                    $existingDataToRetain = [
+                        'contactByPost'  => $lpaCorrespondent->contactByPost,
+                        'contactInWelsh' => $lpaCorrespondent->contactInWelsh,
+                    ];
                 }
 
-                // Let the PDF module know that we can't rely on the default donor or attorney values any more
-                $correspondent->set('contactDetailsEnteredManually', true);
+                //  Create a new correspondence data model using the form data and any data to retain from a previous save
+                $lpaCorrespondent = new Correspondence(array_merge($form->getModelDataFromValidatedForm(), $existingDataToRetain));
 
-                if (!$this->getLpaApplicationService()->setCorrespondent($lpaId, $correspondent)) {
+
+                // Let the PDF module know that we can't rely on the default donor or attorney values any more
+                $lpaCorrespondent->set('contactDetailsEnteredManually', true);
+
+                if (!$this->getLpaApplicationService()->setCorrespondent($lpaId, $lpaCorrespondent)) {
                     throw new \RuntimeException('API client failed to update correspondent for id: '.$lpaId);
                 }
 
@@ -214,39 +217,40 @@ class CorrespondentController extends AbstractLpaActorController
                     return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
                 }
             }
-        } else {
-            // if correspondent wasn't set, load applicant details into the form
-            if ($this->getLpa()->document->correspondent === null) {
-                if ($this->getLpa()->document->whoIsRegistering == 'donor') {
-                    $correspondent = $this->getLpa()->document->donor;
+        } elseif (!$this->params()->fromQuery('reuse-details')) {
+            //  Only bind the correspondent details here if this is NOT a request to reuse details
+            //  If we are reusing details then that will have already taken place in the parent controller
+            //  If no correspondent is specified then check who was registered and populate their details
+            if (is_null($lpaCorrespondent)) {
+                if ($lpaDocument->whoIsRegistering == 'donor') {
+                    $lpaCorrespondent = $lpaDocument->donor;
                 } else {
-                    $firstAttorneyId = array_values($this->getLpa()->document->whoIsRegistering)[0];
-                    foreach ($this->getLpa()->document->primaryAttorneys as $attorney) {
+                    $firstAttorneyId = array_values($lpaDocument->whoIsRegistering)[0];
+
+                    foreach ($lpaDocument->primaryAttorneys as $attorney) {
                         if ($attorney->id == $firstAttorneyId) {
-                            $correspondent = $attorney;
+                            $lpaCorrespondent = $attorney;
                             break;
                         }
                     }
                 }
-            } else {
-                // otherwise, load correspondent details into the form
-                $correspondent = $this->getLpa()->document->correspondent;
             }
 
             // convert object into array.
-            $correspondentDetails = $correspondent->flatten();
+            $correspondentDetails = $lpaCorrespondent->flatten();
 
-            if ($correspondent instanceof TrustCorporation) {
-                $correspondentDetails['company'] = $correspondent->name;
-                $correspondentDetails['name-title'] = ' ';
-            } elseif ($correspondent instanceof Correspondence) {
-                if ($correspondent->name == null) {
-                    $correspondentDetails['name-title'] = ' ';
+            //  If the correspondent is not a correspondence object inject the necessary data
+            if (!$lpaCorrespondent instanceof Correspondence) {
+                //  By default set the actor type as attorney
+                $actorType = 'attorney';
+
+                if ($lpaCorrespondent instanceof TrustCorporation) {
+                    $correspondentDetails['company'] = $lpaCorrespondent->name;
+                } elseif ($lpaCorrespondent instanceof Donor) {
+                    $actorType = 'donor';
                 }
-            } elseif ($correspondent instanceof Donor) {
-                $correspondentDetails['who'] = 'donor';
-            } else {
-                $correspondentDetails['who'] = 'attorney';
+
+                $correspondentDetails['who'] = $actorType;
             }
 
             // bind data into the form
@@ -275,19 +279,17 @@ class CorrespondentController extends AbstractLpaActorController
         //  Add the details for the current user
         $this->addCurrentUserDetailsForReuse($actorReuseDetails, false);
 
-        //  Using the data from the LPA add options for the donor and primary attorneys
-        $lpa = $this->getLpa();
+        //  Using the data from the LPA document add options for the donor and primary attorneys
+        $lpaDocument = $this->getLpa()->document;
 
-        $actorReuseDetails[] = $this->getReuseDetailsForActor($lpa->document->donor->toArray(), '(donor)');
+        $actorReuseDetails[] = $this->getReuseDetailsForActor($lpaDocument->donor->toArray(), 'donor', '(donor)');
 
-        foreach ($lpa->document->primaryAttorneys as $attorney) {
-            $actorReuseDetails[] = $this->getReuseDetailsForActor($attorney->toArray(), '(attorney)');
+        foreach ($lpaDocument->primaryAttorneys as $attorney) {
+            $actorReuseDetails[] = $this->getReuseDetailsForActor($attorney->toArray(), 'attorney', '(attorney)');
         }
 
         //  Add an 'other' option
-        $actorReuseDetails['other'] = [
-            'label' => 'Other',
-        ];
+        $actorReuseDetails['other'] = $this->getReuseDetailsForActor(['name' => 'Other'], 'other');
 
         return $actorReuseDetails;
     }

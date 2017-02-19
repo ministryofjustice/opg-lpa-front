@@ -42,43 +42,49 @@ abstract class AbstractLpaActorController extends AbstractLpaController
                 continue;
             }
 
+            //  Initialise the actor type
+            $actorType = (isset($actorData['who']) ? $actorData['who'] : 'other');
+
             switch ($type) {
                 case 'donor':
-                    $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the donor)');
+                    $actorType = 'donor';
+                    $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, $actorType, '(was the donor)');
                     break;
                 case 'correspondent':
                     //  Only add the correspondent details if it is not the donor or an attorney
-                    if ($actorData['who'] == 'other') {
-                        $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the correspondent)');
+                    if ($actorType == 'other') {
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, $actorType, '(was the correspondent)');
                     }
                     break;
                 case 'certificateProvider':
-                    $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, '(was the certificate provider)');
+                    $actorReuseDetails[] = $this->getReuseDetailsForActor($actorData, $actorType, '(was the certificate provider)');
                     break;
                 case 'primaryAttorneys':
+                    $actorType = 'attorney';
+
                     foreach ($actorData as $singleActorData) {
                         if ($singleActorData['type'] == 'trust' xor $trustOnly) {
                             continue;
                         }
 
-                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, '(was a primary attorney)');
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, $actorType, '(was a primary attorney)');
                     }
                     break;
                 case 'replacementAttorneys':
+                    $actorType = 'attorney';
+
                     foreach ($actorData as $singleActorData) {
                         if ($singleActorData['type'] == 'trust' xor $trustOnly) {
                             continue;
                         }
 
-                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, '(was a replacement attorney)');
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, $actorType, '(was a replacement attorney)');
                     }
                     break;
                 case 'peopleToNotify':
                     foreach ($actorData as $singleActorData) {
-                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, '(was a person to be notified)');
+                        $actorReuseDetails[] = $this->getReuseDetailsForActor($singleActorData, $actorType, '(was a person to be notified)');
                     }
-                    break;
-                default:
                     break;
             }
         }
@@ -113,10 +119,12 @@ abstract class AbstractLpaActorController extends AbstractLpaController
         if ($currentUserDetailsUsedToBeAdded) {
             //  Flatten the user details and reformat the DOB before adding the details to the reuse details array
             $userDetails = $userDetailsObj->flatten();
-            $dateOfBirth = $userDetailsObj->dob;
+
+            //  Add the additional data required by the form on the correspondence edit view
+            $userDetails['who'] = 'other';
 
             //  If a date of birth is present then replace it as an array of day, month and year
-            if ($dateOfBirth instanceof Dob) {
+            if (($dateOfBirth = $userDetailsObj->dob) instanceof Dob) {
                 $userDetails['dob-date'] = [
                     'day'   => $dateOfBirth->date->format('d'),
                     'month' => $dateOfBirth->date->format('m'),
@@ -162,21 +170,29 @@ abstract class AbstractLpaActorController extends AbstractLpaController
      * Simple function to return filtered actor details for reuse
      *
      * @param array $actorData
+     * @param string $actorType
      * @param string $suffixText
      * @return array
      */
-    protected function getReuseDetailsForActor(array $actorData, $suffixText = '')
+    protected function getReuseDetailsForActor(array $actorData, $actorType, $suffixText = '')
     {
+        //  Set the sctor type in the data
+        $actorData['who'] = $actorType;
+
         //  Initialise the label text - this will be the value if the actor is a trust
         $label = $actorData['name'];
 
-        if (!isset($actorData['type']) || $actorData['type'] != 'trust') {
+        //  If this is a trust then set the company name - this is used for the correspondent edit form
+        if (isset($actorData['type']) && $actorData['type'] == 'trust') {
+            $actorData['company'] = $label;
+        } elseif (is_array($actorData['name'])) {
+            //  Try to create a full name for a non trust
             $label = $actorData['name']['first'] . ' ' . $actorData['name']['last'];
         }
 
         //  Filter the actor data
         foreach ($actorData as $actorDataKey => $actorDataValue) {
-            if (!in_array($actorDataKey, ['name', 'number', 'otherNames', 'address', 'dob', 'email', 'case', 'phone'])) {
+            if (!in_array($actorDataKey, ['name', 'number', 'otherNames', 'address', 'dob', 'email', 'case', 'phone', 'who', 'company'])) {
                 unset($actorData[$actorDataKey]);
             }
         }
@@ -228,6 +244,9 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
                 //  This is not an AJAX request so just bind the data to the main form
                 $mainForm->bind($actorData);
+
+                //  Also bind the selected index to the reuse details form so it shows the correct selected value
+                $reuseDetailsForm->bind(new \ArrayObject(['reuse-details' => $reuseDetailsIndex]));
             }
 
             $viewModel->reuseDetailsForm = $reuseDetailsForm;
@@ -237,7 +256,6 @@ abstract class AbstractLpaActorController extends AbstractLpaController
     /**
      * Generate a list of actors already associated with the current LPA
      *
-     * @param Lpa $lpa
      * @param RouteMatch $routeMatch
      * @return array
      */
