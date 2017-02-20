@@ -82,7 +82,8 @@ class ReplacementAttorneyController extends AbstractLpaActorController
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
         $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
-        $seedSelection = $this->seedDataSelector($viewModel, $form);
+        $seedSelection = $this->addReuseDetailsForm($viewModel, $form);
+
         if ($seedSelection instanceof JsonModel) {
             return $seedSelection;
         }
@@ -263,7 +264,8 @@ class ReplacementAttorneyController extends AbstractLpaActorController
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\TrustCorporationForm');
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
 
-        $seedSelection = $this->seedDataSelector($viewModel, $form, true);
+        $seedSelection = $this->addReuseDetailsForm($viewModel, $form, true);
+
         if ($seedSelection instanceof JsonModel) {
             return $seedSelection;
         }

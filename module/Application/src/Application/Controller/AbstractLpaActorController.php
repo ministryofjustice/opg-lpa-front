@@ -204,14 +204,14 @@ abstract class AbstractLpaActorController extends AbstractLpaController
     }
 
     /**
-     * Add the seed data selector if appropriate
+     * Add the reuse details form if appropriate
      *
      * @param ViewModel $viewModel
      * @param AbstractActorForm $mainForm
      * @param bool $trustOnly
      * @return void|JsonModel
      */
-    protected function seedDataSelector(ViewModel $viewModel, AbstractActorForm $mainForm, $trustOnly = false)
+    protected function addReuseDetailsForm(ViewModel $viewModel, AbstractActorForm $mainForm, $trustOnly = false)
     {
         //  Attempt to get the seed details
         $actorReuseDetails = $this->getActorReuseDetails($trustOnly);

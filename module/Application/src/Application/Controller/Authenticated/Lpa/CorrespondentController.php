@@ -180,7 +180,7 @@ class CorrespondentController extends AbstractLpaActorController
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CorrespondentForm');
         $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
 
-        $seedSelection = $this->seedDataSelector($viewModel, $form);
+        $seedSelection = $this->addReuseDetailsForm($viewModel, $form);
 
         if ($seedSelection instanceof JsonModel) {
             return $seedSelection;
@@ -218,43 +218,11 @@ class CorrespondentController extends AbstractLpaActorController
                 }
             }
         } elseif (!$this->params()->fromQuery('reuse-details')) {
-            //  Only bind the correspondent details here if this is NOT a request to reuse details
-            //  If we are reusing details then that will have already taken place in the parent controller
-            //  If no correspondent is specified then check who was registered and populate their details
-            if (is_null($lpaCorrespondent)) {
-                if ($lpaDocument->whoIsRegistering == 'donor') {
-                    $lpaCorrespondent = $lpaDocument->donor;
-                } else {
-                    $firstAttorneyId = array_values($lpaDocument->whoIsRegistering)[0];
-
-                    foreach ($lpaDocument->primaryAttorneys as $attorney) {
-                        if ($attorney->id == $firstAttorneyId) {
-                            $lpaCorrespondent = $attorney;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // convert object into array.
-            $correspondentDetails = $lpaCorrespondent->flatten();
-
-            //  If the correspondent is not a correspondence object inject the necessary data
-            if (!$lpaCorrespondent instanceof Correspondence) {
-                //  By default set the actor type as attorney
-                $actorType = 'attorney';
-
-                if ($lpaCorrespondent instanceof TrustCorporation) {
-                    $correspondentDetails['company'] = $lpaCorrespondent->name;
-                } elseif ($lpaCorrespondent instanceof Donor) {
-                    $actorType = 'donor';
-                }
-
-                $correspondentDetails['who'] = $actorType;
-            }
-
-            // bind data into the form
-            $form->bind($correspondentDetails);
+            //  Bind the initial default values to the empty form
+            $form->bind([
+                'who'        => 'other',
+                'name-title' => ' ',
+            ]);
         }
 
         $viewModel->form = $form;
@@ -287,9 +255,6 @@ class CorrespondentController extends AbstractLpaActorController
         foreach ($lpaDocument->primaryAttorneys as $attorney) {
             $actorReuseDetails[] = $this->getReuseDetailsForActor($attorney->toArray(), 'attorney', '(attorney)');
         }
-
-        //  Add an 'other' option
-        $actorReuseDetails['other'] = $this->getReuseDetailsForActor(['name' => 'Other'], 'other');
 
         return $actorReuseDetails;
     }
