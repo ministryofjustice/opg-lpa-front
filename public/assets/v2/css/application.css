@@ -4279,6 +4279,14 @@ input[type=number] {
   margin-top: 30px;
   clear: left; }
 
+.no-js .reuse-details-container label:last-of-type {
+  display: none; }
+.no-js .reuse-details-container .reuse-details-cancel-button {
+  display: none; }
+
+.reuse-details-container .reuse-details-heading {
+  display: block !important; }
+
 .noscroll {
   position: relative;
   overflow: hidden; }

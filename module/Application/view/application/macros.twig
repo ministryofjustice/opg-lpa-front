@@ -66,12 +66,12 @@
     {% if (reuseDetailsForm) %}
         {# form fields config #}
         {{ reuseDetailsForm.setAttributes({
-            'class':'form hard--bottom'
+            'class':'form'
         }) ? '' }}
 
-        {# Check how many value options are in the select in the form - if there is only one we will display as a hyperlink #}
-        {% set reuseDetailsSelect = reuseDetailsForm.get('reuse-details') %}
-        {% set reuseDetailsOptions = reuseDetailsSelect.getValueOptions() %}
+        {# Check how many value options are in the reuse details element in the form - if there is only one we will display as a hyperlink #}
+        {% set reuseDetailsInput = reuseDetailsForm.get('reuse-details') %}
+        {% set reuseDetailsOptions = reuseDetailsInput.getValueOptions() %}
 
         {% if (reuseDetailsOptions|length == 1) %}
             {% set currentUrl = serverUrl(true) %}
@@ -86,7 +86,8 @@
                 {% set linkText = 'Use my details' %}
 
                 {% if (reuseDetailsForm.hasTrustDataOnly()) %}
-                    {% set linkText = 'Use details of the ' ~ reuseDetailsOptions|first %}
+                    {% set trustDetails = reuseDetailsOptions|first %}
+                    {% set linkText = 'Use details of the ' ~ trustDetails.label %}
                 {% endif %}
 
                 <div class="use-details-link-panel">
@@ -99,42 +100,33 @@
             {# Set form fields variables #}
             {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
 
-            {{ reuseDetailsSelect.setAttributes({
+            {{ reuseDetailsInput.setAttributes({
                 'id':    'reuse-details',
-                'class': 'form-control js-reusable'
-            }) ? '' }}
-
-            {# form fields labels #}
-            {{ reuseDetailsSelect.setOptions({
-                'label':        'Use these details',
-                'empty_option': 'Select a person'
+                'class': 'js-reusable',
             }) ? '' }}
 
             {# form fields config #}
             {{ reuseDetailsSubmit.setAttributes({
                 'value': 'Use this person\'s details',
-                'class': 'button'
+                'class': 'button flush--left js-hidden'
             }) ? '' }}
 
             {# begin form #}
             {{ reuseDetailsForm.prepare() ? '' }}
+
             {{ form().openTag(reuseDetailsForm)|raw }}
 
-            <fieldset>
-                <div class="form-group flush--bottom">
-                    <legend class="visuallyhidden">Select person from previous LPA</legend>
+                <fieldset class="reuse-details-container">
+                    <h2 class="reuse-details-heading heading-medium flush--top">Which person's details would you like to reuse?</h2>
 
-                    <div class="form-group flush--bottom">
-                        <label class="form-label" for="{{ reuseDetailsSelect.getAttribute('id') }}">{{ reuseDetailsSelect.getOption('label') }}</label>
-                        {{ formSelect(reuseDetailsSelect) }}
+                    <div class="form-group">
+                        {{ formElement(reuseDetailsInput) }}
                     </div>
-
-                    <div class="form-group js-hidden">
+                    <div class="form-group">
                         {{ formElement(reuseDetailsSubmit) }}
+                        <input type="button" class="button button-secondary reuse-details-cancel-button js-cancel" value="Cancel" />
                     </div>
-
-                </div>
-            </fieldset>
+                </fieldset>
 
             {{ form().closeTag|raw }}
         {% endif %}

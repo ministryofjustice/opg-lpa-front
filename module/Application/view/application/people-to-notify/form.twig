@@ -101,40 +101,44 @@
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-{# Add reuse details options #}
-{{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+<div class="js-step">
+    {# Add reuse details options #}
+    {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+</div>
 
-{# begin form #}
-{{ form().openTag( form )|raw }}
-    {{ formElement(form.get( form.csrfName )) }}
-    {{ formElementErrorsV2(form.get( form.csrfName )) }}
+<div class="js-step">
+    {# begin form #}
+    {{ form().openTag( form )|raw }}
+        {{ formElement(form.get( form.csrfName )) }}
+        {{ formElementErrorsV2(form.get( form.csrfName )) }}
 
-    <h2 class="heading-medium">What is the person's name?</h2>
+        <h2 class="heading-medium">What is the person's name?</h2>
 
-    <fieldset>
-        <legend class="visuallyhidden">Add person's name</legend>
+        <fieldset>
+            <legend class="visuallyhidden">Add person's name</legend>
 
-        {{ macros.formGroup(title) }}
-        {{ macros.formGroup(firstname) }}
-        {{ macros.formGroup(lastname) }}
+            {{ macros.formGroup(title) }}
+            {{ macros.formGroup(firstname) }}
+            {{ macros.formGroup(lastname) }}
 
-    </fieldset>
+        </fieldset>
 
-    <h2 class="heading-medium">What is the person's address?</h2>
+        <h2 class="heading-medium">What is the person's address?</h2>
 
-    <fieldset class="postcodelookup">
-        <legend class="visuallyhidden">Address</legend>
-        <div class="js-PostcodeLookup__postal-add">
-            {{ macros.formGroup(address1) }}
-            {{ macros.formGroup(address2) }}
-            {{ macros.formGroup(address3) }}
-            {{ macros.formGroup(postcode) }}
-        </div>
-    </fieldset>
+        <fieldset class="postcodelookup">
+            <legend class="visuallyhidden">Address</legend>
+            <div class="js-PostcodeLookup__postal-add">
+                {{ macros.formGroup(address1) }}
+                {{ macros.formGroup(address2) }}
+                {{ macros.formGroup(address3) }}
+                {{ macros.formGroup(postcode) }}
+            </div>
+        </fieldset>
 
-    <input type="submit" name="submit" id="form-save" value="Save details" class="button">
-    <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
+        <input type="submit" name="submit" id="form-save" value="Save details" class="button">
+        <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
 
-{{ form().closeTag|raw }}
+    {{ form().closeTag|raw }}
+</div>
 
 {% endblock %}

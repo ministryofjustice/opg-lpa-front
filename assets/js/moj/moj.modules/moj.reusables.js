@@ -4,20 +4,20 @@
 
 (function () {
   'use strict';
-  var selected;
+
   moj.Modules.Reusables = {
     selector: '.js-reusable',
     message: 'This will replace the information which you have already entered, are you sure?',
 
     init: function () {
-      _.bindAll(this, 'linkClicked', 'selectChanged');
+      _.bindAll(this, 'linkClicked', 'actorSelected');
       this.bindEvents();
     },
 
     bindEvents: function () {
       $('body')
         .on('click.moj.Modules.Reusables', 'a' + this.selector, this.linkClicked)
-        .on('change.moj.Modules.Reusables', 'select' + this.selector, this.selectChanged);
+        .on('change.moj.Modules.Reusables', 'input[type="radio"]' + this.selector, this.actorSelected);
     },
 
     // <a> click
@@ -42,8 +42,8 @@
       return false;
     },
 
-    // <select> change
-    selectChanged: function (e, params) {
+    // <radio> change
+    actorSelected: function (e, params) {
       var $el = $(e.target),
         $form = $el.closest('form'),
         $personForm = $('form.js-PersonForm'),
@@ -51,27 +51,17 @@
         requestData,
         _this = this;
 
-      //  Stop processing if the selected value is blank or the currently selected value
-      if (($el.val() === '') || ($el.val() === selected)) {
-        return;
-      }
-
       if (this.isFormClean($personForm) || confirm(this.message)) {
         $el.spinner();
 
-        selected = $el.val();
-
         //  Get the value of the reuse details input
-        requestData = { 'reuse-details': $form.find('[name=reuse-details]').val() };
+        requestData = { 'reuse-details': $el.val() };
 
         $.get(url, requestData).done(function(data) {
           $el.spinner('off');
 
           _this.populateForm(data);
         });
-      } else {
-        //  Return to the selected value
-        $el.val(selected);
       }
     },
 

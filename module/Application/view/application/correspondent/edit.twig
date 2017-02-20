@@ -131,57 +131,61 @@
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-{#Add reuse details options #}
-{{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+<div class="js-step">
+    {# Add reuse details options #}
+    {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
+</div>
 
-{# begin form #}
-{{ form().openTag( form )|raw }}
-    {{ formElement(form.get( form.csrfName )) }}
+<div class="js-step">
+    {# begin form #}
+    {{ form().openTag( form )|raw }}
+        {{ formElement(form.get( form.csrfName )) }}
 
-    <h2 class="heading-medium">Correspondent's details?</h2>
+        <h2 class="heading-medium">Correspondent's details?</h2>
 
-    <fieldset>
-        <legend class="visuallyhidden">Add correspondent's details</legend>
+        <fieldset>
+            <legend class="visuallyhidden">Add correspondent's details</legend>
 
-        {{ macros.formGroup(who) }}
-        {{ macros.formGroup(title) }}
-        {{ macros.formGroup(firstname) }}
-        {{ macros.formGroup(lastname) }}
+            {{ macros.formGroup(who) }}
+            {{ macros.formGroup(title) }}
+            {{ macros.formGroup(firstname) }}
+            {{ macros.formGroup(lastname) }}
 
-    </fieldset>
+        </fieldset>
 
-    <h2 class="heading-medium">Correspondent's company name?</h2>
+        <h2 class="heading-medium">Correspondent's company name?</h2>
 
-    <fieldset>
-        <legend class="visually hidden">Add company name</legend>
-    	{{ macros.formGroup(company) }}
-    </fieldset>
+        <fieldset>
+            <legend class="visually hidden">Add company name</legend>
+            {{ macros.formGroup(company) }}
+        </fieldset>
 
-    <h2 class="heading-medium">What is the correspondent's address?</h2>
+        <h2 class="heading-medium">What is the correspondent's address?</h2>
 
-    <fieldset class="postcodelookup">
-        <legend class="visuallyhidden">Add address details</legend>
-        <div class="js-PostcodeLookup__postal-add">
-            {{ macros.formGroup(address1) }}
-            {{ macros.formGroup(address2) }}
-            {{ macros.formGroup(address3) }}
-            {{ macros.formGroup(postcode) }}
-        </div>
-    </fieldset>
+        <fieldset class="postcodelookup">
+            <legend class="visuallyhidden">Add address details</legend>
+            <div class="js-PostcodeLookup__postal-add">
+                {{ macros.formGroup(address1) }}
+                {{ macros.formGroup(address2) }}
+                {{ macros.formGroup(address3) }}
+                {{ macros.formGroup(postcode) }}
+            </div>
+        </fieldset>
 
-    <h2 class="heading-medium">Correspondent's contact details?</h2>
+        <h2 class="heading-medium">Correspondent's contact details?</h2>
 
-    <fieldset>
-        <legend class="visuallyhidden">Add correspondent's contact details</legend>
+        <fieldset>
+            <legend class="visuallyhidden">Add correspondent's contact details</legend>
 
-        {{ macros.formGroup(email) }}
-        {{ macros.formGroup(phone) }}
+            {{ macros.formGroup(email) }}
+            {{ macros.formGroup(phone) }}
 
-    </fieldset>
+        </fieldset>
 
-    <input type="submit" name="submit" id="form-save" value="Save details" class="button">
-    <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
+        <input type="submit" name="submit" id="form-save" value="Save details" class="button">
+        <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
 
-{{ form().closeTag|raw }}
+    {{ form().closeTag|raw }}
+</div>
 
 {% endblock %}

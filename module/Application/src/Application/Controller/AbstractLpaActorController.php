@@ -233,7 +233,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             $reuseDetailsIndex = $this->params()->fromQuery('reuse-details');
 
             //  If a valid reuse details query param has been passed then try to retrieve the appropriate details
-            if (is_numeric($reuseDetailsIndex) && array_key_exists($reuseDetailsIndex, $actorReuseDetails)) {
+            if (array_key_exists($reuseDetailsIndex, $actorReuseDetails)) {
                 //  Get the actor data
                 $actorData = $actorReuseDetails[$reuseDetailsIndex]['data'];
 

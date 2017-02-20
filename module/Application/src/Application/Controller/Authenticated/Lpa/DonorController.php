@@ -149,8 +149,6 @@ class DonorController extends AbstractLpaActorController
 
         $viewModel->form = $form;
 
-
-
         //  Add a cancel route for this action
         $this->addCancelRouteToView($viewModel, 'lpa/donor');
 

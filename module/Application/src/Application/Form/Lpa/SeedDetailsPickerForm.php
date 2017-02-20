@@ -26,7 +26,12 @@ class SeedDetailsPickerForm extends Form
 
         if (array_key_exists('seedDetails', $options)) {
             foreach ($options['seedDetails'] as $idx => $actor) {
-                $reuseDetailsValueOptions[$idx] = $actor['label'];
+                $reuseDetailsValueOptions[] = $this->getValueOption($actor['label'], $idx);
+            }
+
+            //  If there is more than one value option then add a none of the above option also
+            if (count($reuseDetailsValueOptions) > 1) {
+                $reuseDetailsValueOptions[] = $this->getValueOption('None of the above', -1);
             }
 
             unset($options['seedDetails']);
@@ -47,7 +52,7 @@ class SeedDetailsPickerForm extends Form
         //  Add the required inputs
         $this->add([
             'name' => 'reuse-details',
-            'type' => 'Select',
+            'type' => 'Radio',
             'required' => true,
             'options' => [
                 'value_options' => $reuseDetailsValueOptions,
@@ -58,6 +63,24 @@ class SeedDetailsPickerForm extends Form
             'name' => 'submit',
             'type' => 'Submit',
         ]);
+    }
+
+    /**
+     * Simple function to create consistent value option arrays
+     *
+     * @param $label
+     * @param $index
+     * @return array
+     */
+    private function getValueOption($label, $index)
+    {
+        return [
+            'label'            => $label,
+            'value'            => $index,
+            'label_attributes' => [
+                'class' => 'text block-label flush--left',
+            ],
+        ];
     }
 
     /**

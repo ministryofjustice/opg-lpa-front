@@ -1,0 +1,22 @@
+// =======================================================
+// REUSABLE DETAILS CONTAINER
+
+//  If no-js Hide the last radio button "none of the above" if no JS
+.no-js {
+    .reuse-details-container {
+        label:last-of-type {
+            display: none;
+        }
+
+        .reuse-details-cancel-button {
+            display: none;
+        }
+    }
+}
+
+//  Hide the last radio button "none of the above" if no JS
+.reuse-details-container {
+    .reuse-details-heading {
+        display: block !important;
+    }
+}
