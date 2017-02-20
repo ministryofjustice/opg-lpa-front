@@ -97,38 +97,41 @@
                 </div>
             {% endif %}
         {% elseif (reuseDetailsOptions|length > 1) %}
-            {# Set form fields variables #}
-            {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
+            {# Put the form in a step panel #}
+            <div class="js-step">
+                {# Set form fields variables #}
+                {% set reuseDetailsSubmit = reuseDetailsForm.get('submit') %}
 
-            {{ reuseDetailsInput.setAttributes({
-                'id':    'reuse-details',
-                'class': 'js-reusable',
-            }) ? '' }}
+                {{ reuseDetailsInput.setAttributes({
+                    'id':    'reuse-details',
+                    'class': 'js-reusable',
+                }) ? '' }}
 
-            {# form fields config #}
-            {{ reuseDetailsSubmit.setAttributes({
-                'value': 'Use this person\'s details',
-                'class': 'button flush--left js-hidden'
-            }) ? '' }}
+                {# form fields config #}
+                {{ reuseDetailsSubmit.setAttributes({
+                    'value': 'Use this person\'s details',
+                    'class': 'button flush--left js-hidden'
+                }) ? '' }}
 
-            {# begin form #}
-            {{ reuseDetailsForm.prepare() ? '' }}
+                {# begin form #}
+                {{ reuseDetailsForm.prepare() ? '' }}
 
-            {{ form().openTag(reuseDetailsForm)|raw }}
+                {{ form().openTag(reuseDetailsForm)|raw }}
 
-                <fieldset class="reuse-details-container">
-                    <h2 class="reuse-details-heading heading-medium flush--top">Which person's details would you like to reuse?</h2>
+                    <fieldset class="reuse-details-container">
+                        <h2 class="reuse-details-heading heading-medium flush--top">Which person's details would you like to reuse?</h2>
 
-                    <div class="form-group">
-                        {{ formElement(reuseDetailsInput) }}
-                    </div>
-                    <div class="form-group">
-                        {{ formElement(reuseDetailsSubmit) }}
-                        <input type="button" class="button button-secondary reuse-details-cancel-button js-cancel" value="Cancel" />
-                    </div>
-                </fieldset>
+                        <div class="form-group">
+                            {{ formElement(reuseDetailsInput) }}
+                        </div>
+                        <div class="form-group">
+                            {{ formElement(reuseDetailsSubmit) }}
+                            <input type="button" class="button button-secondary reuse-details-cancel-button js-cancel" value="Cancel" />
+                        </div>
+                    </fieldset>
 
-            {{ form().closeTag|raw }}
+                {{ form().closeTag|raw }}
+            </div>
         {% endif %}
     {% endif %}
 {% endmacro %}

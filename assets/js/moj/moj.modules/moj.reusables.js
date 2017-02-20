@@ -46,21 +46,25 @@
     actorSelected: function (e, params) {
       var $el = $(e.target),
         $form = $el.closest('form'),
-        $personForm = $('form.js-PersonForm'),
         url = $form.attr('action'),
         requestData,
         _this = this;
 
-      if (this.isFormClean($personForm) || confirm(this.message)) {
+      //  Don't try to get data if a value of < 0 ('None of the above') has been selected
+      if ($el.val() < 0) {
+        moj.Events.trigger('Steps.nextStep');
+      } else {
         $el.spinner();
 
         //  Get the value of the reuse details input
-        requestData = { 'reuse-details': $el.val() };
+        requestData = {'reuse-details': $el.val()};
 
-        $.get(url, requestData).done(function(data) {
+        $.get(url, requestData).done(function (data) {
           $el.spinner('off');
 
           _this.populateForm(data);
+
+          moj.Events.trigger('Steps.nextStep');
         });
       }
     },

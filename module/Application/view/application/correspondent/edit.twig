@@ -131,10 +131,8 @@
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-<div class="js-step">
-    {# Add reuse details options #}
-    {{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
-</div>
+{# Add reuse details options #}
+{{ macros.renderReuseDetailsOptions(reuseDetailsForm) }}
 
 <div class="js-step">
     {# begin form #}
@@ -183,6 +181,7 @@
         </fieldset>
 
         <input type="submit" name="submit" id="form-save" value="Save details" class="button">
+        <input type="button" class="button button-secondary hidden js-prev-step" value="Back" />
         <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
 
     {{ form().closeTag|raw }}

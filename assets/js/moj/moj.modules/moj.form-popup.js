@@ -100,6 +100,8 @@
           moj.Events.trigger('PostcodeLookup.render', {wrap: '#popup'});
           // trigger person form events
           moj.Events.trigger('PersonForm.render', {wrap: '#popup'});
+          // trigger steps events
+          moj.Events.trigger('Steps.render', {wrap: '#popup'});
         }
       });
 
