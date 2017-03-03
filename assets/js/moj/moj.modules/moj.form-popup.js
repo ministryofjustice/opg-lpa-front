@@ -78,8 +78,9 @@
         } else {
           // render form
           self.renderForm(html);
-          // checking date when 'my details' are populated
-          if (url.indexOf('use-my-details') !== -1) {
+          // If the user clicked the user my details link then automatically trigger the date of birth change
+          // so that any warning message can be displayed
+          if (url.indexOf('reuse-details') !== -1) {
             $('#dob-date-day').trigger('change');
           }
         }
@@ -102,21 +103,24 @@
         }
       });
 
-      // hide use button and switch button
-      $('#form-seed-details-picker, #form-correspondent-selector').find('input[type=submit]').hide();
-
       this.renderSelectionButtons();
     },
 
     submitForm: function (e) {
       var $form = $(e.target),
-        url = $form.attr('action');
+        url = $form.attr('action'),
+        method = 'post';
 
       $form.find('input[type="submit"]').spinner();
 
+      //  If a method is set on the form use that value instead of the default post
+      if ($form.attr('method') !== undefined) {
+          method = $form.attr('method');
+      }
+
       $.ajax({
         url: url,
-        type: 'post',
+        type: method,
         data: $form.serialize(),
         context: $form,
         success: this.ajaxSuccess,
@@ -155,8 +159,6 @@
           moj.Events.trigger('TitleSwitch.render', {wrap: '#popup'});
           // trigger postcode lookup event
           moj.Events.trigger('PostcodeLookup.render', {wrap: '#popup'});
-          // trigger use these details event
-          moj.Events.trigger('Reusables.render', {wrap: '#popup'});
           // trigger validation accessibility method
           moj.Events.trigger('Validation.render', {wrap: '#popup'});
           moj.Events.trigger('FormPopup.renderSelectionButtons');
