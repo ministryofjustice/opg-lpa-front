@@ -74,10 +74,10 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             } elseif ($reuseDetailsIndex != -1) {
                 //  If no option has been selected (including the "none of the above option" which is -1) then set the reuse details form in the view
                 $reuseDetailsForm = $this->getServiceLocator()
-                    ->get('FormElementManager')
-                    ->get('Application\Form\Lpa\ReuseDetailsForm', [
-                        'actorReuseDetails' => $actorReuseDetails,
-                    ]);
+                                         ->get('FormElementManager')
+                                         ->get('Application\Form\Lpa\ReuseDetailsForm', [
+                                             'actorReuseDetails' => $actorReuseDetails,
+                                         ]);
 
                 $viewModel->reuseDetailsForm = $reuseDetailsForm;
             }

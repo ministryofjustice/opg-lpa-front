@@ -34,7 +34,6 @@
     }
 }) %}
 
-{% set who = form.get('who') %}
 {% set title = form.get('name-title') %}
 {% set firstname = form.get('name-first') %}
 {% set lastname = form.get('name-last') %}
@@ -49,11 +48,6 @@
 {# form fields config #}
 {{ form.setAttributes({
     'class':'form js-PersonForm js-PostcodeLookup'
-}) ? '' }}
-
-{{ who.setAttributes({
-    id: 'who-role',
-    class: 'form-control'
 }) ? '' }}
 
 {{ title.setAttributes({
@@ -107,7 +101,6 @@
 }) ? ''}}
 
 {# form fields labels #}
-{{ who.setOptions({label:'Role'}) ? '' }}
 {{ title.setOptions({label:'Title'}) ? '' }}
 {{ firstname.setOptions({label:'First names'}) ? '' }}
 {{ lastname.setOptions({label:'Last name'}) ? '' }}
@@ -138,13 +131,13 @@
     {# begin form #}
     {{ form().openTag( form )|raw }}
         {{ formElement(form.get( form.csrfName )) }}
+        {{ formElement(form.get('who')) }}
 
         <h2 class="heading-medium">Correspondent's details?</h2>
 
         <fieldset>
             <legend class="visuallyhidden">Add correspondent's details</legend>
 
-            {{ macros.formGroup(who) }}
             {{ macros.formGroup(title) }}
             {{ macros.formGroup(firstname) }}
             {{ macros.formGroup(lastname) }}

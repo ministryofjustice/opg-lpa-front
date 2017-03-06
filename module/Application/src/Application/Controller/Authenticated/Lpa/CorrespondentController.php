@@ -170,45 +170,17 @@ class CorrespondentController extends AbstractLpaActorController
             $viewModel->setTerminal(true);
         }
 
-        $lpa = $this->getLpa();
-        $lpaId = $lpa->id;
-        $lpaDocument = $lpa->document;
-        $lpaCorrespondent = $lpaDocument->correspondent;
         $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CorrespondentForm');
-        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
+        $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $this->getLpa()->id]));
 
         if ($this->request->isPost()) {
             $form->setData($this->request->getPost());
 
             if ($form->isValid()) {
-                //  Set aside any data to retain that is not present in the form
-                $existingDataToRetain = [];
-
-                if ($lpaCorrespondent instanceof Correspondence) {
-                    $existingDataToRetain = [
-                        'contactByPost'  => $lpaCorrespondent->contactByPost,
-                        'contactInWelsh' => $lpaCorrespondent->contactInWelsh,
-                    ];
-                }
-
-                //  Create a new correspondence data model using the form data and any data to retain from a previous save
-                $lpaCorrespondent = new Correspondence(array_merge($form->getModelDataFromValidatedForm(), $existingDataToRetain));
-
-
-                // Let the PDF module know that we can't rely on the default donor or attorney values any more
-                $lpaCorrespondent->set('contactDetailsEnteredManually', true);
-
-                if (!$this->getLpaApplicationService()->setCorrespondent($lpaId, $lpaCorrespondent)) {
-                    throw new \RuntimeException('API client failed to update correspondent for id: '.$lpaId);
-                }
-
-                if ($this->getRequest()->isXmlHttpRequest()) {
-                    return new JsonModel(['success' => true]);
-                } else {
-                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
-                }
+                //  Extract the model data from the form and process it
+                return $this->processCorrespondentData($form->getModelDataFromValidatedForm());
             }
         } else {
             $this->addReuseDetailsForm($viewModel, $form);
@@ -216,8 +188,14 @@ class CorrespondentController extends AbstractLpaActorController
             //  If this isn't a request to reuse some details right now then bind the initial default values
             $reuseDetailsIndex = $this->params()->fromQuery('reuse-details');
 
-            if (!is_numeric($reuseDetailsIndex) || $reuseDetailsIndex < 0) {
-                //  Bind the initial default values to the empty form
+            //  If a reuse details index has been provided and it is NOT -1 (i.e. None of the above/other) then try to process the form automatically
+            if (is_numeric($reuseDetailsIndex) && $reuseDetailsIndex >= 0) {
+                $form->isValid();
+
+                //  Extract the data straight out of the form and process it now
+                return $this->processCorrespondentData($form->getModelDataFromValidatedForm());
+            } else {
+                //  If the form was not processed then bind the default values to the empty form for display
                 $form->bind([
                     'who' => 'other',
                     'name-title' => ' ',
@@ -231,6 +209,48 @@ class CorrespondentController extends AbstractLpaActorController
         $this->addCancelUrlToView($viewModel, 'lpa/correspondent');
 
         return $viewModel;
+    }
+
+    /**
+     * Process the correspondent data and return an appropriate model
+     *
+     * @param   array   $correspondentData
+     * @return  \Zend\Http\Response|JsonModel
+     * @throws  \RuntimeException
+     */
+    private function processCorrespondentData(array $correspondentData)
+    {
+        $lpa = $this->getLpa();
+        $lpaId = $lpa->id;
+        $lpaCorrespondent = $lpa->document->correspondent;
+
+        //  Set aside any data to retain that is not present in the form
+        $existingDataToRetain = [];
+
+        if ($lpaCorrespondent instanceof Correspondence) {
+            $existingDataToRetain = [
+                'contactByPost'  => $lpaCorrespondent->contactByPost,
+                'contactInWelsh' => $lpaCorrespondent->contactInWelsh,
+            ];
+        }
+
+        //  Create a new correspondence data model using the form data and any data to retain from a previous save
+        $lpaCorrespondent = new Correspondence(array_merge($correspondentData, $existingDataToRetain));
+
+        // Let the PDF module know that we can't rely on the default donor or attorney values any more
+        $lpaCorrespondent->set('contactDetailsEnteredManually', true);
+
+        if (!$this->getLpaApplicationService()->setCorrespondent($lpaId, $lpaCorrespondent)) {
+            throw new \RuntimeException('API client failed to update correspondent for id: '.$lpaId);
+        }
+
+        if ($this->getRequest()->isXmlHttpRequest()) {
+            return new JsonModel(['success' => true]);
+        } else {
+            $currentRouteName = $this->getEvent()->getRouteMatch()->getMatchedRouteName();
+
+            return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($currentRouteName), ['lpa-id' => $lpaId]);
+        }
     }
 
     /**
