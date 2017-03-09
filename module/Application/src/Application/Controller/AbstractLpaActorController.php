@@ -69,7 +69,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
 
                 //  Bind the actor data to the main form
                 $actorForm->bind($actorDetailsToReuse);
-            } elseif ($reuseDetailsIndex != -1) {
+            } elseif ($reuseDetailsIndex != -1 && !is_string($reuseDetailsIndex)) {
                 //  If no option has been selected (including the "none of the above option" which is -1) then set the reuse details form in the view
                 $reuseDetailsForm = $this->getServiceLocator()
                                          ->get('FormElementManager')
@@ -174,7 +174,7 @@ abstract class AbstractLpaActorController extends AbstractLpaController
             $userDetails = $userDetailsObj->flatten();
 
             //  Add the additional data required by the form on the correspondence edit view
-            $userDetails['who'] = 'other';
+            $userDetails['who'] = 'session-user';
 
             //  If a date of birth is present then replace it as an array of day, month and year
             if (($dateOfBirth = $userDetailsObj->dob) instanceof Dob) {
