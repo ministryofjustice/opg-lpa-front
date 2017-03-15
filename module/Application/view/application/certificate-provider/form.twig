@@ -8,6 +8,18 @@
 
 {% import "application/macros.twig" as macros %}
 
+<script type="text/javascript">
+    var actorNames = {{ actorsList(lpa, routeMatch)|json_encode()|raw }};
+    var actors = {names: actorNames};
+
+    var user = {
+        firstName: '{{ signedInUser.name.first }}',
+        lastName: '{{ signedInUser.name.last }}'
+    };
+
+    moj.Modules.UseMyDetails.init();
+</script>
+
 {# Error messages #}
 {% set form = formErrorTextExchange(form,  {
     'name-title' : {
@@ -42,7 +54,7 @@
 
 {# form fields config #}
 {{ form.setAttributes({
-    'class':'form js-PersonForm js-PostcodeLookup'
+    'class':'form form-condensed js-PersonForm js-PostcodeLookup'
 }) ? '' }}
 
 {{ title.setAttributes({
@@ -96,51 +108,47 @@
 
 {{ form.prepare() ? '' }}
 
+{{ macros.renderPickerForm(form, seedDetailsPickerForm) }}
+
 {################# certificate provider form #####################}
+
+{{ macros.useMyDetails(useMyDetailsRoute) }}
 
 {# Error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-{# Add reuse details options #}
-{% if (reuseDetailsForm and reuseDetailsForm.reusingPreviousLpaOptions()) %}
-    {{ reuseDetailsForm(reuseDetailsForm, cancelUrl) }}
-{% else %}
-    {% if (reuseDetailsForm and not reuseDetailsForm.reusingPreviousLpaOptions()) %}
-        {{ reuseDetailsForm(reuseDetailsForm) }}
-    {% endif %}
+{# begin form #}
+{{ form().openTag( form )|raw }}
+    {{ formElement(form.get( form.csrfName )) }}
+    {{ formElementErrorsV2(form.get( form.csrfName )) }}
 
-    {# begin form #}
-    {{ form().openTag( form )|raw }}
-        {{ formElement(form.get( form.csrfName )) }}
-        {{ formElementErrorsV2(form.get( form.csrfName )) }}
+    <h2 class="heading-medium">What is the certificate provider's name?</h2>
 
-        <h2 class="heading-medium">What is the certificate provider's name?</h2>
+    <fieldset>
+        <legend class="visuallyhidden">Add certificate provider's name</legend>
 
-        <fieldset>
-            <legend class="visuallyhidden">Add certificate provider's name</legend>
+        {{ macros.formGroup(title) }}
+        {{ macros.formGroup(firstname) }}
+        {{ macros.formGroup(lastname) }}
 
-            {{ macros.formGroup(title) }}
-            {{ macros.formGroup(firstname) }}
-            {{ macros.formGroup(lastname) }}
+    </fieldset>
 
-        </fieldset>
+    <h2 class="heading-medium">What is the certificate provider's address?</h2>
 
-        <h2 class="heading-medium">What is the certificate provider's address?</h2>
+    <fieldset class="postcodelookup">
+        <legend class="visuallyhidden">Address</legend>
+        <div class="js-PostcodeLookup__postal-add">
+            {{ macros.formGroup(address1) }}
+            {{ macros.formGroup(address2) }}
+            {{ macros.formGroup(address3) }}
+            {{ macros.formGroup(postcode) }}
+        </div>
+    </fieldset>
 
-        <fieldset class="postcodelookup">
-            <legend class="visuallyhidden">Address</legend>
-            <div class="js-PostcodeLookup__postal-add">
-                {{ macros.formGroup(address1) }}
-                {{ macros.formGroup(address2) }}
-                {{ macros.formGroup(address3) }}
-                {{ macros.formGroup(postcode) }}
-            </div>
-        </fieldset>
+    <input type="submit" name="submit" id="form-save" value="Save details" class="button">
+    <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
 
-        {{ macros.renderFormButtons(cancelUrl, backButtonUrl) }}
-
-    {{ form().closeTag|raw }}
-{% endif %}
+{{ form().closeTag|raw }}
 
 {% endblock %}
 

@@ -32,55 +32,68 @@ class CertificateProviderController extends AbstractLpaActorController
 
     public function addAction()
     {
-        $lpa = $this->getLpa();
-
-        if ($lpa->document->certificateProvider instanceof CertificateProvider) {
+        if ($this->getLpa()->document->certificateProvider instanceof CertificateProvider) {
             return $this->redirect()->toRoute('lpa/certificate-provider', ['lpa-id' => $lpaId]);
         }
 
         $routeMatch = $this->getEvent()->getRouteMatch();
         $isPopup = $this->getRequest()->isXmlHttpRequest();
 
-        $viewModel = new ViewModel(['isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
         $viewModel->setTemplate('application/certificate-provider/form.twig');
         if ($isPopup) {
             $viewModel->setTerminal(true);
         }
 
-        $lpaId = $lpa->id;
+        $lpaId = $this->getLpa()->id;
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CertificateProviderForm');
         $form->setAttribute('action', $this->url()->fromRoute($routeMatch->getMatchedRouteName(), ['lpa-id' => $lpaId]));
-        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
+
+        $seedSelection = $this->seedDataSelector($viewModel, $form);
+
+        if ($seedSelection instanceof JsonModel) {
+            return $seedSelection;
+        }
 
         if ($this->request->isPost()) {
-            //  Set the post data
-            $form->setData($this->request->getPost());
+            $postData = $this->request->getPost();
 
-            if ($form->isValid()) {
-                // persist data
-                $cp = new CertificateProvider($form->getModelDataFromValidatedForm());
+            if (!$postData->offsetExists('pick-details')) {
+                // handle certificate provider form submission
+                $form->setData($postData);
 
-                if (!$this->getLpaApplicationService()->setCertificateProvider($lpaId, $cp)) {
-                    throw new \RuntimeException('API client failed to save certificate provider for id: '.$lpaId);
-                }
+                if ($form->isValid()) {
+                    // persist data
+                    $cp = new CertificateProvider($form->getModelDataFromValidatedForm());
 
-                if ($this->getRequest()->isXmlHttpRequest()) {
-                    return new JsonModel(['success' => true]);
-                } else {
-                    return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
+                    if (!$this->getLpaApplicationService()->setCertificateProvider($lpaId, $cp)) {
+                        throw new \RuntimeException('API client failed to save certificate provider for id: '.$lpaId);
+                    }
+
+                    if ($this->getRequest()->isXmlHttpRequest()) {
+                        return new JsonModel(['success' => true]);
+                    } else {
+                        return $this->redirect()->toRoute($this->getFlowChecker()->nextRoute($routeMatch->getMatchedRouteName()), ['lpa-id' => $lpaId]);
+                    }
                 }
             }
         } else {
-            $this->addReuseDetailsForm($viewModel, $form);
+            // load user's details into the form
+            if ($this->params()->fromQuery('use-my-details')) {
+                $form->bind($this->getUserDetailsAsArray());
+            }
         }
-
-        $this->addReuseDetailsBackButton($viewModel);
 
         $viewModel->form = $form;
 
-        //  Add a cancel URL for this action
-        $this->addCancelUrlToView($viewModel, 'lpa/certificate-provider');
+        // show user my details link (if the link has not been clicked and seed dropdown is not set in the view)
+        if (($viewModel->seedDetailsPickerForm==null) && !$this->params()->fromQuery('use-my-details')) {
+            $viewModel->useMyDetailsRoute = $this->url()->fromRoute('lpa/certificate-provider/add', ['lpa-id' => $lpaId]) . '?use-my-details=1';
+        }
+
+        //  Add a cancel route for this action
+        $this->addCancelRouteToView($viewModel, 'lpa/certificate-provider');
 
         return $viewModel;
     }
@@ -89,7 +102,7 @@ class CertificateProviderController extends AbstractLpaActorController
     {
         $routeMatch = $this->getEvent()->getRouteMatch();
         $isPopup = $this->getRequest()->isXmlHttpRequest();
-        $viewModel = new ViewModel(['isPopup' => $isPopup]);
+        $viewModel = new ViewModel(['routeMatch' => $routeMatch, 'isPopup' => $isPopup]);
 
         $viewModel->setTemplate('application/certificate-provider/form.twig');
 
@@ -97,14 +110,12 @@ class CertificateProviderController extends AbstractLpaActorController
             $viewModel->setTerminal(true);
         }
 
-        $lpa = $this->getLpa();
-        $lpaId = $lpa->id;
+        $lpaId = $this->getLpa()->id;
 
         $currentRouteName = $routeMatch->getMatchedRouteName();
 
         $form = $this->getServiceLocator()->get('FormElementManager')->get('Application\Form\Lpa\CertificateProviderForm');
         $form->setAttribute('action', $this->url()->fromRoute($currentRouteName, ['lpa-id' => $lpaId]));
-        $form->setExistingActorNamesData($this->getActorsList($routeMatch));
 
         if ($this->request->isPost()) {
             $postData = $this->request->getPost();
@@ -126,14 +137,14 @@ class CertificateProviderController extends AbstractLpaActorController
                 }
             }
         } else {
-            $cp = $lpa->document->certificateProvider->flatten();
+            $cp = $this->getLpa()->document->certificateProvider->flatten();
             $form->bind($cp);
         }
 
         $viewModel->form = $form;
 
-        //  Add a cancel URL for this action
-        $this->addCancelUrlToView($viewModel, 'lpa/certificate-provider');
+        //  Add a cancel route for this action
+        $this->addCancelRouteToView($viewModel, 'lpa/certificate-provider');
 
         return $viewModel;
     }
