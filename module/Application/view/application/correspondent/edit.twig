@@ -9,7 +9,44 @@
 {% import "application/macros.twig" as macros %}
 
 {# Error messages #}
-{% set form = formErrorTextExchange(form,  {
+
+{# -- Switcher form -- #}
+{# Error messages #}
+{% set switcherForm = formErrorTextExchange(switcherForm,  {
+    'switch-to-type' : {
+        'Value is required and can\'t be empty' : 'Please select a person'
+    }
+}) %}
+
+{# Set form fields variables #}
+{% set sCsrf = switcherForm.get(switcherForm.csrfName()) %}
+{% set switchTo = switcherForm.get('switch-to-type') %}
+{% set switchSubmit = switcherForm.get('submit') %}
+
+{# form fields config #}
+{{ sCsrf.setAttributes({id:'secret'}) ? '' }}
+{{ switchSubmit.setAttributes({value:'switch'}) ? '' }}
+{{ switchTo.setAttributes({
+    'id':'switch-to-type',
+    'class':'js-reusable form-control'
+}) ? '' }}
+{{ switchTo.setOptions({
+    empty_option: 'Select a person'
+}) ? '' }}
+{{ switcherForm.prepare() ? '' }}
+
+{# form fields labels #}
+{{ switchTo.setOptions({
+    label:'Use these details'
+}) ? '' }}
+
+{# -- Correspondent form -- #}
+{# Set form fields variables #}
+{% set form = correspondentForm %}
+
+
+{# Error messages #}
+    {% set form = formErrorTextExchange(form,  {
     'name-title' : {
         'must-be-less-than-or-equal:5' : 'Title must be five letters or fewer - please abbreviate, if necessary'
     },
@@ -34,6 +71,8 @@
     }
 }) %}
 
+{% set csrf = form.get(form.csrfName) %}
+{% set who = form.get('who') %}
 {% set title = form.get('name-title') %}
 {% set firstname = form.get('name-first') %}
 {% set lastname = form.get('name-last') %}
@@ -47,7 +86,12 @@
 
 {# form fields config #}
 {{ form.setAttributes({
-    'class':'form js-PersonForm js-PostcodeLookup'
+    'class':'form form-condensed js-PersonForm js-PostcodeLookup'
+}) ? '' }}
+
+{{ who.setAttributes({
+    id: 'who-role',
+    class: 'form-control'
 }) ? '' }}
 
 {{ title.setAttributes({
@@ -101,6 +145,7 @@
 }) ? ''}}
 
 {# form fields labels #}
+{{ who.setOptions({label:'Role'}) ? '' }}
 {{ title.setOptions({label:'Title'}) ? '' }}
 {{ firstname.setOptions({label:'First names'}) ? '' }}
 {{ lastname.setOptions({label:'Last name'}) ? '' }}
@@ -112,103 +157,87 @@
 {{ email.setOptions({label:'Email'}) ? '' }}
 {{ phone.setOptions({label:'Phone number'}) ? '' }}
 
+{{ form.prepare() ? '' }}
+
 <header class="popup-header">
     <i class="icon icon-person"></i>
     <h2 class="heading-small popup-header-title">Correspondent details</h2>
 </header>
 
-{{ form.prepare() ? '' }}
+{# switcher form - error summary #}
+{{ macros.formErrorSummary(error, switcherForm, 'There was a problem submitting the form') }}
 
-{############################ correspondent form ##########################}
+{# switcher form - begin form #}
+{{ switcherForm.prepare() ? '' }}
+{{ form().openTag( switcherForm )|raw }}
+    {{ formElement(sCsrf) }}
 
-{# Error summary #}
+    <div class="panel-actions">
+        <fieldset>
+            <legend class="visuallyhidden">Select details from a different person</legend>
+
+            {{ macros.formGroup(switchTo) }}
+
+        </fieldset>
+
+        <div class="form-group">
+            <input type="submit" name="switcher-submit" value="Switch to selected person" class="button js-details-picker">
+        </div>
+    </div>
+{{ form().closeTag|raw }}
+
+{# switcher form - error summary #}
 {{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
-{# Add reuse details options #}
-{% if (reuseDetailsForm and reuseDetailsForm.reusingPreviousLpaOptions()) %}
-    {{ reuseDetailsForm(reuseDetailsForm, cancelUrl) }}
-{% else %}
-    {# begin form #}
-    {{ form().openTag( form )|raw }}
-        {{ formElement(form.get( form.csrfName )) }}
-        {{ formElement(form.get('who')) }}
+{# correspondent form - begin form #}
+{{ form.prepare() ? '' }}
+{{ form().openTag( form )|raw }}
+    {{ formElement(csrf) }}
 
-        <h2 class="heading-medium">Correspondent's details?</h2>
+    <h2 class="heading-medium">Correspondent's details?</h2>
 
-        <fieldset>
-            <legend class="visuallyhidden">Add correspondent's details</legend>
+    <fieldset>
+        <legend class="visuallyhidden">Add correspondent's details</legend>
 
-            {{ macros.formGroup(title) }}
-            {{ macros.formGroup(firstname) }}
-            {{ macros.formGroup(lastname) }}
+        {{ macros.formGroup(who) }}
+        {{ macros.formGroup(title) }}
+        {{ macros.formGroup(firstname) }}
+        {{ macros.formGroup(lastname) }}
 
-        </fieldset>
+    </fieldset>
 
-        <h2 class="heading-medium">Correspondent's company name{{ form.trustSelected() ? '' : '?' }}</h2>
+    <h2 class="heading-medium">Correspondent's company name?</h2>
 
-        <fieldset>
-            <legend class="visually hidden">Add company name</legend>
-            {% if form.trustSelected() %}
-                {{ formHidden(company) }}
-                <div class="form-group read-only">
-                    <label class="form-label">{{ company.getOption('label') }}</label>
-                    <div class="read-only-value">{{ company.getValue() }}</div>
-                </div>
-            {% else %}
-                {{ macros.formGroup(company) }}
-            {% endif %}
-        </fieldset>
+    <fieldset>
+        <legend class="visually hidden">Add company name</legend>
+    	{{ macros.formGroup(company) }}
+    </fieldset>
 
-        <h2 class="heading-medium">{{ form.trustSelected() ? 'Correspondent\'s address' : 'What is the correspondent\'s address?' }}</h2>
+    <h2 class="heading-medium">What is the correspondent's address?</h2>
 
-        <fieldset class="postcodelookup">
-            <legend class="visuallyhidden">Add address details</legend>
+    <fieldset class="postcodelookup">
+        <legend class="visuallyhidden">Add address details</legend>
+        <div class="js-PostcodeLookup__postal-add">
+            {{ macros.formGroup(address1) }}
+            {{ macros.formGroup(address2) }}
+            {{ macros.formGroup(address3) }}
+            {{ macros.formGroup(postcode) }}
+        </div>
+    </fieldset>
 
-            {% if form.trustSelected() %}
-                {{ formHidden(address1) }}
-                {{ formHidden(address2) }}
-                {{ formHidden(address3) }}
-                {{ formHidden(postcode) }}
+    <h2 class="heading-medium">Correspondent's contact details?</h2>
 
-                {% set addressString = address1.getValue() %}
-                {% if address2.getValue() %}
-                    {% set addressString = addressString ~ ', ' ~ address2.getValue() %}
-                {% endif %}
-                {% if address3.getValue() %}
-                    {% set addressString = addressString ~ ', ' ~ address3.getValue() %}
-                {% endif %}
-                {% if postcode.getValue() %}
-                    {% set addressString = addressString ~ ', ' ~ postcode.getValue() %}
-                {% endif %}
+    <fieldset>
+        <legend class="visuallyhidden">Add correspondent's contact details</legend>
 
-                <div class="form-group read-only">
-                    <label class="form-label">Address</label>
-                    <div class="read-only-value">{{ addressString }}</div>
-                </div>
-            {% else %}
-                <div class="js-PostcodeLookup__postal-add">
-                    {{ macros.formGroup(address1) }}
-                    {{ macros.formGroup(address2) }}
-                    {{ macros.formGroup(address3) }}
-                    {{ macros.formGroup(postcode) }}
-                </div>
-            {% endif %}
+        {{ macros.formGroup(email) }}
+        {{ macros.formGroup(phone) }}
 
-        </fieldset>
+    </fieldset>
 
-        <h2 class="heading-medium">Correspondent's contact details?</h2>
+    <input type="submit" name="submit" id="form-save" value="Save details" class="button">
+    <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
 
-        <fieldset>
-            <legend class="visuallyhidden">Add correspondent's contact details</legend>
-
-            {{ macros.formGroup(email) }}
-            {{ macros.formGroup(phone) }}
-
-        </fieldset>
-
-        {{ macros.renderFormButtons(cancelUrl, backButtonUrl) }}
-
-    {{ form().closeTag|raw }}
-{% endif %}
+{{ form().closeTag|raw }}
 
 {% endblock %}

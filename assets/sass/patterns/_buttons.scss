@@ -44,9 +44,3 @@
         margin-left: 0;
     }
 }
-
-.reuse-details-button {
-    @include media(tablet) {
-        margin-right: 4px;
-    }
-}

@@ -39,7 +39,7 @@
 
 {# form fields config #}
 {{ form.setAttributes({
-    'class':'form js-PersonForm js-PostcodeLookup'
+    'class':'form form-condensed js-PersonForm js-PostcodeLookup'
 }) ? '' }}
 
 {{ companyName.setAttributes({
@@ -95,15 +95,20 @@
 
 {############################ trust corp form ############################}
 
-{# Error summary #}
-{{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
-
-{% if (reuseDetailsForm) %}
-    {{ reuseDetailsForm(reuseDetailsForm) }}
+{% if (useTrustRoute) %}
+<div class="panel-actions">
+    <a href="{{ useTrustRoute }}" class="js-form-popup" >Use details of the {{ trustName }}</a>
+</div>
 {% endif %}
 
-{# Add switch attorney type link #}
-{{ macros.addSwitchAttorneyTypeLink(switchAttorneyTypeRoute, lpa, false) }}
+{% if (addAttorneyRoute) %}
+<div class="panel-actions">
+    <a href="{{ addAttorneyRoute }}" class="js-form-popup" >Using an individual?</a>
+</div>
+{% endif %}
+
+{# Error summary #}
+{{ macros.formErrorSummary(error, form, 'There was a problem submitting the form') }}
 
 {# begin form #}
 {{ form().openTag( form )|raw }}
@@ -132,7 +137,8 @@
         </div>
     </fieldset>
 
-    {{ macros.renderFormButtons(cancelUrl, backButtonUrl) }}
+    <input type="submit" name="submit" id="form-save" value="Save details" class="button">
+    <a href="{{ cancelRoute }}" class="button button-secondary js-cancel">Cancel</a>
 
 {{ form().closeTag|raw }}
 
