@@ -2878,6 +2878,22 @@ input[type=number] {
   .reuse-details-button {
     margin-right: 4px; } }
 
+.button-input-to-link {
+  color: #005ea5;
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-decoration: underline; }
+  .button-input-to-link:hover {
+    color: #2b8cc4; }
+  .button-input-to-link:active {
+    color: #2b8cc4; }
+  .button-input-to-link::-moz-focus-inner {
+    padding: 0;
+    border: 0; }
+
 .help-header {
   display: none;
   position: relative;
@@ -3648,6 +3664,22 @@ input[type=number] {
 @media (min-width: 641px) {
   .reuse-details-button {
     margin-right: 4px; } }
+
+.button-input-to-link {
+  color: #005ea5;
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-decoration: underline; }
+  .button-input-to-link:hover {
+    color: #2b8cc4; }
+  .button-input-to-link:active {
+    color: #2b8cc4; }
+  .button-input-to-link::-moz-focus-inner {
+    padding: 0;
+    border: 0; }
 
 @media (min-width: 641px) {
   .postcode-input {
