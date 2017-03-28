@@ -161,13 +161,13 @@ return array(
                         'name' => 'Office of the Public Guardian',
                         'address' => 'opg@lastingpowerofattorney.service.gov.uk',
                 ],
-                
+
                 'feedback' => [
                         'name' => 'User Feedback',
                         'address' => 'opg@lastingpowerofattorney.service.gov.uk',
                 ],
         ], // opg email sender
-        
+
     ], // email
 
 
@@ -196,12 +196,12 @@ return array(
 
     'worldpay' => [
 
-        'test_mode' => ( strtolower(getenv('OPG_LPA_FRONT_WORLDPAY_TEST_MODE')) === 'true' ),
+        'test_mode' => false,
         'currency' => 'GBP',
         'cart_id' => 'LPAv2',
         'log' => false,
 
-        'url' => getenv('OPG_LPA_FRONT_WORLDPAY_URL') ?: null,
+        'url' => 'https://secure.worldpay.com/jsp/merchant/xml/paymentService.jsp',
         'merchant_code' => getenv('OPG_LPA_FRONT_WORLDPAY_MERCHANT_CODE') ?: null,
         'xml_password' => getenv('OPG_LPA_FRONT_WORLDPAY_XML_PASSWORD') ?: null,
         'administration_code' => getenv('OPG_LPA_FRONT_WORLDPAY_ADMINISTRATION_CODE') ?: null,
@@ -215,7 +215,7 @@ return array(
         'path' => getenv('OPG_LPA_COMMON_APPLICATION_LOG_PATH') ?: '/var/log/opg-lpa-front2/application.log',
         'sentry-uri' => getenv('OPG_LPA_COMMON_SENTRY_API_URI') ?: null,
     ], // log
-    
+
     'sendFeedbackEmailTo' => 'LPADigitalFeedback@PublicGuardian.gsi.gov.uk',
-    
+
 );
