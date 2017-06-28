@@ -2,15 +2,14 @@
 
 namespace Application\Form\Lpa;
 
-use Application\Form\AbstractForm;
+use Application\Form\AbstractCsrfForm;
 use Opg\Lpa\DataModel\Lpa\Lpa;
 use Opg\Lpa\DataModel\Validator\ValidatorResponse;
 use Zend\Form\Element\Checkbox;
 use Zend\Form\Element\Radio;
 use Zend\Form\FormInterface;
-use Zend\Validator\EmailAddress;
 
-abstract class AbstractLpaForm extends AbstractForm
+abstract class AbstractLpaForm extends AbstractCsrfForm
 {
     /**
      * LPA object if it was passed in via the constructor
@@ -85,13 +84,6 @@ abstract class AbstractLpaForm extends AbstractForm
         // merge both zend and LPA model validation error messages.
         if (!$result) {
             $messages = $this->getInputFilter()->getMessages();
-
-            // simplify zend email address validation error.
-            if (isset($messages['email-address'])) {
-                $messages['email-address'] = [
-                    EmailAddress::INVALID_FORMAT => "Invalid email address.",
-                ];
-            }
 
             // merge Zend and model validation errors.
             if (isset($modelValidationResult) && isset($modelValidationResult['messages'])) {

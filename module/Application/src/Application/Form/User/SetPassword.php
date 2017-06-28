@@ -2,7 +2,7 @@
 
 namespace Application\Form\User;
 
-use Application\Form\AbstractForm;
+use Application\Form\AbstractCsrfForm;
 use Zend\Validator\Identical;
 use Zend\Validator\NotEmpty;
 use Zend\Validator\StringLength;
@@ -13,7 +13,7 @@ use Zend\Validator\StringLength;
  * Class ResetPasswordEmail
  * @package Application\Form\User
  */
-class SetPassword extends AbstractForm
+class SetPassword extends AbstractCsrfForm
 {
     public function init()
     {
@@ -63,6 +63,15 @@ class SetPassword extends AbstractForm
                 [
                     'name' => 'Application\Form\Validator\Password',
                 ],
+                [
+                    'name'    => 'Identical',
+                    'options' => [
+                        'token'    => 'password_confirm',
+                        'messages' => [
+                            Identical::NOT_SAME => 'did-not-match',
+                        ],
+                    ],
+                ],
             ],
         ]);
 
@@ -79,16 +88,6 @@ class SetPassword extends AbstractForm
                         ],
                     ],
                 ],
-                [
-                    'name'                   => 'Identical',
-                    'break_chain_on_failure' => true,
-                    'options'                => [
-                        'token'    => 'password',
-                        'messages' => [
-                            Identical::NOT_SAME => 'did-not-match',
-                        ],
-                    ],
-                ],
             ],
         ]);
 
@@ -97,8 +96,11 @@ class SetPassword extends AbstractForm
 
     public function isValid()
     {
-        //  If the skip confirm password flag has been passed then remove the input filter configuration for the password confirm input
+        //  If the skip confirm password flag has been passed then set the password value as the password confirm value to pass validation
         if (array_key_exists('skip_confirm_password', $this->data) && !empty($this->data['skip_confirm_password'])) {
+            $this->data['password_confirm'] = $this->data['password'];
+
+            //  Remove confirm password input filter to stop validation error for hidden field
             $this->getInputFilter()
                  ->remove('password_confirm');
         }

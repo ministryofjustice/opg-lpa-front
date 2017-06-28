@@ -2843,8 +2843,8 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
     // Radio and Checkbox selectors
     var selectors = {
       namespace: 'ShowHideContent',
-      radio: '.block-label[data-target] input[type="radio"]',
-      checkbox: '.block-label[data-target] input[type="checkbox"]'
+      radio: '[data-target] > input[type="radio"]',
+      checkbox: '[data-target] > input[type="checkbox"]'
     }
 
     // Escape name attribute for use in DOM selector
@@ -2872,7 +2872,7 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
 
       // ARIA attributes aren't set before init
       if (!id) {
-        id = $control.closest('label').data('target')
+        id = $control.closest('[data-target]').data('target')
       }
 
       // Find show/hide content by id
@@ -2913,7 +2913,8 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
     function handleRadioContent ($control, $content) {
       // All radios in this group which control content
       var selector = selectors.radio + '[name=' + escapeElementName($control.attr('name')) + '][aria-controls]'
-      var $radios = $control.closest('form').find(selector)
+      var $form = $control.closest('form')
+      var $radios = $form.length ? $form.find(selector) : $(selector)
 
       // Hide content for radios in group
       $radios.each(function () {
@@ -3690,32 +3691,39 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
             this.hookupShowPasswordToggles();
         },
 
-        hookupShowPasswordToggles: function(){
+        hookupShowPasswordToggles: function() {
             var link = $('.js-showHidePassword');
-            var skipConfirm = $('#js-skipConfirmPassword');
+            var skipConfirmPassword = $('#js-skipConfirmPassword');
             var pwdConfirmParent = $('#password_confirm').parent();
 
+            //  The show/hide password links are themselves hidden by default so they're not available for non-JS - show them now
             link.removeClass('hidden');
 
-            link.click(function(){
+            //  By default ensure that the confirm password hidden validation skip value is set to false and show the link
+            skipConfirmPassword.val(0);
+
+            link.click(function() {
                 var pwd = $('#' + $(this).attr('data-for'));
                 var alsoHideConfirm = $(this).attr('data-alsoHideConfirm');
 
-                if (pwd.attr('type') === "password"){
-                    pwd.attr('type', 'text');
-                    $(this).html("Hide password");
+                //  Determine if we are showing or hiding the password confirm input
+                var isShowing = (pwd.attr('type') === "password");
+
+                if (isShowing) {
                     if (alsoHideConfirm) {
                         pwdConfirmParent.addClass('hidden');
-                        skipConfirm.val(1);
+                        skipConfirmPassword.val(1);
                     }
                 } else {
-                    pwd.attr('type', 'password');
-                    $(this).html("Show password");
                     if (alsoHideConfirm) {
                         pwdConfirmParent.removeClass('hidden');
-                        skipConfirm.val(0);
+                        skipConfirmPassword.val(0);
                     }
                 }
+
+                //  Change the input values as required
+                pwd.attr('type', (isShowing ? 'text' : 'password'));
+                $(this).html(isShowing ? 'Hide password' : 'Show password');
 
                 return false;
             });
@@ -3953,6 +3961,8 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
         }
         var href = $(this).attr('href'),
           topic = href.substring(href.lastIndexOf('#') + 1);
+        // report the click to ga
+        ga('send', 'pageview', href);
         // set the current click as the source
         self.source = $(this);
         // select topic
@@ -5336,31 +5346,6 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
           $('#revised-fee-0').removeClass('hidden');
         } else if ($('#reducedFeeUniversalCredit').is(':checked')) {
           $('#revised-fee-uc').removeClass('hidden');
-        }
-      });
-    }
-  };
-})();;
-// Confirm module for LPA
-// Dependencies: moj, jQuery
-
-(function () {
-  'use strict';
-
-  moj.Modules.Confirm = {
-
-    init: function () {
-      this.confirm();
-    },
-
-    confirm: function(){
-      $('body').on('click', '.js-confirm', function(event){
-        moj.log('Delete?');
-        event.preventDefault();
-        var url = $(this).attr('href');
-        var question = $(this).data('confirm-question');
-        if(confirm(question)) {
-          window.location.href = url;
         }
       });
     }

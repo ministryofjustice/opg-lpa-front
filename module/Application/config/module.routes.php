@@ -137,18 +137,6 @@ return [
                 ],
             ], // guidance
 
-            'guidance-non-twig' => [
-                'type' => 'Zend\Mvc\Router\Http\Segment',
-                'options' => [
-                    'route'    => '/guide/v1[/:section]',
-                    'defaults' => [
-                        'controller' => 'General\GuidanceController',
-                        'action'     => 'indexNonTwig',
-                        'section'    => '',
-                    ],
-                ],
-            ], // guidance
-
             'enable-cookie' => [
                 'type' => 'Zend\Mvc\Router\Http\Literal',
                 'options' => [
@@ -445,6 +433,18 @@ return [
                                     ],
                                 ],
                             ],
+                            'confirm-delete-lpa' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/confirm-delete-lpa/:lpa-id',
+                                    'constraints' => [
+                                        'lpa-id' => '[0-9]+',
+                                    ],
+                                    'defaults' => [
+                                        'action'     => 'confirm-delete-lpa',
+                                    ],
+                                ],
+                            ],
                         ],
                     ], // dashboard
 
@@ -679,6 +679,15 @@ return [
                         ],
                         'may_terminate' => true,
                         'child_routes' => [
+                            'draft' => [
+                                'type'    => 'Literal',
+                                'options' => [
+                                    'route'    => '/draft',
+                                    'defaults' => [
+                                        'action' => 'index',
+                                    ],
+                                ],
+                            ],
                             'file' => [
                                 'type'    => 'Segment',
                                 'options' => [
@@ -892,6 +901,18 @@ return [
                                     ],
                                 ],
                             ],
+                            'confirm-delete' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/confirm-delete/:idx',
+                                    'constraints' => [
+                                        'idx' => '[0-9]+',
+                                    ],
+                                    'defaults' => [
+                                        'action'     => 'confirm-delete',
+                                    ],
+                                ],
+                            ],
                             'delete' => [
                                 'type'    => 'Segment',
                                 'options' => [
@@ -938,6 +959,18 @@ return [
                                     ],
                                 ],
                             ],
+                            'confirm-delete' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/confirm-delete/:idx',
+                                    'constraints' => [
+                                        'idx' => '[0-9]+',
+                                    ],
+                                    'defaults' => [
+                                        'action'     => 'confirm-delete',
+                                    ],
+                                ],
+                            ],
                             'delete' => [
                                 'type'    => 'Segment',
                                 'options' => [
@@ -956,24 +989,6 @@ return [
                                     'route'    => '/add-trust',
                                     'defaults' => [
                                         'action' => 'add-trust',
-                                    ],
-                                ],
-                            ],
-                            'edit-trust' => [
-                                'type'    => 'Literal',
-                                'options' => [
-                                    'route'    => '/edit-trust',
-                                    'defaults' => [
-                                        'action' => 'edit-trust',
-                                    ],
-                                ],
-                            ],
-                            'delete-trust' => [
-                                'type'    => 'Literal',
-                                'options' => [
-                                    'route'    => '/delete-trust',
-                                    'defaults' => [
-                                        'action' => 'delete-trust',
                                     ],
                                 ],
                             ],
@@ -1041,6 +1056,18 @@ return [
                                     ],
                                 ],
                             ],
+                            'confirm-delete' => [
+                                'type'    => 'Segment',
+                                'options' => [
+                                    'route'    => '/confirm-delete/:idx',
+                                    'constraints' => [
+                                        'idx' => '[0-9]+',
+                                    ],
+                                    'defaults' => [
+                                        'action'     => 'confirm-delete',
+                                    ],
+                                ],
+                            ],
                             'delete' => [
                                 'type'    => 'Segment',
                                 'options' => [
@@ -1059,24 +1086,6 @@ return [
                                     'route'    => '/add-trust',
                                     'defaults' => [
                                         'action' => 'add-trust',
-                                    ],
-                                ],
-                            ],
-                            'edit-trust' => [
-                                'type'    => 'Literal',
-                                'options' => [
-                                    'route'    => '/edit-trust',
-                                    'defaults' => [
-                                        'action' => 'edit-trust',
-                                    ],
-                                ],
-                            ],
-                            'delete-trust' => [
-                                'type'    => 'Literal',
-                                'options' => [
-                                    'route'    => '/delete-trust',
-                                    'defaults' => [
-                                        'action' => 'delete-trust',
                                     ],
                                 ],
                             ],

@@ -27,17 +27,6 @@ class CorrespondentForm extends AbstractActorForm
         'company' => [
             'type' => 'Text',
         ],
-        'email-address' => [
-            'type' => 'Email',
-            'validators' => [
-                [
-                    'name' => 'EmailAddress',
-                ]
-            ],
-        ],
-        'phone-number' => [
-            'type' => 'Text',
-        ],
         'address-address1' => [
             'type' => 'Text',
         ],
@@ -52,6 +41,12 @@ class CorrespondentForm extends AbstractActorForm
         ],
         'submit' => [
             'type' => 'Submit',
+        ],
+        'email-address' => [
+            'type' => 'Email',
+        ],
+        'phone-number' => [
+            'type' => 'Text',
         ],
     ];
 
@@ -87,7 +82,7 @@ class CorrespondentForm extends AbstractActorForm
         $type = (isset($data['type']) ? $data['type'] : null);
 
         //  Check to see if the data should be editable
-        if ($who == Correspondence::WHO_DONOR || ($who == Correspondence::WHO_ATTORNEY && $type == 'human')) {
+        if ($who == Correspondence::WHO_DONOR || ($who == Correspondence::WHO_ATTORNEY && $type == 'human') || $who == Correspondence::WHO_CERTIFICATE_PROVIDER) {
             $this->isEditable = false;
         }
 

@@ -2,7 +2,7 @@
 
 namespace Application\Form\General;
 
-use Application\Form\AbstractForm;
+use Application\Form\AbstractCsrfForm;
 use Zend\Validator\NotEmpty;
 use Zend\Validator\StringLength;
 
@@ -12,7 +12,7 @@ use Zend\Validator\StringLength;
  * Class Feedback
  * @package Application\Form\General
  */
-class FeedbackForm extends AbstractForm
+class FeedbackForm extends AbstractCsrfForm
 {
     private $maxFeedbackLength = 2000;
 
@@ -26,18 +26,23 @@ class FeedbackForm extends AbstractForm
             'options' => [
                 'value_options' => [
                     'very-satisfied' => [
+                        'label' => 'Very satisfied',
                         'value' => 'very-satisfied',
                     ],
                     'satisfied' => [
+                        'label' => 'Satisfied',
                         'value' => 'satisfied',
                     ],
                     'neither-satisfied-or-dissatisfied' => [
+                        'label' => 'Neither satisfied nor dissatisfied',
                         'value' => 'neither-satisfied-or-dissatisfied',
                     ],
                     'dissatisfied' => [
+                        'label' => 'Dissatisfied',
                         'value' => 'dissatisfied',
                     ],
                     'very-dissatisfied' => [
+                        'label' => 'Very dissatisfied',
                         'value' => 'very-dissatisfied',
                     ],
                 ],
@@ -61,6 +66,8 @@ class FeedbackForm extends AbstractForm
         ]);
 
         //  Add data to the input filter
+        $this->setUseInputFilterDefaults(false);
+
         $this->addToInputFilter([
             'name'          => 'rating',
             'error_message' => 'cannot-be-empty',
@@ -95,7 +102,7 @@ class FeedbackForm extends AbstractForm
             'required' => false,
             'validators' => [
                 [
-                    'name' => 'EmailAddress'
+                    'name' => 'Application\Form\Validator\EmailAddress'
                 ],
             ],
         ]);
