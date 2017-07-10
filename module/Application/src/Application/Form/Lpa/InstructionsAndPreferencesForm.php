@@ -20,7 +20,7 @@ class InstructionsAndPreferencesForm extends AbstractLpaForm
 
     public function init()
     {
-        $this->setName('form-instructions-and-preferences');
+        $this->setName('form-preferences-and-instructions');
 
         parent::init();
     }
