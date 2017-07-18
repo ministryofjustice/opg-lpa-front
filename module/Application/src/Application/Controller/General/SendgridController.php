@@ -17,6 +17,15 @@ class SendgridController extends AbstractBaseController
      */
     private $blackHoleAddress = 'blackhole@lastingpowerofattorney.service.gov.uk';
 
+    /**
+     * List of email addresses that will not get this "Unmonitored Mailbox" email sent to them under any circumstances
+     *
+     * @var array
+     */
+    private $blacklistEmailAddresses = [
+        'david.hyams@tinyonline.co.uk',
+    ];
+
     public function bounceAction()
     {
         $fromAddress = $this->request->getPost('from');
@@ -25,6 +34,16 @@ class SendgridController extends AbstractBaseController
         //  If there is no from email address, or the user has responded to the blackhole email address then do nothing
         if (!is_string($fromAddress) || !is_string($originalToAddress) || strpos(strtolower($originalToAddress), $this->blackHoleAddress) !== false) {
             $this->log()->err('Sender or recipient missing, or email sent to ' . $this->blackHoleAddress . ' - the message message will not be sent to SendGrid', [
+                'from-address' => $fromAddress,
+                'to-address'   => $originalToAddress,
+            ]);
+
+            return $this->getResponse();
+        }
+
+        //  Check that the to email address is not on the list of blacklist email addresses
+        if (in_array($fromAddress, $this->blacklistEmailAddresses)) {
+            $this->log()->err('To email address is blacklisted - the unmonitored email will not be sent to this user', [
                 'from-address' => $fromAddress,
                 'to-address'   => $originalToAddress,
             ]);
