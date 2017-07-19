@@ -10,6 +10,10 @@ use DateTime;
  * @package Application\Model\Service\Authentication\Identity
  */
 class User {
+    /**
+     * The current version of the identity. Change this is if the user entity has been changed to be incompatible
+     */
+    const CURRENT_VERSION = '1.0.0';
 
     /**
      * @var string The user's internal ID.
@@ -32,6 +36,13 @@ class User {
     private $lastLogin;
 
     /**
+     * The version of the identity
+     *
+     * @var string
+     */
+    private $version;
+
+    /**
      * The user's roles.
      * 'admin' could be added to this.
      *
@@ -48,10 +59,11 @@ class User {
      * @param DateTime $lastLogin The DateTime the user las logged in.
      * @param bool $isAdmin Whether of not the user is an admin.
      */
-    public function __construct( $userId, $token, $expiresIn, DateTime $lastLogin, $isAdmin = false ){
+    public function __construct( $userId, $token, $expiresIn, DateTime $lastLogin, $version = self::CURRENT_VERSION, $isAdmin = false ){
         $this->id = $userId;
         $this->token = $token;
         $this->lastLogin = $lastLogin;
+        $this->version = $version;
 
         // If $lastLogin's TS is zero, they have not logged in before, so last login is now.
         if( $this->lastLogin < new DateTime("-5 years") ){
@@ -74,13 +86,13 @@ class User {
     public function token(){
         return $this->token;
     }
-    
+
     public function setToken($token){
         $this->token = $token;
     }
 
     public function lastLogin(){
-        
+
         return $this->lastLogin;
     }
 
@@ -94,6 +106,10 @@ class User {
 
     public function isAdmin(){
         return in_array('admin', $this->roles);
+    }
+
+    public function version(){
+        return $this->version;
     }
 
     //------

@@ -170,7 +170,8 @@ abstract class AbstractAuthenticatedController extends AbstractBaseController
      */
     protected function checkAuthenticated( $allowRedirect = true ){
 
-        if( !( $this->user instanceof Identity ) ){
+        $user = $this->user;
+        if( !( $user instanceof Identity ) ){//|| !method_exists($user, 'version') || $user->version() !== Identity::CURRENT_VERSION ){
 
             if( $allowRedirect ){
 
@@ -186,6 +187,14 @@ abstract class AbstractAuthenticatedController extends AbstractBaseController
             return $this->redirect()->toRoute( 'login', [ 'state'=>'timeout' ] );
 
         } // if
+
+        if(!method_exists($user, 'version') || $user->version() !== Identity::CURRENT_VERSION) {
+            //Your session is valid but the version is incorrect. Clear the session and redirect.
+            $this->getServiceLocator()->get('AuthenticationService')->clearIdentity();
+            $this->getServiceLocator()->get('SessionManager')->destroy([ 'clear_storage'=>true ]);
+
+            return $this->redirect()->toRoute( 'login', [ 'state'=>'timeout' ] );
+        }
 
         return true;
 
