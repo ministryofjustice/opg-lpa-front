@@ -100,7 +100,7 @@ class CorrespondentController extends AbstractLpaActorController
         } else {
             //  Bind any required data to the correspondence form
             $form->bind([
-                'contactInWelsh' => (isset($correspondent->contactInWelsh) ? $correspondent->contactInWelsh : null),
+                'contactInWelsh' => (isset($correspondent->contactInWelsh) ? $correspondent->contactInWelsh : false),
                 'correspondence' => [
                     'contactByEmail' => !is_null($correspondentEmailAddress),
                     'email-address'  => $correspondentEmailAddress,
