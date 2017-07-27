@@ -175,7 +175,8 @@ class Client {
         $request = new Request(
             'DELETE',
             $url,
-            $this->buildHeaders()
+            $this->buildHeaders(),
+            '{}'
         );
 
         try {

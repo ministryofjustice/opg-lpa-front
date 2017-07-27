@@ -795,16 +795,16 @@
         },
         {
             "name": "ministryofjustice/opg-lpa-api-client",
-            "version": "7.0.0",
+            "version": "7.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ministryofjustice/opg-lpa-api-client.git",
-                "reference": "0d80ff4c5d15910f065729b576767ca1e4f7b413"
+                "reference": "746de79741026a4c64593a388874816c6c51c532"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-api-client/zipball/0d80ff4c5d15910f065729b576767ca1e4f7b413",
-                "reference": "0d80ff4c5d15910f065729b576767ca1e4f7b413",
+                "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-api-client/zipball/746de79741026a4c64593a388874816c6c51c532",
+                "reference": "746de79741026a4c64593a388874816c6c51c532",
                 "shasum": ""
             },
             "require": {

@@ -295,7 +295,8 @@ class ApplicationResourceService
     public function deleteResource($index=null)
     {
         $response = $this->httpClient()->delete( $this->endpoint . (!is_null($index) ? '/' . $index : ''), [
-            'headers' => ['Content-Type' => 'application/json']
+            'headers' => ['Content-Type' => 'application/json'],
+            'body' => '{}'
         ]);
     
         if ($response->getStatusCode() != 204) {
