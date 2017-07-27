@@ -12,8 +12,8 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
-        '185c4e929cdca231b7544ab54e07fde3' => __DIR__ . '/..' . '/symfony/intl/Symfony/Component/Intl/Resources/stubs/functions.php',
         'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
+        'f94b0e5d3d7b3e8d4ef0ace6faee4c57' => __DIR__ . '/..' . '/symfony/intl/Resources/stubs/functions.php',
         '1d1b89d124cc9cb8219922c9d5569199' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest.php',
         '8a9dc1de0ca7e01f3e08231539562f61' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/functions.php',
         'ddc0a4d7e61c0286f0f8593b1903e894' => __DIR__ . '/..' . '/clue/stream-filter/src/functions.php',
@@ -95,7 +95,9 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Component\\Yaml\\' => 23,
             'Symfony\\Component\\VarDumper\\' => 28,
+            'Symfony\\Component\\Validator\\' => 28,
             'Symfony\\Component\\Translation\\' => 30,
+            'Symfony\\Component\\Intl\\' => 23,
             'Symfony\\Component\\HttpFoundation\\' => 33,
             'Symfony\\Component\\EventDispatcher\\' => 34,
         ),
@@ -395,9 +397,17 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
         array (
             0 => __DIR__ . '/..' . '/symfony/var-dumper',
         ),
+        'Symfony\\Component\\Validator\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/validator',
+        ),
         'Symfony\\Component\\Translation\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/translation',
+        ),
+        'Symfony\\Component\\Intl\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/intl',
         ),
         'Symfony\\Component\\HttpFoundation\\' => 
         array (
@@ -539,14 +549,6 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
         ),
         'S' => 
         array (
-            'Symfony\\Component\\Validator\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/symfony/validator',
-            ),
-            'Symfony\\Component\\Intl\\' => 
-            array (
-                0 => __DIR__ . '/..' . '/symfony/intl',
-            ),
             'Smtpapi' => 
             array (
                 0 => __DIR__ . '/..' . '/sendgrid/smtpapi/lib',
@@ -620,7 +622,7 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
     );
 
     public static $classMap = array (
-        'Collator' => __DIR__ . '/..' . '/symfony/intl/Symfony/Component/Intl/Resources/stubs/Collator.php',
+        'Collator' => __DIR__ . '/..' . '/symfony/intl/Resources/stubs/Collator.php',
         'File_Iterator' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Iterator.php',
         'File_Iterator_Facade' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Facade.php',
         'File_Iterator_Factory' => __DIR__ . '/..' . '/phpunit/php-file-iterator/src/Factory.php',
@@ -692,9 +694,9 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
         'Hamcrest\\Type\\IsString' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Type/IsString.php',
         'Hamcrest\\Util' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Util.php',
         'Hamcrest\\Xml\\HasXPath' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest/Xml/HasXPath.php',
-        'IntlDateFormatter' => __DIR__ . '/..' . '/symfony/intl/Symfony/Component/Intl/Resources/stubs/IntlDateFormatter.php',
-        'Locale' => __DIR__ . '/..' . '/symfony/intl/Symfony/Component/Intl/Resources/stubs/Locale.php',
-        'NumberFormatter' => __DIR__ . '/..' . '/symfony/intl/Symfony/Component/Intl/Resources/stubs/NumberFormatter.php',
+        'IntlDateFormatter' => __DIR__ . '/..' . '/symfony/intl/Resources/stubs/IntlDateFormatter.php',
+        'Locale' => __DIR__ . '/..' . '/symfony/intl/Resources/stubs/Locale.php',
+        'NumberFormatter' => __DIR__ . '/..' . '/symfony/intl/Resources/stubs/NumberFormatter.php',
         'Omnipay\\Omnipay' => __DIR__ . '/..' . '/omnipay/common/src/Omnipay/Omnipay.php',
         'PHPUnit\\Framework\\Assert' => __DIR__ . '/..' . '/phpunit/phpunit/src/ForwardCompatibility/Assert.php',
         'PHPUnit\\Framework\\AssertionFailedError' => __DIR__ . '/..' . '/phpunit/phpunit/src/ForwardCompatibility/AssertionFailedError.php',
