@@ -5031,6 +5031,105 @@
         ]
     },
     {
+        "name": "ministryofjustice/opg-lpa-datamodels",
+        "version": "4.0.3",
+        "version_normalized": "4.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ministryofjustice/opg-lpa-datamodels.git",
+            "reference": "0c0e41cc75a9573ff74f1913755ddc9756bae509"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-datamodels/zipball/0c0e41cc75a9573ff74f1913755ddc9756bae509",
+            "reference": "0c0e41cc75a9573ff74f1913755ddc9756bae509",
+            "shasum": ""
+        },
+        "require": {
+            "egulias/email-validator": "1.2.*",
+            "mongodb/mongodb": "^1.1",
+            "php": ">=5.5.9",
+            "symfony/intl": "2.6.*",
+            "symfony/validator": "2.6.*"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.0"
+        },
+        "time": "2017-08-02T10:43:06+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Opg\\Lpa\\DataModel\\": "src/Opg/Lpa/DataModel/"
+            }
+        },
+        "license": [
+            "MIT"
+        ],
+        "description": "PHP data models that represent a Lasting Power of Attorney",
+        "support": {
+            "source": "https://github.com/ministryofjustice/opg-lpa-datamodels/tree/4.0.3",
+            "issues": "https://github.com/ministryofjustice/opg-lpa-datamodels/issues"
+        }
+    },
+    {
+        "name": "ministryofjustice/opg-lpa-api-client",
+        "version": "7.0.3",
+        "version_normalized": "7.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ministryofjustice/opg-lpa-api-client.git",
+<<<<<<< f0bf6d77331e1c5f68f17adf21314d04b8ba51c5
+            "reference": "3d656c669b026ccfc62e9c2f90159c1a072d356e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-api-client/zipball/3d656c669b026ccfc62e9c2f90159c1a072d356e",
+            "reference": "3d656c669b026ccfc62e9c2f90159c1a072d356e",
+=======
+            "reference": "2843ff3164355a1e008a7bab6f76faccb7cf8484"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-api-client/zipball/2843ff3164355a1e008a7bab6f76faccb7cf8484",
+            "reference": "2843ff3164355a1e008a7bab6f76faccb7cf8484",
+>>>>>>> LPA-2109: AWS SDK 3.32.1
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/guzzle": "^5.1.0",
+            "guzzlehttp/psr7": "^1.2",
+            "ministryofjustice/opg-lpa-datamodels": "4.0.*",
+            "php": ">=5.5.9",
+            "php-http/client-implementation": "^1.0",
+            "php-http/httplug": "^1.0",
+            "php-http/message": "^1.1",
+            "psr/http-message": "^1.0"
+        },
+        "require-dev": {
+            "php-http/guzzle5-adapter": "*",
+            "php-http/message": "^1.1",
+            "phpspec/phpspec": "~2.0",
+            "phpunit/phpunit": "^4.0"
+        },
+        "time": "2017-08-02T10:57:11+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Opg\\Lpa\\Api\\Client\\": "src/Opg/Lpa/Api/Client/"
+            }
+        },
+        "license": [
+            "MIT"
+        ],
+        "description": "API Wrapper for opg-lpa-api",
+        "support": {
+            "source": "https://github.com/ministryofjustice/opg-lpa-api-client/tree/7.0.0",
+            "issues": "https://github.com/ministryofjustice/opg-lpa-api-client/issues"
+        }
+    },
+    {
         "name": "zendframework/zend-captcha",
         "version": "2.7.1",
         "version_normalized": "2.7.1.0",
@@ -6020,6 +6119,63 @@
         ]
     },
     {
+        "name": "symfony/yaml",
+        "version": "v3.3.5",
+        "version_normalized": "3.3.5.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/yaml.git",
+            "reference": "1f93a8d19b8241617f5074a123e282575b821df8"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/yaml/zipball/1f93a8d19b8241617f5074a123e282575b821df8",
+            "reference": "1f93a8d19b8241617f5074a123e282575b821df8",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.9"
+        },
+        "require-dev": {
+            "symfony/console": "~2.8|~3.0"
+        },
+        "suggest": {
+            "symfony/console": "For validating YAML files using the lint command"
+        },
+        "time": "2017-06-15T12:58:50+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "3.3-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Component\\Yaml\\": ""
+            },
+            "exclude-from-classmap": [
+                "/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony Yaml Component",
+        "homepage": "https://symfony.com"
+    },
+    {
         "name": "phpunit/php-file-iterator",
         "version": "1.4.2",
         "version_normalized": "1.4.2.0",
@@ -6300,6 +6456,76 @@
         ]
     },
     {
+        "name": "symfony/var-dumper",
+        "version": "v3.3.5",
+        "version_normalized": "3.3.5.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/var-dumper.git",
+            "reference": "0f32b62d21991700250fed5109b092949007c5b3"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/var-dumper/zipball/0f32b62d21991700250fed5109b092949007c5b3",
+            "reference": "0f32b62d21991700250fed5109b092949007c5b3",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.9",
+            "symfony/polyfill-mbstring": "~1.0"
+        },
+        "conflict": {
+            "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0"
+        },
+        "require-dev": {
+            "ext-iconv": "*",
+            "twig/twig": "~1.34|~2.4"
+        },
+        "suggest": {
+            "ext-iconv": "To convert non-UTF-8 strings to UTF-8 (or symfony/polyfill-iconv in case ext-iconv cannot be used).",
+            "ext-symfony_debug": ""
+        },
+        "time": "2017-07-10T14:18:27+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "3.3-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "Resources/functions/dump.php"
+            ],
+            "psr-4": {
+                "Symfony\\Component\\VarDumper\\": ""
+            },
+            "exclude-from-classmap": [
+                "/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nicolas Grekas",
+                "email": "p@tchwork.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony mechanism for exploring and dumping PHP variables",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "debug",
+            "dump"
+        ]
+    },
+    {
         "name": "sendgrid/smtpapi",
         "version": "0.6.1",
         "version_normalized": "0.6.1.0",
@@ -6420,6 +6646,72 @@
         ]
     },
     {
+        "name": "symfony/translation",
+        "version": "v2.8.25",
+        "version_normalized": "2.8.25.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/translation.git",
+            "reference": "a89af885b8c6d0142c79a02ca9cc059ed25d40d8"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/translation/zipball/a89af885b8c6d0142c79a02ca9cc059ed25d40d8",
+            "reference": "a89af885b8c6d0142c79a02ca9cc059ed25d40d8",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.9",
+            "symfony/polyfill-mbstring": "~1.0"
+        },
+        "conflict": {
+            "symfony/config": "<2.7"
+        },
+        "require-dev": {
+            "psr/log": "~1.0",
+            "symfony/config": "~2.8",
+            "symfony/intl": "~2.7.25|^2.8.18|~3.2.5",
+            "symfony/yaml": "~2.2|~3.0.0"
+        },
+        "suggest": {
+            "psr/log": "To use logging capability in translator",
+            "symfony/config": "",
+            "symfony/yaml": ""
+        },
+        "time": "2017-06-24T16:44:49+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.8-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Component\\Translation\\": ""
+            },
+            "exclude-from-classmap": [
+                "/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony Translation Component",
+        "homepage": "https://symfony.com"
+    },
+    {
         "name": "monolog/monolog",
         "version": "1.23.0",
         "version_normalized": "1.23.0.0",
@@ -6500,236 +6792,18 @@
         ]
     },
     {
-        "name": "aws/aws-sdk-php",
-        "version": "3.32.3",
-        "version_normalized": "3.32.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/aws/aws-sdk-php.git",
-            "reference": "d34a5779803ae7bc3efd3c6cab6e4e6f3b7409dd"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/d34a5779803ae7bc3efd3c6cab6e4e6f3b7409dd",
-            "reference": "d34a5779803ae7bc3efd3c6cab6e4e6f3b7409dd",
-            "shasum": ""
-        },
-        "require": {
-            "guzzlehttp/guzzle": "^5.3.1|^6.2.1",
-            "guzzlehttp/promises": "~1.0",
-            "guzzlehttp/psr7": "^1.4.1",
-            "mtdowling/jmespath.php": "~2.2",
-            "php": ">=5.5"
-        },
-        "require-dev": {
-            "andrewsville/php-token-reflection": "^1.4",
-            "aws/aws-php-sns-message-validator": "~1.0",
-            "behat/behat": "~3.0",
-            "doctrine/cache": "~1.4",
-            "ext-dom": "*",
-            "ext-json": "*",
-            "ext-openssl": "*",
-            "ext-pcre": "*",
-            "ext-simplexml": "*",
-            "ext-spl": "*",
-            "nette/neon": "^2.3",
-            "phpunit/phpunit": "^4.8.35|^5.4.0",
-            "psr/cache": "^1.0"
-        },
-        "suggest": {
-            "aws/aws-php-sns-message-validator": "To validate incoming SNS notifications",
-            "doctrine/cache": "To use the DoctrineCacheAdapter",
-            "ext-curl": "To send requests using cURL",
-            "ext-openssl": "Allows working with CloudFront private distributions and verifying received SNS messages"
-        },
-        "time": "2017-08-01T21:51:56+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "3.0-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Aws\\": "src/"
-            },
-            "files": [
-                "src/functions.php"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "Amazon Web Services",
-                "homepage": "http://aws.amazon.com"
-            }
-        ],
-        "description": "AWS SDK for PHP - Use Amazon Web Services in your PHP project",
-        "homepage": "http://aws.amazon.com/sdkforphp",
-        "keywords": [
-            "amazon",
-            "aws",
-            "cloud",
-            "dynamodb",
-            "ec2",
-            "glacier",
-            "s3",
-            "sdk"
-        ]
-    },
-    {
-        "name": "symfony/var-dumper",
-        "version": "v3.3.6",
-        "version_normalized": "3.3.6.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/symfony/var-dumper.git",
-            "reference": "b2623bccb969ad595c2090f9be498b74670d0663"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/symfony/var-dumper/zipball/b2623bccb969ad595c2090f9be498b74670d0663",
-            "reference": "b2623bccb969ad595c2090f9be498b74670d0663",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.5.9",
-            "symfony/polyfill-mbstring": "~1.0"
-        },
-        "conflict": {
-            "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0"
-        },
-        "require-dev": {
-            "ext-iconv": "*",
-            "twig/twig": "~1.34|~2.4"
-        },
-        "suggest": {
-            "ext-iconv": "To convert non-UTF-8 strings to UTF-8 (or symfony/polyfill-iconv in case ext-iconv cannot be used).",
-            "ext-symfony_debug": ""
-        },
-        "time": "2017-07-28T06:06:09+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "3.3-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "files": [
-                "Resources/functions/dump.php"
-            ],
-            "psr-4": {
-                "Symfony\\Component\\VarDumper\\": ""
-            },
-            "exclude-from-classmap": [
-                "/Tests/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Nicolas Grekas",
-                "email": "p@tchwork.com"
-            },
-            {
-                "name": "Symfony Community",
-                "homepage": "https://symfony.com/contributors"
-            }
-        ],
-        "description": "Symfony mechanism for exploring and dumping PHP variables",
-        "homepage": "https://symfony.com",
-        "keywords": [
-            "debug",
-            "dump"
-        ]
-    },
-    {
-        "name": "symfony/translation",
-        "version": "v2.8.26",
-        "version_normalized": "2.8.26.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/symfony/translation.git",
-            "reference": "a89af885b8c6d0142c79a02ca9cc059ed25d40d8"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/symfony/translation/zipball/a89af885b8c6d0142c79a02ca9cc059ed25d40d8",
-            "reference": "a89af885b8c6d0142c79a02ca9cc059ed25d40d8",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.9",
-            "symfony/polyfill-mbstring": "~1.0"
-        },
-        "conflict": {
-            "symfony/config": "<2.7"
-        },
-        "require-dev": {
-            "psr/log": "~1.0",
-            "symfony/config": "~2.8",
-            "symfony/intl": "~2.7.25|^2.8.18|~3.2.5",
-            "symfony/yaml": "~2.2|~3.0.0"
-        },
-        "suggest": {
-            "psr/log": "To use logging capability in translator",
-            "symfony/config": "",
-            "symfony/yaml": ""
-        },
-        "time": "2017-06-24T16:44:49+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.8-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Symfony\\Component\\Translation\\": ""
-            },
-            "exclude-from-classmap": [
-                "/Tests/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Fabien Potencier",
-                "email": "fabien@symfony.com"
-            },
-            {
-                "name": "Symfony Community",
-                "homepage": "https://symfony.com/contributors"
-            }
-        ],
-        "description": "Symfony Translation Component",
-        "homepage": "https://symfony.com"
-    },
-    {
         "name": "symfony/http-foundation",
-        "version": "v3.3.6",
-        "version_normalized": "3.3.6.0",
+        "version": "v3.3.5",
+        "version_normalized": "3.3.5.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/http-foundation.git",
-            "reference": "49e8cd2d59a7aa9bfab19e46de680c76e500a031"
+            "reference": "e307abe4b79ccbbfdced9b91c132fd128f456bc5"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/http-foundation/zipball/49e8cd2d59a7aa9bfab19e46de680c76e500a031",
-            "reference": "49e8cd2d59a7aa9bfab19e46de680c76e500a031",
+            "url": "https://api.github.com/repos/symfony/http-foundation/zipball/e307abe4b79ccbbfdced9b91c132fd128f456bc5",
+            "reference": "e307abe4b79ccbbfdced9b91c132fd128f456bc5",
             "shasum": ""
         },
         "require": {
@@ -6739,7 +6813,7 @@
         "require-dev": {
             "symfony/expression-language": "~2.8|~3.0"
         },
-        "time": "2017-07-21T11:04:46+00:00",
+        "time": "2017-07-17T14:07:10+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -6773,66 +6847,9 @@
         "homepage": "https://symfony.com"
     },
     {
-        "name": "symfony/yaml",
-        "version": "v3.3.6",
-        "version_normalized": "3.3.6.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/symfony/yaml.git",
-            "reference": "ddc23324e6cfe066f3dd34a37ff494fa80b617ed"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/symfony/yaml/zipball/ddc23324e6cfe066f3dd34a37ff494fa80b617ed",
-            "reference": "ddc23324e6cfe066f3dd34a37ff494fa80b617ed",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.5.9"
-        },
-        "require-dev": {
-            "symfony/console": "~2.8|~3.0"
-        },
-        "suggest": {
-            "symfony/console": "For validating YAML files using the lint command"
-        },
-        "time": "2017-07-23T12:43:26+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "3.3-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Symfony\\Component\\Yaml\\": ""
-            },
-            "exclude-from-classmap": [
-                "/Tests/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Fabien Potencier",
-                "email": "fabien@symfony.com"
-            },
-            {
-                "name": "Symfony Community",
-                "homepage": "https://symfony.com/contributors"
-            }
-        ],
-        "description": "Symfony Yaml Component",
-        "homepage": "https://symfony.com"
-    },
-    {
         "name": "symfony/event-dispatcher",
-        "version": "v2.8.26",
-        "version_normalized": "2.8.26.0",
+        "version": "v2.8.25",
+        "version_normalized": "2.8.25.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/event-dispatcher.git",
@@ -6893,8 +6910,8 @@
     },
     {
         "name": "symfony/intl",
-        "version": "v2.7.33",
-        "version_normalized": "2.7.33.0",
+        "version": "v2.7.32",
+        "version_normalized": "2.7.32.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/intl.git",
@@ -6972,17 +6989,17 @@
     },
     {
         "name": "symfony/validator",
-        "version": "v2.7.33",
-        "version_normalized": "2.7.33.0",
+        "version": "v2.7.32",
+        "version_normalized": "2.7.32.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/validator.git",
-            "reference": "1ba29ea97b88ffccfe431c442ef4b601f3c5b8fb"
+            "reference": "9a1d6f9e6c07a120f824158745473f7070e2704a"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/validator/zipball/1ba29ea97b88ffccfe431c442ef4b601f3c5b8fb",
-            "reference": "1ba29ea97b88ffccfe431c442ef4b601f3c5b8fb",
+            "url": "https://api.github.com/repos/symfony/validator/zipball/9a1d6f9e6c07a120f824158745473f7070e2704a",
+            "reference": "9a1d6f9e6c07a120f824158745473f7070e2704a",
             "shasum": ""
         },
         "require": {
@@ -7012,7 +7029,7 @@
             "symfony/property-access": "For using the 2.4 Validator API",
             "symfony/yaml": ""
         },
-        "time": "2017-07-22T07:54:37+00:00",
+        "time": "2017-07-03T07:38:34+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -7047,17 +7064,17 @@
     },
     {
         "name": "ministryofjustice/opg-lpa-datamodels",
-        "version": "5.0.0",
-        "version_normalized": "5.0.0.0",
+        "version": "4.0.2",
+        "version_normalized": "4.0.2.0",
         "source": {
             "type": "git",
             "url": "https://github.com/ministryofjustice/opg-lpa-datamodels.git",
-            "reference": "cae6b8e68a4cc4d61bea95ab06572a70a2e54a87"
+            "reference": "a519e60293162db8e71fb35890962cb038710794"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-datamodels/zipball/cae6b8e68a4cc4d61bea95ab06572a70a2e54a87",
-            "reference": "cae6b8e68a4cc4d61bea95ab06572a70a2e54a87",
+            "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-datamodels/zipball/a519e60293162db8e71fb35890962cb038710794",
+            "reference": "a519e60293162db8e71fb35890962cb038710794",
             "shasum": ""
         },
         "require": {
@@ -7070,7 +7087,7 @@
         "require-dev": {
             "phpunit/phpunit": "^4.0"
         },
-        "time": "2017-08-02T11:46:31+00:00",
+        "time": "2017-07-27T10:03:19+00:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -7083,56 +7100,90 @@
         ],
         "description": "PHP data models that represent a Lasting Power of Attorney",
         "support": {
-            "source": "https://github.com/ministryofjustice/opg-lpa-datamodels/tree/5.0.0",
+            "source": "https://github.com/ministryofjustice/opg-lpa-datamodels/tree/4.0.2",
             "issues": "https://github.com/ministryofjustice/opg-lpa-datamodels/issues"
         }
     },
     {
-        "name": "ministryofjustice/opg-lpa-api-client",
-        "version": "8.0.0",
-        "version_normalized": "8.0.0.0",
+        "name": "aws/aws-sdk-php",
+        "version": "3.32.1",
+        "version_normalized": "3.32.1.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/ministryofjustice/opg-lpa-api-client.git",
-            "reference": "336b4cba667a13f4a52aed0ab88b7084a2147e4b"
+            "url": "https://github.com/aws/aws-sdk-php.git",
+            "reference": "ca8791495696a1620fe2275df4983d063627aba7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/ministryofjustice/opg-lpa-api-client/zipball/336b4cba667a13f4a52aed0ab88b7084a2147e4b",
-            "reference": "336b4cba667a13f4a52aed0ab88b7084a2147e4b",
+            "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/ca8791495696a1620fe2275df4983d063627aba7",
+            "reference": "ca8791495696a1620fe2275df4983d063627aba7",
             "shasum": ""
         },
         "require": {
-            "guzzlehttp/guzzle": "^5.1.0",
-            "guzzlehttp/psr7": "^1.2",
-            "ministryofjustice/opg-lpa-datamodels": "5.0.*",
-            "php": ">=7.0.18",
-            "php-http/client-implementation": "^1.0",
-            "php-http/httplug": "^1.0",
-            "php-http/message": "^1.1",
-            "psr/http-message": "^1.0"
+            "guzzlehttp/guzzle": "^5.3.1|^6.2.1",
+            "guzzlehttp/promises": "~1.0",
+            "guzzlehttp/psr7": "^1.4.1",
+            "mtdowling/jmespath.php": "~2.2",
+            "php": ">=5.5"
         },
         "require-dev": {
-            "php-http/guzzle5-adapter": "*",
-            "php-http/message": "^1.1",
-            "phpspec/phpspec": "~2.0",
-            "phpunit/phpunit": "^4.0"
+            "andrewsville/php-token-reflection": "^1.4",
+            "aws/aws-php-sns-message-validator": "~1.0",
+            "behat/behat": "~3.0",
+            "doctrine/cache": "~1.4",
+            "ext-dom": "*",
+            "ext-json": "*",
+            "ext-openssl": "*",
+            "ext-pcre": "*",
+            "ext-simplexml": "*",
+            "ext-spl": "*",
+            "nette/neon": "^2.3",
+            "phpunit/phpunit": "^4.8.35|^5.4.0",
+            "psr/cache": "^1.0"
         },
-        "time": "2017-08-02T12:17:09+00:00",
+        "suggest": {
+            "aws/aws-php-sns-message-validator": "To validate incoming SNS notifications",
+            "doctrine/cache": "To use the DoctrineCacheAdapter",
+            "ext-curl": "To send requests using cURL",
+            "ext-openssl": "Allows working with CloudFront private distributions and verifying received SNS messages"
+        },
+        "time": "2017-07-27T19:46:08+00:00",
         "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "3.0-dev"
+            }
+        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
-                "Opg\\Lpa\\Api\\Client\\": "src/Opg/Lpa/Api/Client/"
-            }
+                "Aws\\": "src/"
+            },
+            "files": [
+                "src/functions.php"
+            ]
         },
+        "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "MIT"
+            "Apache-2.0"
         ],
-        "description": "API Wrapper for opg-lpa-api",
-        "support": {
-            "source": "https://github.com/ministryofjustice/opg-lpa-api-client/tree/8.0.0",
-            "issues": "https://github.com/ministryofjustice/opg-lpa-api-client/issues"
-        }
+        "authors": [
+            {
+                "name": "Amazon Web Services",
+                "homepage": "http://aws.amazon.com"
+            }
+        ],
+        "description": "AWS SDK for PHP - Use Amazon Web Services in your PHP project",
+        "homepage": "http://aws.amazon.com/sdkforphp",
+        "keywords": [
+            "amazon",
+            "aws",
+            "cloud",
+            "dynamodb",
+            "ec2",
+            "glacier",
+            "s3",
+            "sdk"
+        ]
     }
 ]
