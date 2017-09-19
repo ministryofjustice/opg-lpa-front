@@ -109,5 +109,15 @@ pipeline {
             }
         }
 
+
+        stage('aaa') {
+            when {
+                branch 'master'
+            }
+            steps {
+                echo 'aaa'
+            }
+        }
+
     }
 }
