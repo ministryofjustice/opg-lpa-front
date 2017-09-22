@@ -120,5 +120,16 @@ pipeline {
             }
         }
 
+        stage('Trigger upstream build') {
+            when {
+                branch 'master'
+            }
+            steps {
+                build job: '/lpa/opg-lpa-docker', propagate: false, wait: false
+            }
+        }
+
+
+
     }
 }
