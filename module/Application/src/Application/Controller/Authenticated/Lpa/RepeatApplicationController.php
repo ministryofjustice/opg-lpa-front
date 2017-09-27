@@ -71,7 +71,7 @@ class RepeatApplicationController extends AbstractLpaController
 //                return $this->moveToNextRoute();
 
                 //  TEMP - move to prototyping site
-                return $this->redirect()->toUrl('http://f2jlxd.axshare.com/#p=lpa_-_final_step');
+                return $this->redirect()->toUrl('http://f2jlxd.axshare.com/lpa_review.html');
             }
         } else {
             if (array_key_exists(Metadata::REPEAT_APPLICATION_CONFIRMED, $lpa->metadata)) {
