@@ -68,7 +68,10 @@ class RepeatApplicationController extends AbstractLpaController
                 // set metadata
                 $this->getServiceLocator()->get('Metadata')->setRepeatApplicationConfirmed($lpa);
 
-                return $this->moveToNextRoute();
+//                return $this->moveToNextRoute();
+
+                //  TEMP - move to prototyping site
+                return $this->redirect()->toUrl('http://f2jlxd.axshare.com/#p=lpa_-_final_step');
             }
         } else {
             if (array_key_exists(Metadata::REPEAT_APPLICATION_CONFIRMED, $lpa->metadata)) {
