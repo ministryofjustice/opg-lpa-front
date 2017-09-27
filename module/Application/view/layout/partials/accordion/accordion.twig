@@ -174,15 +174,15 @@
         }}
     {% endif %}
 
-	{% if (item.routeName == 'review-link') %}
-		{{ macros.accordionBar({
-			'desktop' : 'You can edit your LPA above or <a href="' ~ url("lpa/summary", {"lpa-id": lpa.id}, {}) ~ '?return-route=' ~ routeName() ~ '">review your LPA</a>',
-			'mobile' : 'You can edit your LPA above or <a href="' ~ url("lpa/summary", {"lpa-id": lpa.id}) ~ '?return-route=' ~ routeName() ~ '">review your LPA</a>',
-            'titleBoxCssClass': 'title-box--full',
-            'current': true
-		})
-		}}
-	{% endif %}
+	{#{% if (item.routeName == 'review-link') %}#}
+		{#{{ macros.accordionBar({#}
+			{#'desktop' : 'You can edit your LPA above or <a href="' ~ url("lpa/summary", {"lpa-id": lpa.id}, {}) ~ '?return-route=' ~ routeName() ~ '">review your LPA</a>',#}
+			{#'mobile' : 'You can edit your LPA above or <a href="' ~ url("lpa/summary", {"lpa-id": lpa.id}) ~ '?return-route=' ~ routeName() ~ '">review your LPA</a>',#}
+            {#'titleBoxCssClass': 'title-box--full',#}
+            {#'current': true#}
+		{#})#}
+		{#}}#}
+	{#{% endif %}#}
 
     {% if (item.routeName == 'lpa/applicant') %}
         {{ macros.accordionBar({
