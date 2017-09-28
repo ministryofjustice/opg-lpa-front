@@ -4,33 +4,6 @@ pipeline {
 
     stages {
 
-        stage('initial setup and newtag') {
-            steps {
-                script {
-                    if (env.BRANCH_NAME != "master") {
-                        env.STAGEARG = "--stage ci"
-                    } else {
-                        // this can change to `-dev` tags we we switch over.
-                        env.STAGEARG = "--stage master"
-                    }
-                }
-                script {
-                    sh '''
-                        virtualenv venv
-                        . venv/bin/activate
-                        pip install git+https://github.com/ministryofjustice/semvertag.git@1.1.0
-                        git fetch --tags
-                        semvertag bump patch $STAGEARG >> semvertag.txt
-                    '''
-                }
-                script {
-                    env.NEWTAG = readFile('semvertag.txt').trim()
-                    currentBuild.description = "Front:${NEWTAG}"
-                }
-                echo "NEWTAG will be ${env.NEWTAG}"
-            }
-        }
-
         stage('lint') {
             steps {
                 echo 'PHP_CodeSniffer PSR-2'
@@ -99,28 +72,51 @@ pipeline {
             }
         }
 
-        stage('Build, tag, push image') {
-            steps {
-                sh '''
-                  . venv/bin/activate
-                  docker build . -t registry.service.opg.digital/opguk/lpa-front:${NEWTAG}
-                  semvertag tag ${NEWTAG}
-                  docker push "registry.service.opg.digital/opguk/lpa-front:${NEWTAG}"
-                '''
-            }
-        }
 
-        stage('Store tag as artifact') {
-            when {
-                branch 'master'
-            }
+        stage('create the tag') {
             steps {
+                script {
+                    if (env.BRANCH_NAME != "master") {
+                        env.STAGEARG = "--stage ci"
+                    } else {
+                        // this can change to `-dev` tags we we switch over.
+                        env.STAGEARG = "--stage master"
+                    }
+                }
+                script {
+                    sh '''
+                        virtualenv venv
+                        . venv/bin/activate
+                        pip install git+https://github.com/ministryofjustice/semvertag.git@1.1.0
+                        git fetch --tags
+                        semvertag bump patch $STAGEARG >> semvertag.txt
+                        NEWTAG=$(cat semvertag.txt); semvertag tag ${NEWTAG}
+                    '''
+                    env.NEWTAG = readFile('semvertag.txt').trim()
+                    currentBuild.description = "Front:${NEWTAG}"
+                }
                 echo "Storing ${env.NEWTAG}"
                 archiveArtifacts artifacts: 'semvertag.txt'
             }
         }
 
-        stage('Trigger downstream build') {
+        stage('build image') {
+            steps {
+                sh '''
+                  docker build . -t registry.service.opg.digital/opguk/lpa-front:${NEWTAG}
+                '''
+            }
+        }
+
+        stage('push image') {
+            steps {
+                sh '''
+                  docker push "registry.service.opg.digital/opguk/lpa-front:${NEWTAG}"
+                '''
+            }
+        }
+
+        stage('trigger downstream build') {
             when {
                 branch 'master'
             }
