@@ -2,6 +2,10 @@ pipeline {
 
     agent { label "!master"} //run on slaves only
 
+    options{
+      disableConcurrentBuilds()
+    }
+
     stages {
 
         stage('initial setup and newtag') {
