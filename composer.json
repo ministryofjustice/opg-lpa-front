@@ -12,10 +12,6 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/ministryofjustice/opg-lpa-api-client"
-        },
-        {
-            "type": "vcs",
             "url": "https://github.com/ministryofjustice/opg-lpa-datamodels"
         },
         {

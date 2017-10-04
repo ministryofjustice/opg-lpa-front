@@ -6,6 +6,12 @@ RUN groupadd webservice && \
 RUN apt-get update && apt-get install -y \
     php5-curl php-pear php5-dev
 
+RUN apt-get install -y pkg-config
+
+RUN pecl install mongodb-1.2.9 && \
+    echo "extension=mongodb.so" > /etc/php5/mods-available/mongodb.ini && \
+    php5enmod mongodb
+
 RUN php5enmod mcrypt
 
 RUN echo "expose_php = Off" > /etc/php5/mods-available/do_not_expose_php.ini && \
