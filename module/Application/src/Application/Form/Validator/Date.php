@@ -25,9 +25,9 @@ class Date extends DateValidator
                 throw new \Exception('Invalid date array passed to Application\Form\Lpa\Validator\Date validator');
             }
 
-            $day = (int) $value['day'];
-            $month = (int) $value['month'];
-            $year = (int) $value['year'];
+            $day = $value['day'];
+            $month = $value['month'];
+            $year = $value['year'];
 
             if (empty($day) || empty($month) || empty($year)) {
                 $this->error(self::EMPTY_DATE);
