@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e076f7ad9444317b9194c2a0b8e79a5c",
+    "content-hash": "19304bea27705d0c98b9d7eeae3527fb",
     "packages": [
         {
             "name": "alphagov/pay-integration-php",
@@ -7162,7 +7162,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "ministryofjustice/opg-lpa-datamodels": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
