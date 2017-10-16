@@ -3193,7 +3193,8 @@ input[type=number] {
 .accordion-current {
   display: block;
   padding-top: 20px;
-  margin-top: -20px; }
+  margin-top: -20px;
+  height: 0; }
 
 .person {
   position: relative;

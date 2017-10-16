@@ -1,7 +1,7 @@
 {% macro accordionBar(data) %}
 
 {% if data.current == true %}
-    <li><a id="current" class="accordion-current"></a></li>
+    <li><a id="current" name="current" class="accordion-current">&nbsp;</a></li>
 {% endif %}
 
 <li class="section complete">
