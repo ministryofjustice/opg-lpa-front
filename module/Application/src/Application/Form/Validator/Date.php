@@ -40,7 +40,12 @@ class Date extends DateValidator
             $dateStr = implode('-', array_reverse($value));
             $date = date_parse_from_format(DateTime::ISO8601, $dateStr);
 
-            if ($date['day'] != $value['day'] || $date['month'] != $value['month'] || $date['year'] != $value['year']) {
+            //  Cast the date values to integers
+            $day = (int) $day;
+            $month = (int) $month;
+            $year = (int) $year;
+
+            if ($date['day'] != $day || $date['month'] != $month || $date['year'] != $year) {
                 $this->error(parent::INVALID_DATE);
                 return false;
             }
