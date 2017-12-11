@@ -14,7 +14,7 @@ RUN  apt-add-repository ppa:brightbox/ruby-ng && \
 
 RUN  gem install --no-ri --no-rdoc sass -v 3.4.25
 
-# Wanting to install npm dependecies (taken from DD)
+# Install npm dependencies
 WORKDIR /app
 USER app
 ENV  HOME /app
@@ -23,6 +23,13 @@ COPY package.json /app/
 USER root
 RUN  npm -g set progress=false
 RUN  npm install
+
+# Install bower dependencies
+RUN  npm install -g bower
+RUN  bower install
+
+# Install grunt command line
+RUN  npm install -g grunt-cli
 
 RUN groupadd webservice && \
     groupadd supervisor
