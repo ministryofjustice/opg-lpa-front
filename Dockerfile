@@ -1,10 +1,34 @@
 FROM registry.service.opg.digital/opg-php-fpm-1604
 
+# adds nodejs pkg repository
+RUN  curl --silent --location https://deb.nodesource.com/setup_8.x | bash -
+
+# installs nodejs & ruby
+RUN  apt-add-repository ppa:brightbox/ruby-ng && \
+        apt-get update && \
+        apt-get install -y \
+        dos2unix \
+        nodejs ruby2.4 ruby2.4-dev && \
+        apt-get clean && apt-get autoremove && \
+        rm -rf /var/lib/cache/* /var/lib/log/* /tmp/* /var/tmp/*
+
+RUN  gem install --no-ri --no-rdoc sass -v 3.4.25
+
+# Wanting to install npm dependecies (taken from DD)
+# WORKDIR /app
+# USER app
+# ENV  HOME /app
+# COPY package.json /app/
+# RUN  npm -g set progress=false
+# RUN  npm install
+
 RUN groupadd webservice && \
     groupadd supervisor
 
 # Add application logging config(s)
 ADD docker/beaver.d /etc/beaver.d
+
+
 
 ADD . /app
 RUN mkdir -p /srv/opg-lpa-front2/application && \
