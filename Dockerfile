@@ -14,20 +14,26 @@ RUN  apt-add-repository ppa:brightbox/ruby-ng && \
 
 RUN  gem install --no-ri --no-rdoc sass -v 3.4.25
 
+RUN mkdir -p /usr/local/{share/man,bin,lib/node,include/node} /usr/etc && \
+    chown -R app /usr/local/{share/man,bin,lib/node,include/node} /usr/etc 
+
 # Install npm dependencies
 WORKDIR /app
 USER app
 ENV  HOME /app
 COPY package.json /app/
-
-USER root
+# USER root
 RUN  npm -g set progress=false
 RUN  npm install
 
 # Install bower dependencies
-RUN  npm install -g bower
-RUN  bower install
+USER root
+RUN npm install -g bower
 
+USER app
+RUN bower install
+
+USER root
 # Install grunt command line
 RUN  npm install -g grunt-cli
 
