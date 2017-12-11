@@ -21,7 +21,7 @@ RUN mkdir -p /usr/local/{share/man,bin,lib/node,include/node} /usr/etc && \
 WORKDIR /app
 USER app
 ENV  HOME /app
-COPY package.json /app/
+COPY bower.json /app/
 # USER root
 RUN  npm -g set progress=false
 RUN  npm install
