@@ -15,12 +15,14 @@ RUN  apt-add-repository ppa:brightbox/ruby-ng && \
 RUN  gem install --no-ri --no-rdoc sass -v 3.4.25
 
 # Wanting to install npm dependecies (taken from DD)
-# WORKDIR /app
-# USER app
-# ENV  HOME /app
-# COPY package.json /app/
-# RUN  npm -g set progress=false
-# RUN  npm install
+WORKDIR /app
+USER app
+ENV  HOME /app
+COPY package.json /app/
+
+USER root
+RUN  npm -g set progress=false
+RUN  npm install
 
 RUN groupadd webservice && \
     groupadd supervisor
