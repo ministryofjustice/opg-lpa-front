@@ -22,6 +22,7 @@ WORKDIR /app
 USER app
 ENV  HOME /app
 COPY bower.json /app/
+COPY package.json /app/
 # USER root
 RUN  npm -g set progress=false
 RUN  npm install
