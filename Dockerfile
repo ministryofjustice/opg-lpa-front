@@ -19,21 +19,20 @@ RUN apt-add-repository ppa:brightbox/ruby-ng && \
 
 # To install bower globally
 run echo "app ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
 # Install npm dependencies
 USER app
-
 ADD . /app
-
-RUN npm set progress=false && \
-    sudo rm -rf /app/assets && \
+RUN find . -not -user app -exec sudo chown app:app {} \; && \
+    rm -rf /app/assets && \
+    npm set progress=false && \
 	npm install && \
 	sudo npm install -g bower && \
 	bower install && \
 	sudo npm install -g grunt-cli
 
 USER root
-RUN find . -not -user app -exec chown app:app {} \; && \
-	groupadd webservice && \
+RUN groupadd webservice && \
     groupadd supervisor
 
 # Add application logging config(s)
