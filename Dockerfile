@@ -23,7 +23,7 @@ run echo "app ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 # Install npm dependencies
 USER app
 ADD . /app
-RUN find . -not -user app -exec sudo chown app:app {} \; && \
+RUN sudo chown -R app:app . && \
     rm -rf /app/assets && \
     npm set progress=false && \
 	npm install && \
