@@ -25,11 +25,11 @@ USER app
 ADD . /app
 
 RUN npm set progress=false && \
+    sudo rm -rf /app/assets && \
 	npm install && \
 	sudo npm install -g bower && \
 	bower install && \
 	sudo npm install -g grunt-cli
-
 
 USER root
 RUN find . -not -user app -exec chown app:app {} \; && \
