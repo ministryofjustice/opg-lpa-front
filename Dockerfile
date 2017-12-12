@@ -22,14 +22,9 @@ run echo "app ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 # Install npm dependencies
 USER app
 
-COPY bower.json /app/
-COPY package.json /app/
-COPY .bowerrc /app/
 ADD . /app
 
-RUN sudo find . -not -user app -exec chown app:app {} \; && \
-	rm -rf ~/assets && \
-	npm set progress=false && \
+RUN npm set progress=false && \
 	npm install && \
 	sudo npm install -g bower && \
 	bower install && \
@@ -37,7 +32,8 @@ RUN sudo find . -not -user app -exec chown app:app {} \; && \
 
 
 USER root
-RUN groupadd webservice && \
+RUN find . -not -user app -exec chown app:app {} \; && \
+	groupadd webservice && \
     groupadd supervisor
 
 # Add application logging config(s)
