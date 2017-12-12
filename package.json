@@ -5,10 +5,8 @@
   "repository": "https://github.com/ministryofjustice/opg-lpa-front",
   "license": "MIT",
   "devDependencies": {
-    "bower": "^1.6.5",
     "grunt": "^1.0.0",
     "grunt-browser-sync": "^2.2.0",
-    "grunt-cli": "^1.2.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-cssmin": "^2.2.1",
     "grunt-contrib-handlebars": "^0.8.0",
