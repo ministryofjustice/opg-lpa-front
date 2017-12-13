@@ -1,12 +1,11 @@
 FROM registry.service.opg.digital/opg-php-fpm-1604
 
-WORKDIR /app
-ENV  HOME /app
-ENV NPM_CONFIG_PREFIX /usr/local
-
 # adds nodejs pkg repository
 RUN  curl --silent --location https://deb.nodesource.com/setup_8.x | bash -
 
+WORKDIR /app
+ENV  HOME /app
+ENV NPM_CONFIG_PREFIX /app
 ARG APT_PACKAGES="dos2unix nodejs ruby2.4 ruby2.4-dev"
 
 # installs nodejs & ruby
@@ -17,14 +16,14 @@ RUN apt-add-repository ppa:brightbox/ruby-ng && \
 	rm -rf /var/lib/cache/* /var/lib/log/* /tmp/* /var/tmp/* && \
 	gem install --no-ri --no-rdoc sass -v 3.4.25
 
-# To install bower globally
+# To install bower globally we need to be able to sudo
 run echo "app ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Install npm dependencies
 USER app
 ADD . /app
+
 RUN sudo chown -R app:app . && \
-    rm -rf /app/assets && \
     npm set progress=false && \
 	npm install && \
 	sudo npm install -g bower && \
