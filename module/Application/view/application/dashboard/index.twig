@@ -102,6 +102,112 @@
 {% if lpaTotalCount > 0 %}
 
     {% if shortList %}
+        <h2 class="heading-large type-heading">
+            New style
+        </h2>
+        <ul>
+            <li class="card">
+                <dl>
+                    <dt>Donor:</dt>
+                    <dd>First Lastname</dd>
+                    <dt>LPA Number:</dt>
+                    <dd>A999 1532 7899</dd>
+                    <dt>Status:</dt>
+                    <dd>started</dd>
+                    <dt>LPA type:</dt>
+                    <dd>PF</dd>
+                    <dt>Last saved on:</dt>
+                    <dd>12/12/18</dd>
+                </dl>
+                <ul>
+                    <li><a href="#">Continue</a></li>
+                    <li><a href="#">Check dates</a></li>
+                    <li><a href="#">Reuse details</a></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <table id="savedforms" class="lpa-card">
+            <thead>
+                <tr>
+                    <th class="lpa-donor-header">Donor</th>
+                    <th class="lpa-number-header">LPA number</th>
+                    <th>LPA type</th>
+                    <th>Progress</th>
+                    <th>Last saved</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="lpa-donor heading-medium text flush--ends">
+                        <strong class="bold">Samuel Gunner</strong>
+                    </td>
+                    <td class="lpa-number">A205 7086 8252</td>
+                    <td class="lpa-type">
+                        <span>HW</span>
+                    </td>
+                    <td class="lpa-progress">
+                        <span class="progress progress-started">Started</span>
+                    </td>
+                    <td class="lpa-date">
+                        <span>12/02/18</span>
+                    </td>
+                    <td class="lpa-actions">
+                        <a class="button button-secondary" href="/lpa/20570868252">Continue</a>
+                        <a href="#" class="button-link push--right">Check dates</a>
+                        <a href="#" class="push--right">Reuse details</a>
+                        <a href="/user/dashboard/confirm-delete-lpa/20570868252" class="js-form-popup">Delete</a>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="lpa-donor heading-medium text flush--ends">
+                        <strong class="bold">Jennifer Sacks</strong>
+                    </td>
+                    <td class="lpa-number">A205 7086 8252</td>
+                    <td class="lpa-type">
+                        <span>HW</span>
+                    </td>
+                    <td class="lpa-progress">
+                        <span class="progress progress-created">Created</span>
+                    </td>
+                    <td class="lpa-date">
+                        <span>12/02/18</span>
+                    </td>
+                    <td class="lpa-actions">
+                        <a class="button button-secondary" href="/lpa/20570868252">Continue</a>
+                        <a href="#" class="button-link push--right">Check dates</a>
+                        <a href="#" class="push--right">Reuse details</a>
+                        <a href="/user/dashboard/confirm-delete-lpa/20570868252" class="js-form-popup">Delete</a>
+                    </td>
+
+                    <tr>
+                        <td class="lpa-donor heading-medium text flush--ends">
+                            <strong class="bold">Richard Flask</strong>
+                        </td>
+                        <td class="lpa-number">A205 7086 8252</td>
+                        <td class="lpa-type">
+                            <span>HW</span>
+                        </td>
+                        <td class="lpa-progress">
+                            <span class="progress progress-completed">Completed</span>
+                        </td>
+                        <td class="lpa-date">
+                            <span>12/02/18</span>
+                        </td>
+                        <td class="lpa-actions">
+                            <a class="button button-secondary" href="/lpa/20570868252">Continue</a>
+                            <a href="#" class="button-link push--right">Check dates</a>
+                            <a href="#" class="push--right">Reuse details</a>
+                            <a href="/user/dashboard/confirm-delete-lpa/20570868252" class="js-form-popup">Delete</a>
+                        </td>
+                    </tr>
+                </tr>
+            </tbody>
+        </table>
+
         {{ macros.listLpas(lpas, true, '', 'No type selected') }}
         {{ macros.listLpas(lpas, true, 'property-and-financial', 'Property and finance') }}
         {{ macros.listLpas(lpas, true, 'health-and-welfare', 'Health and welfare') }}

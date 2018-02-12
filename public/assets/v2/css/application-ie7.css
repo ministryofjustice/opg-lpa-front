@@ -2758,6 +2758,73 @@ input[type=number] {
     position: relative;
     top: 10px; }
 
+.lpa-card thead {
+  display: none; }
+.lpa-card tr {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  display: block;
+  position: relative;
+  width: 100%;
+  margin-bottom: 30px;
+  padding: 15px;
+  float: left;
+  border: 1px solid #bfc1c3; }
+.lpa-card td {
+  display: block;
+  position: relative;
+  padding: 0;
+  border-bottom: 0; }
+.lpa-card .lpa-donor {
+  box-sizing: border-box;
+  width: 100%;
+  float: left;
+  padding-right: 120px;
+  padding-right: 210px; }
+.lpa-card .lpa-number {
+  width: 100%;
+  float: left;
+  color: #6f777b; }
+.lpa-card .lpa-type {
+  position: absolute;
+  right: 150px; }
+  .lpa-card .lpa-type span:before {
+    display: block;
+    content: 'LPA type: '; }
+.lpa-card .lpa-date {
+  position: absolute;
+  right: 270px; }
+  .lpa-card .lpa-date span:before {
+    display: block;
+    content: "Last saved: "; }
+.lpa-card .lpa-progress {
+  position: absolute;
+  right: 15px; }
+.lpa-card .progress {
+  display: block;
+  width: 60px;
+  padding: 50px 6px 6px 6px;
+  background-color: #dee0e2;
+  text-align: center; }
+  .lpa-card .progress.progress-started {
+    background-image: url("../images/custom/progress-started.svg");
+    background-repeat: no-repeat;
+    background-position: center 10px;
+    background-size: 50px; }
+  .lpa-card .progress.progress-created {
+    background-image: url("../images/custom/progress-created.svg");
+    background-repeat: no-repeat;
+    background-position: center 10px;
+    background-size: 50px; }
+  .lpa-card .progress.progress-completed {
+    background-image: url("../images/custom/progress-completed.svg");
+    background-repeat: no-repeat;
+    background-position: center 10px;
+    background-size: 50px; }
+.lpa-card .lpa-actions {
+  padding-top: 68px; }
+
 .lpa-table .lpa-donor {
   width: 30%;
   width: 23%;
