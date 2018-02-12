@@ -39,7 +39,7 @@
         position: relative;
         width: 100%;
         margin-bottom: $gutter;
-        padding: $gutter-half;
+        padding: $gutter-half $gutter-half 8px $gutter-half;
         float: left;
         border: 1px solid $border-colour;
     }
@@ -70,7 +70,7 @@
 
     .lpa-type {
         position: absolute;
-        right: 150px;
+        right: 185px;
         span {
             &:before {
                 display: block;
@@ -81,7 +81,7 @@
 
     .lpa-date {
         position: absolute;
-        right: 270px;
+        right: 320px;
         span {
             &:before {
                 display: block;
@@ -98,34 +98,33 @@
 
     .progress {
         display: block;
-        width: 60px;
-        padding: 50px 6px 6px 6px;
+        width: 100px;
+        padding: 65px 6px 6px;
         background-color: $panel-colour;
+        background-repeat: no-repeat;
+        background-position: center 10px;
+        background-size: 50px;
         text-align: center;
         &.progress-started {
             background-image: url('../images/custom/progress-started.svg');
-            background-repeat: no-repeat;
-            background-position: center 10px;
-            background-size: 50px;
+
         }
 
         &.progress-created {
             background-image: url('../images/custom/progress-created.svg');
-            background-repeat: no-repeat;
-            background-position: center 10px;
-            background-size: 50px;
         }
 
         &.progress-completed {
             background-image: url('../images/custom/progress-completed.svg');
-            background-repeat: no-repeat;
-            background-position: center 10px;
-            background-size: 50px;
         }
     }
 
     .lpa-actions {
-        padding-top: 68px;
+        padding-top: 55px;
+        .button-link {
+            line-height: 2.5em;
+            margin-left: 15px;
+        }
     }
 }
 

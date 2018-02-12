@@ -2778,7 +2778,7 @@ input[type=number] {
   position: relative;
   width: 100%;
   margin-bottom: 30px;
-  padding: 15px;
+  padding: 15px 15px 8px 15px;
   float: left;
   border: 1px solid #bfc1c3; }
 .lpa-card td {
@@ -2798,13 +2798,13 @@ input[type=number] {
   color: #6f777b; }
 .lpa-card .lpa-type {
   position: absolute;
-  right: 150px; }
+  right: 185px; }
   .lpa-card .lpa-type span:before {
     display: block;
     content: 'LPA type: '; }
 .lpa-card .lpa-date {
   position: absolute;
-  right: 270px; }
+  right: 320px; }
   .lpa-card .lpa-date span:before {
     display: block;
     content: "Last saved: "; }
@@ -2813,27 +2813,24 @@ input[type=number] {
   right: 15px; }
 .lpa-card .progress {
   display: block;
-  width: 60px;
-  padding: 50px 6px 6px 6px;
+  width: 100px;
+  padding: 65px 6px 6px;
   background-color: #dee0e2;
+  background-repeat: no-repeat;
+  background-position: center 10px;
+  background-size: 50px;
   text-align: center; }
   .lpa-card .progress.progress-started {
-    background-image: url("../images/custom/progress-started.svg");
-    background-repeat: no-repeat;
-    background-position: center 10px;
-    background-size: 50px; }
+    background-image: url("../images/custom/progress-started.svg"); }
   .lpa-card .progress.progress-created {
-    background-image: url("../images/custom/progress-created.svg");
-    background-repeat: no-repeat;
-    background-position: center 10px;
-    background-size: 50px; }
+    background-image: url("../images/custom/progress-created.svg"); }
   .lpa-card .progress.progress-completed {
-    background-image: url("../images/custom/progress-completed.svg");
-    background-repeat: no-repeat;
-    background-position: center 10px;
-    background-size: 50px; }
+    background-image: url("../images/custom/progress-completed.svg"); }
 .lpa-card .lpa-actions {
-  padding-top: 68px; }
+  padding-top: 55px; }
+  .lpa-card .lpa-actions .button-link {
+    line-height: 2.5em;
+    margin-left: 15px; }
 
 .lpa-table .lpa-donor {
   width: 30%;
