@@ -28,6 +28,24 @@
     }
 }
 
+.status {
+    display: inline-block;
+    color: $white;
+    padding: 3px 8px 1px;
+    font-size: 14px;
+    text-transform: uppercase;
+    text-align: center;
+    &.status-started {
+        background-color: $yellow;
+    }
+    &.status-created {
+        background-color: $turquoise;
+    }
+    &.status-completed {
+        background-color: $green;
+    }
+}
+
 .lpa-card {
     thead {
         display: none;
@@ -38,7 +56,7 @@
         display: block;
         position: relative;
         width: 100%;
-        margin-bottom: $gutter;
+        margin-bottom: $gutter-half;
         padding: $gutter-half $gutter-half 8px $gutter-half;
         float: left;
         border: 1px solid $border-colour;
@@ -130,6 +148,14 @@
 
 // Table View
 .lpa-table {
+
+    &.valign-top {
+        td {
+            vertical-align: top;
+            padding-top: 22px;
+        }
+    }
+
     .lpa-donor {
         @include media($min-width: 750px) {
             width: 30%;
@@ -200,6 +226,18 @@
         }
     }
 
+    .lpa-type-smaller {
+        color: $secondary-text-colour;
+
+        @include media($min-width: 861px) {
+            width: 40px;
+        }
+
+        @include media($min-width: 950px) {
+            width: 40px;
+        }
+    }
+
     .lpa-progress {
         @include media($min-width: 770px) {
             width: 60px;
@@ -225,14 +263,28 @@
     .lpa-date {
         width: 80px;
         color: $secondary-text-colour;
+
+        &.tweak {
+            width: 75px;
+        }
     }
 
     .lpa-actions {
         width: 190px;
 
+        &.tweak {
+            width: 200px;
+        }
+
         .button {
             margin-top: 13px;
             float: right;
+        }
+    }
+
+    .lpa-cta {
+        > .first {
+            margin-left: 15px;
         }
     }
 
@@ -250,6 +302,11 @@
             @include media(tablet) {
                 display: none;
             }
+        }
+
+        &.tweak {
+            padding-right: 10px;
+            padding-bottom: 15px;
         }
     }
 
@@ -272,6 +329,33 @@
 
 // Cards View
 .lpa-cards {
+
+    &.tweak {
+        .button {
+            position: relative;
+            bottom: 0;
+        }
+
+        .button-link {
+            margin-left: 15px;
+        }
+
+        .lpa-actions {
+            min-height: 0;
+        }
+
+        .lpa-progress {
+            line-height: 1em;
+            span {
+                //text-align: right;
+            }
+        }
+
+        .status {
+            @include box-sizing (border-box);
+        }
+    }
+
     thead {
         display: none;
     }

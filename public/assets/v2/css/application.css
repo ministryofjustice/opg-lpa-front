@@ -3151,6 +3151,20 @@ input[type=number] {
       .type-heading .icon {
         top: 5px; } }
 
+.status {
+  display: inline-block;
+  color: #fff;
+  padding: 3px 8px 1px;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-align: center; }
+  .status.status-started {
+    background-color: #ffbf47; }
+  .status.status-created {
+    background-color: #28a197; }
+  .status.status-completed {
+    background-color: #006435; }
+
 .lpa-card thead {
   display: none; }
 .lpa-card tr {
@@ -3160,7 +3174,7 @@ input[type=number] {
   display: block;
   position: relative;
   width: 100%;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
   padding: 15px 15px 8px 15px;
   float: left;
   border: 1px solid #bfc1c3; }
@@ -3217,6 +3231,9 @@ input[type=number] {
     line-height: 2.5em;
     margin-left: 15px; }
 
+.lpa-table.valign-top td {
+  vertical-align: top;
+  padding-top: 22px; }
 @media (min-width: 750px) {
   .lpa-table .lpa-donor {
     width: 30%; } }
@@ -3262,6 +3279,14 @@ input[type=number] {
   @media (min-width: 950px) {
     .lpa-table .lpa-type {
       width: 70px; } }
+.lpa-table .lpa-type-smaller {
+  color: #6f777b; }
+  @media (min-width: 861px) {
+    .lpa-table .lpa-type-smaller {
+      width: 40px; } }
+  @media (min-width: 950px) {
+    .lpa-table .lpa-type-smaller {
+      width: 40px; } }
 @media (min-width: 770px) {
   .lpa-table .lpa-progress {
     width: 60px; } }
@@ -3278,11 +3303,17 @@ input[type=number] {
 .lpa-table .lpa-date {
   width: 80px;
   color: #6f777b; }
+  .lpa-table .lpa-date.tweak {
+    width: 75px; }
 .lpa-table .lpa-actions {
   width: 190px; }
+  .lpa-table .lpa-actions.tweak {
+    width: 200px; }
   .lpa-table .lpa-actions .button {
     margin-top: 13px;
     float: right; }
+.lpa-table .lpa-cta > .first {
+  margin-left: 15px; }
 .lpa-table .lpa-manage {
   margin-top: 21px;
   float: left; }
@@ -3292,6 +3323,9 @@ input[type=number] {
   @media (min-width: 641px) {
     .lpa-table .lpa-manage .extra-text {
       display: none; } }
+  .lpa-table .lpa-manage.tweak {
+    padding-right: 10px;
+    padding-bottom: 15px; }
 @media (min-width: 641px) {
   .lpa-table td:nth-child(6) {
     padding: 0; } }
@@ -3302,6 +3336,19 @@ input[type=number] {
 .lpa-actions {
   padding-top: 12px; }
 
+.lpa-cards.tweak .button {
+  position: relative;
+  bottom: 0; }
+.lpa-cards.tweak .button-link {
+  margin-left: 15px; }
+.lpa-cards.tweak .lpa-actions {
+  min-height: 0; }
+.lpa-cards.tweak .lpa-progress {
+  line-height: 1em; }
+.lpa-cards.tweak .status {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
 .lpa-cards thead {
   display: none; }
 .lpa-cards tr {
