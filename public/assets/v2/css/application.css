@@ -3207,6 +3207,8 @@ input[type=number] {
   .lpa-card .lpa-date span:before {
     display: block;
     content: "Last saved: "; }
+  .lpa-card .lpa-date.further-right {
+    right: 185px; }
 .lpa-card .lpa-progress {
   position: absolute;
   right: 15px; }

@@ -103,19 +103,29 @@
 
     {% if shortList %}
 
-        {# No table #}
-        {% include 'application/dashboard/new/definition-list.twig' %}
+        {% include 'application/dashboard/new/current-cards-view.twig' %}
+        <br><br><br><br><br><br><br>
+        {% include 'application/dashboard/new/current-table-view.twig' %}
+
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+
 
         {# Adjusted design - close to new style #}
         {% include 'application/dashboard/new/new-banner-adjusted-table.twig' %}
 
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+
         {# Table view tweaked #}
-        {% include 'application/dashboard/new/table-view-tweak.twig' %}
         {% include 'application/dashboard/new/cards-view-tweak.twig' %}
+        <br><br><br><br><br><br><br>
+        {% include 'application/dashboard/new/table-view-tweak.twig' %}
 
         {# Current #}
-        {% include 'application/dashboard/new/current-table-view.twig' %}
-        {% include 'application/dashboard/new/current-cards-view.twig' %}
+
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+
+        {# No table #}
+        {% include 'application/dashboard/new/definition-list.twig' %}
 
 
         {# {{ macros.listLpas(lpas, true, '', 'No type selected') }}
