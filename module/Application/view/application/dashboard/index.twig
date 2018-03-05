@@ -101,9 +101,35 @@
 {% if lpaTotalCount > 0 %}
 
     {% if shortList %}
-        {{ macros.listLpas(lpas, true, '', 'No type selected') }}
+
+        {% include 'application/dashboard/new/current-cards-view.twig' %}
+        <br><br><br><br><br><br><br>
+        {% include 'application/dashboard/new/current-table-view.twig' %}
+
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+
+
+        {# Adjusted design - close to new style #}
+        {% include 'application/dashboard/new/new-banner-adjusted-table.twig' %}
+
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+
+        {# Table view tweaked #}
+        {% include 'application/dashboard/new/cards-view-tweak.twig' %}
+        <br><br><br><br><br><br><br>
+        {% include 'application/dashboard/new/table-view-tweak.twig' %}
+
+        {# Current #}
+
+        <br><br><br><br><br><br><br><br><br><br><br><br>
+
+        {# No table #}
+        {% include 'application/dashboard/new/definition-list.twig' %}
+
+
+        {# {{ macros.listLpas(lpas, true, '', 'No type selected') }}
         {{ macros.listLpas(lpas, true, 'property-and-financial', 'Property and finance') }}
-        {{ macros.listLpas(lpas, true, 'health-and-welfare', 'Health and welfare') }}
+        {{ macros.listLpas(lpas, true, 'health-and-welfare', 'Health and welfare') }} #}
     {% else %}
         {{ macros.listLpas(lpas, false, 'all', '') }}
     {% endif %}

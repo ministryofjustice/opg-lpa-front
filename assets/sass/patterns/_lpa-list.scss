@@ -28,8 +28,138 @@
     }
 }
 
+.status {
+    display: inline-block;
+    color: $white;
+    padding: 3px 8px 1px;
+    font-size: 14px;
+    text-transform: uppercase;
+    text-align: center;
+    &.status-started {
+        background-color: $yellow;
+    }
+    &.status-created {
+        background-color: $turquoise;
+    }
+    &.status-completed {
+        background-color: $green;
+    }
+}
+
+.lpa-card {
+    thead {
+        display: none;
+    }
+
+    tr {
+        @include box-sizing (border-box);
+        display: block;
+        position: relative;
+        width: 100%;
+        margin-bottom: $gutter-half;
+        padding: $gutter-half $gutter-half 8px $gutter-half;
+        float: left;
+        border: 1px solid $border-colour;
+    }
+
+    td {
+        display: block;
+        position: relative;
+        padding: 0;
+        border-bottom: 0;
+    }
+
+    .lpa-donor {
+        box-sizing: border-box;
+        width: 100%;
+        float: left;
+        padding-right: 120px;
+
+        @include media($min-width: 870px) {
+            padding-right: 210px;
+        }
+    }
+
+    .lpa-number {
+        width: 100%;
+        float: left;
+        color: $secondary-text-colour;
+    }
+
+    .lpa-type {
+        position: absolute;
+        right: 185px;
+        span {
+            &:before {
+                display: block;
+                content: 'LPA type: ';
+            }
+        }
+    }
+
+    .lpa-date {
+        position: absolute;
+        right: 320px;
+        span {
+            &:before {
+                display: block;
+                content: 'Last saved: '
+            }
+        }
+
+        &.further-right {
+            right: 185px;
+        }
+
+    }
+
+    .lpa-progress {
+        position: absolute;
+        right: 15px;
+    }
+
+    .progress {
+        display: block;
+        width: 100px;
+        padding: 65px 6px 6px;
+        background-color: $panel-colour;
+        background-repeat: no-repeat;
+        background-position: center 10px;
+        background-size: 50px;
+        text-align: center;
+        &.progress-started {
+            background-image: url('../images/custom/progress-started.svg');
+
+        }
+
+        &.progress-created {
+            background-image: url('../images/custom/progress-created.svg');
+        }
+
+        &.progress-completed {
+            background-image: url('../images/custom/progress-completed.svg');
+        }
+    }
+
+    .lpa-actions {
+        padding-top: 55px;
+        .button-link {
+            line-height: 2.5em;
+            margin-left: 15px;
+        }
+    }
+}
+
 // Table View
 .lpa-table {
+
+    &.valign-top {
+        td {
+            vertical-align: top;
+            padding-top: 22px;
+        }
+    }
+
     .lpa-donor {
         @include media($min-width: 750px) {
             width: 30%;
@@ -100,6 +230,18 @@
         }
     }
 
+    .lpa-type-smaller {
+        color: $secondary-text-colour;
+
+        @include media($min-width: 861px) {
+            width: 40px;
+        }
+
+        @include media($min-width: 950px) {
+            width: 40px;
+        }
+    }
+
     .lpa-progress {
         @include media($min-width: 770px) {
             width: 60px;
@@ -125,14 +267,28 @@
     .lpa-date {
         width: 80px;
         color: $secondary-text-colour;
+
+        &.tweak {
+            width: 75px;
+        }
     }
 
     .lpa-actions {
         width: 190px;
 
+        &.tweak {
+            width: 200px;
+        }
+
         .button {
             margin-top: 13px;
             float: right;
+        }
+    }
+
+    .lpa-cta {
+        > .first {
+            margin-left: 15px;
         }
     }
 
@@ -150,6 +306,11 @@
             @include media(tablet) {
                 display: none;
             }
+        }
+
+        &.tweak {
+            padding-right: 10px;
+            padding-bottom: 15px;
         }
     }
 
@@ -172,6 +333,33 @@
 
 // Cards View
 .lpa-cards {
+
+    &.tweak {
+        .button {
+            position: relative;
+            bottom: 0;
+        }
+
+        .button-link {
+            margin-left: 15px;
+        }
+
+        .lpa-actions {
+            min-height: 0;
+        }
+
+        .lpa-progress {
+            line-height: 1em;
+            span {
+                //text-align: right;
+            }
+        }
+
+        .status {
+            @include box-sizing (border-box);
+        }
+    }
+
     thead {
         display: none;
     }
