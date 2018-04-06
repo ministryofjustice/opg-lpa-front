@@ -49,6 +49,14 @@
     <!--[if IE 6]><link href="{{ StaticAssetPath( '/assets/v2/css/application-ie6.css', { 'minify':true } ) }}" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if IE 7]><link href="{{ StaticAssetPath( '/assets/v2/css/application-ie7.css', { 'minify':true } ) }}" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
     <!--[if IE 8]><link href="{{ StaticAssetPath( '/assets/v2/css/application-ie8.css', { 'minify':true } ) }}" media="screen" rel="stylesheet" type="text/css" /><![endif]-->
+    <!--[if IE]><!-->
+    <!-- IE specific fixes for popup scrollbars. From https://github.com/twbs/bootstrap/issues/21780 -->
+    <style>
+        @-ms-viewport {
+            width: auto;
+        }
+    </style>
+    <!--<![endif]-->
     <!-- LPA Print styles -->
     {#
     Govuk Elements doesn't come with any print styles, so I'm leaving this out for now.
