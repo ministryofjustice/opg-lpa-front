@@ -1,0 +1,58 @@
+.print img {
+  position: relative;
+  bottom: -10px;
+  margin-right: 10px; }
+
+@media print {
+  body {
+    overflow: visible; }
+
+  .no-print, .visually-hidden,
+  .menu,
+  .global-nav,
+  .table-summary-action,
+  .appstatus,
+  .divorced,
+  hr, .no-print *, .visually-hidden *,
+  .menu *,
+  .global-nav *,
+  .table-summary-action *,
+  .appstatus *,
+  .divorced *,
+  hr * {
+    display: none !important; }
+
+  main#content {
+    padding: 20px; }
+
+  .table-summary {
+    text-align: left;
+    display: block;
+    margin-top: 40px;
+    float: none; }
+    .table-summary th,
+    .table-summary td {
+      display: block; }
+    .table-summary tr:first-of-type .table-summary-title {
+      font-size: 24px; }
+
+  .table-summary-heading .heading-small {
+    font-size: 24px;
+    margin-top: 10px;
+    margin-bottom: 10px; }
+
+  .group-single,
+  .group-element,
+  .group-end {
+    float: none;
+    page-break-after: auto;
+    break-after: auto; }
+
+  .group-single td,
+  .group-element td,
+  .group-end td {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid gray; } }
+
+/*# sourceMappingURL=print.css.map */
