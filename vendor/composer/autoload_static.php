@@ -140,6 +140,7 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
         'A' => 
         array (
             'Aws\\' => 4,
+            'Application\\' => 12,
             'Alphagov\\Pay\\' => 13,
         ),
     );
@@ -423,6 +424,10 @@ class ComposerStaticInitd8c148746e4ee7c0e228f2e0faab0c8e
         'Aws\\' => 
         array (
             0 => __DIR__ . '/..' . '/aws/aws-sdk-php/src',
+        ),
+        'Application\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/module/Application/src',
         ),
         'Alphagov\\Pay\\' => 
         array (
