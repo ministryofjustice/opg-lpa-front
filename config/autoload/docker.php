@@ -98,7 +98,6 @@ return array(
 
     'api_client' => [
         'api_uri' => getenv('OPG_LPA_FRONT_ENDPOINTS_API') ? getenv('OPG_LPA_FRONT_ENDPOINTS_API') : null,
-        'auth_uri' => getenv('OPG_LPA_FRONT_ENDPOINTS_AUTH') ? getenv('OPG_LPA_FRONT_ENDPOINTS_AUTH') : null,
     ], // api_client
 
     'address' => [
