@@ -78,6 +78,12 @@ abstract class AbstractAuthenticatedController extends AbstractBaseController
         $this->userService = $userService;
 
         //  If there is a user identity set up the user - if this is missing the request will be bounced in the onDispatch function
+var_dump($authenticationService->hasIdentity());
+var_dump('============');
+var_dump($authenticationService->getIdentity());
+var_dump('============');
+//var_dump($authenticationService->getStorage());
+die();
         if ($authenticationService->hasIdentity()) {
             $this->identity = $authenticationService->getIdentity();
 
@@ -102,7 +108,6 @@ abstract class AbstractAuthenticatedController extends AbstractBaseController
     public function onDispatch(MvcEvent $e)
     {
         // Before the user can access any actions that extend this controller...
-
         //----------------------------------------------------------------------
         // Check we have a user set, thus ensuring an authenticated user
 
