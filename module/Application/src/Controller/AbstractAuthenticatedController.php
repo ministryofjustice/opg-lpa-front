@@ -144,6 +144,7 @@ abstract class AbstractAuthenticatedController extends AbstractBaseController
         //  To check this simply try to take the data from one array and populate it into another object
         try {
             $userDataArr = $this->user->toArray();
+var_dump($userDataArr);die();
             $tempUser = new User($userDataArr);
         } catch (\Exception $ex) {
             //  If seems there is a user associated with the session but it is not well formed
