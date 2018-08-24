@@ -92,6 +92,8 @@
     <main id="content" role="main">
         {{ accountInfo() }}
 
+        {% block breadcrumbs %}{% endblock %}
+
         {% block errorSummary %}{% endblock %}
         <h1 class="heading-xlarge">
             {% block supportTitleTop %}{% endblock %}

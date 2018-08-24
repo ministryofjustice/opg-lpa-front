@@ -267,6 +267,33 @@ return [
             ], // status
 
             //--------------------------------------------------
+            // LPA Style Guide
+
+            'styleguide' => [
+                'type' => 'Literal',
+                'options' => [
+                    'route'    => '/styleguide',
+                    'defaults' => [
+                        'controller' => 'General\StyleguideController',
+                        'action'     => 'index',
+                    ],
+                ],
+                'may_terminate' => true,
+                'child_routes' => [
+                    'icons' => [
+                        'type'    => 'Literal',
+                        'options' => [
+                            'route'    => '/icons',
+                            'defaults' => [
+                                'action'     => 'icons',
+                            ],
+                        ],
+                    ], // icons
+                ],
+
+            ], // styleguide
+
+            //--------------------------------------------------
             // Signed in User routes
 
             'admin-system-message' => [
