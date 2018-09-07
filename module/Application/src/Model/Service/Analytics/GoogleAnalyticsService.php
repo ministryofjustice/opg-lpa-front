@@ -19,11 +19,11 @@ class GoogleAnalyticsService extends AbstractService
     /**
      * Call Google Analytics to register a page view for the PDFs
      *
-     * @param string $pagePath Page url, excluding the domain e.g. /general/mypage
+     * @param string $pagePath Page url, including the domain
      * @param string $pageTitle Title of the page
      * @throws Exception
      */
-    function sendPageView(string $pagePath, string $pageTitle) : void
+    public function sendPageView(string $pagePath, string $pageTitle) : void
     {
         $this->getLogger()->debug('Sending analytics page view ' . $pagePath . ' , ' . $pageTitle);
 
@@ -51,7 +51,7 @@ class GoogleAnalyticsService extends AbstractService
      * @return string Client Id
      * @throws Exception
      */
-    function getAnalyticsClientId() : string
+    public function getAnalyticsClientId() : string
     {
         if (isset($_COOKIE['_ga'])) {
             list($version, $domainDepth, $cid1, $cid2) = explode('.', $_COOKIE['_ga'], 4);
@@ -69,7 +69,7 @@ class GoogleAnalyticsService extends AbstractService
      *
      * @param Analytics $analyticsClient Google analytics client
      */
-    function setAnalyticsClient(Analytics $analyticsClient) : void
+    public function setAnalyticsClient(Analytics $analyticsClient) : void
     {
         $this->analyticsClient = $analyticsClient;
     }

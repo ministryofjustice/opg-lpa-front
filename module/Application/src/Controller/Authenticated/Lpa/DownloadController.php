@@ -84,14 +84,15 @@ class DownloadController extends AbstractLpaController
         $userAgent = $this->getRequest()->getHeaders()->get('User-Agent')->getFieldValue();
         if (stripos($userAgent, 'edge/') !== false) {
             //Microsoft edge. Send the file as an attachment
-            $headers->addHeaderLine('Content-Disposition', 'attachment; filename="' . $this->getFilename($pdfType) .'"');
+            $headers->addHeaderLine('Content-Disposition', 'attachment; filename="'
+                . $this->getFilename($pdfType) .'"');
         } else {
             $headers->addHeaderLine('Content-Disposition', 'inline; filename="' . $this->getFilename($pdfType) .'"');
         }
 
         // Send a page view to the analytics service for the document being provided
         try {
-            $this->analyticsService->sendPageView($this->getRequest()->getUri()->getPath(), $this->getFilename($pdfType));
+            $this->analyticsService->sendPageView($this->getRequest()->getUriString(), $this->getFilename($pdfType));
         } catch (Exception $ex) {
             // Log the error but don't impact the user because of analytics failures
             $this->getLogger()->err($ex);
