@@ -46,7 +46,7 @@
             <tr class="group-single">
                 <th class="table-summary-title" scope="row">My LPA can be used</th>
                 <td class="table-summary-content">
-                    {{ lpa.document.primaryAttorneyDecisions.when == 'now' ? 'As soon as it\'s registered (with my consent)' : 'Only if I don\'t have mental capacity' }}
+                    {{ lpa.document.primaryAttorneyDecisions.when == 'now' ? 'As soon as it\'s registered (with my consent)' : 'Only if I do not have mental capacity' }}
                 </td>
                 <td class="table-summary-action"><a href="{{ url('lpa/when-lpa-starts', {'lpa-id': lpa.id}) }}" data-journey-click="check your answers:link:navigation: When LPA starts">Edit</a></td>
             </tr>
