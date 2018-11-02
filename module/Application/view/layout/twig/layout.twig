@@ -161,12 +161,12 @@
     </script>
 
     <script src="/assets/v2/js/libs/jquery.min.js"></script>
-    <script src="{{ StaticAssetPath( '/assets/v2/js/application.js', { 'minify':true } ) }}"></script>
+    <script src="{{ StaticAssetPath( '/assets/v2/js/application.js', { 'minify':false } ) }}"></script>
     <script>
         GOVUK.performance.stageprompt.setupForGoogleAnalytics();
     </script>
 
-
+    {% include 'layout/partials/timeout.twig' %}
 
 </body>
 </html>
