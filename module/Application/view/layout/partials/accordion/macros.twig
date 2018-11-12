@@ -1,9 +1,5 @@
 {% macro accordionBar(data) %}
 
-{% if data.current == true %}
-    <li><a id="current" class="accordion-current"></a></li>
-{% endif %}
-
 <li class="section {{ data.status == 'Incomplete' ? 'incomplete' : data.status == 'Not Started' ? 'not-started' : 'complete' }}">
     <div class="accordion-summary {% if data.cssClass is defined %}{{ data.cssClass }}{% endif %}">
         <div class="title-box {% if data.titleBoxCssClass is defined %}{{ data.titleBoxCssClass }}{% endif %}">

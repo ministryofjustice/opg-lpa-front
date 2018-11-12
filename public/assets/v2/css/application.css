@@ -2937,10 +2937,6 @@ ul.track-my-lpa li.list-item--v3.status-4, ul.track-my-lpa li.list-item--v3.stat
     @media (max-width: 640px) {
       .accordion .accordion-summary .label-and-edit-box {
         position: relative; } }
-.accordion .accordion-current {
-  display: block;
-  padding-top: 20px;
-  margin-top: -20px; }
 
 .person {
   position: relative;
