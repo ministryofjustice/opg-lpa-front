@@ -16,4 +16,8 @@ testcoverage:
 
 .PHONY: functional
 functional:
-    docker run -it --net=host --rm -v $$(pwd)/module/Application/tests/functional:/mnt/test registry.service.opg.digital/opguk/casperjs /mnt/test/start.sh 'tests/'
+	docker run -it --net=host --rm -v $$(pwd)/module/Application/tests/functional:/mnt/test registry.service.opg.digital/opguk/casperjs /mnt/test/start.sh 'tests/'
+
+.PHONY: local-setup
+local-setup:
+    docker run
