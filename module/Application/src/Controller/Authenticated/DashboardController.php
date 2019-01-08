@@ -245,12 +245,12 @@ class DashboardController extends AbstractAuthenticatedController
                     'Pending' => 'Received',
                     'Perfect' => 'Checking',
                     'Imperfect' => 'Checking',
-                    'Invalid' => 'Completed',
-                    'Rejected' => 'Completed',
-                    'Withdrawn' => 'Completed',
-                    'Registered' => 'Completed',
-                    'Cancelled' => 'Completed',
-                    'Revoked' => 'Completed',
+                    'Invalid' => 'Concluded',
+                    'Rejected' => 'Concluded',
+                    'Withdrawn' => 'Concluded',
+                    'Registered' => 'Concluded',
+                    'Cancelled' => 'Concluded',
+                    'Revoked' => 'Concluded',
                 ];
 
                 $response->setStatusCode(200);
