@@ -142,18 +142,18 @@
                         li.find(".progress").html(data['status']);
                         switch (data['status']) {
                             case "Received":
-                                li.find("icon").attr("class", "icon status-2");
+                                li.find(".icon").attr("class", "icon status-2");
                                 break;
                             case "Checking":
-                                li.find("icon").attr("class", "icon status-3");
+                                li.find(".icon").attr("class", "icon status-3");
                                 break;
                             case "Concluded":
-                                li.find("icon").attr("class", "icon status-6");
+                                li.find(".icon").attr("class", "icon status-6");
                                 break;
                         }
                     } else {
                         li.find(".progress").html("Waiting");
-                        li.find("icon").attr("class", "icon status-1");
+                        li.find(".icon").attr("class", "icon status-1");
                     }
                 });
             }
