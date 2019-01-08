@@ -4,6 +4,7 @@ namespace Application\Controller\Authenticated;
 
 use Application\Controller\AbstractAuthenticatedController;
 use Opg\Lpa\DataModel\Lpa\Lpa;
+use Zend\Http\Response;
 use Zend\View\Model\ViewModel;
 
 class DashboardController extends AbstractAuthenticatedController
@@ -204,6 +205,20 @@ class DashboardController extends AbstractAuthenticatedController
     public function termsAction()
     {
         return new ViewModel();
+    }
+
+    public function lpaStatusAction()
+    {
+        $response =  new Response();
+
+        // TODO - Get this from dynamo
+        $lpaId = $this->getEvent()->getRouteMatch()->getParam('lpa-id');
+
+        $response->setStatusCode(200);
+        $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+        $response->setContent(\GuzzleHttp\json_encode(['status' => 'Pending']));
+
+        return $response;
     }
 
     //------------------------------------------------------------------

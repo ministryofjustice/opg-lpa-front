@@ -440,6 +440,15 @@ return [
                                     ],
                                 ],
                             ],
+                            'lpa-status' => [
+                                'type' => 'Segment',
+                                'options' => [
+                                    'route' => '/lpa-status/:lpa-id',
+                                    'defaults' => [
+                                        'action' => 'lpa-status',
+                                    ]
+                                ],
+                            ], // session state
                         ],
                     ], // dashboard
 
