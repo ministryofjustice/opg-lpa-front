@@ -121,3 +121,29 @@
 </div>
 
 {% endblock %}
+
+{% block scripts %}
+<script>
+    $( document ).ready(function() {
+        $( "li[data-lpa-id]" ).each(function() {
+
+            const li = $( this );
+            const lpaId = li.attr("data-lpa-id");
+
+            console.log( "Looking up: " + lpaId );
+
+            if (li.find(".progress").html() === "Completed") {
+                $.getJSON( "/user/dashboard/lpa-status/"+lpaId, function( data ) {
+                    console.log( lpaId + ' ' + data['status'] );
+
+                    if (data['found']) {
+                        li.find(".progress").html(data['status'])
+                    } else {
+                        li.find(".progress").html("Waiting")
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

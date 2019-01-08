@@ -10,7 +10,7 @@
 
     {% for key,lpa in lpas %}
         {% if (type == 'all' or type == lpa.type) %}
-            <li class="list-item list-item--v3 status-started">
+            <li class="list-item list-item--v3 status-started" data-lpa-id="{{ lpa.id }}">
 
                 <div class="info">
                     <div class="main-info">
@@ -35,7 +35,7 @@
                             {% endif %}
                             <i class="icon {{ statusClass }}"></i>
                             <br>
-                            {{ lpa.progress }}
+                            <span class="progress">{{ lpa.progress }}</span>
                         </span>
                     </div>
 
