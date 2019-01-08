@@ -133,6 +133,8 @@
             console.log( "Looking up: " + lpaId );
 
             if (li.find(".progress").html() === "Completed") {
+                li.find(".progress").html('-');
+
                 $.getJSON( "/user/dashboard/lpa-status/"+lpaId, function( data ) {
                     console.log( lpaId + ' ' + data['status'] );
 
