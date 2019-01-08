@@ -144,18 +144,18 @@
             height: 2.5em;
             margin: 0 0 0 0;
 
-            // &.status-1 {
-            //     background: url("../images/custom/waiting-v1.svg") 50% 50% no-repeat;
-            //     background-size: contain;
-            // }
-            // &.status-2 {
-            //     background: url("../images/custom/received-v1.svg") 50% 50% no-repeat;
-            //     background-size: contain;
-            // }
-            // &.status-3 {
-            //     background: url("../images/custom/checking-v1.svg") 50% 50% no-repeat;
-            //     background-size: contain;
-            // }
+            &.status-1 {
+              background: url("../images/custom/waiting-v1.svg") 50% 50% no-repeat;
+              background-size: contain;
+            }
+            &.status-2 {
+              background: url("../images/custom/received-v1.svg") 50% 50% no-repeat;
+              background-size: contain;
+            }
+            &.status-3 {
+              background: url("../images/custom/checking-v1.svg") 50% 50% no-repeat;
+              background-size: contain;
+            }
             &.status-4 {
                 background: url("../images/custom/tick-v1.svg") 50% 50% no-repeat;
                 background-size: contain;

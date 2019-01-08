@@ -2510,6 +2510,15 @@ input[type=number] {
       width: 2.5em;
       height: 2.5em;
       margin: 0 0 0 0; }
+      .list-item--v3 .list-item_status .icon.status-1 {
+        background: url("../images/custom/waiting-v1.svg") 50% 50% no-repeat;
+        background-size: contain; }
+      .list-item--v3 .list-item_status .icon.status-2 {
+        background: url("../images/custom/received-v1.svg") 50% 50% no-repeat;
+        background-size: contain; }
+      .list-item--v3 .list-item_status .icon.status-3 {
+        background: url("../images/custom/checking-v1.svg") 50% 50% no-repeat;
+        background-size: contain; }
       .list-item--v3 .list-item_status .icon.status-4 {
         background: url("../images/custom/tick-v1.svg") 50% 50% no-repeat;
         background-size: contain; }
