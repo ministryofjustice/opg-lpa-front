@@ -215,9 +215,9 @@ class DashboardController extends AbstractAuthenticatedController
 
         $lpaId = $this->getEvent()->getRouteMatch()->getParam('lpa-id');
 
-        // Needs 11 digits so if 10 zero pad on the left
-        $internalLpaId = "A" . (count($lpaId) < 11 ? str_pad($lpaId, 11, '0', 'STR_PAD_LEFT') : $lpaId);
-        
+        // Needs 11 digits so if 10 zero pad on the left\
+        $internalLpaId = "A" . sprintf("%011d", $lpaId);
+
         $client = new LambdaClient([
             'region' => 'eu-west-1',
             'version' => 'latest',
@@ -239,10 +239,11 @@ class DashboardController extends AbstractAuthenticatedController
             $payload = json_decode((string)$result->get('Payload'));
 
             if ($payload->code == 200) {
+                $message = json_decode($payload->message);
+
                 $response->setStatusCode(200);
                 $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
-                // TODO - Get actual status from aws payload
-                $response->setContent(\GuzzleHttp\json_encode(['status' => 'Pending', 'found' => true]));
+                $response->setContent(\GuzzleHttp\json_encode(['status' => $message->status, 'found' => true]));
             } elseif ($payload->code == 404) {
                 $response->setStatusCode(200);
                 $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
