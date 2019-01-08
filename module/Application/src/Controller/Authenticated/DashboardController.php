@@ -3,6 +3,8 @@
 namespace Application\Controller\Authenticated;
 
 use Application\Controller\AbstractAuthenticatedController;
+use Aws\Exception\AwsException;
+use Aws\Lambda\LambdaClient;
 use Opg\Lpa\DataModel\Lpa\Lpa;
 use Zend\Http\Response;
 use Zend\View\Model\ViewModel;
@@ -211,12 +213,56 @@ class DashboardController extends AbstractAuthenticatedController
     {
         $response =  new Response();
 
-        // TODO - Get this from dynamo
         $lpaId = $this->getEvent()->getRouteMatch()->getParam('lpa-id');
 
-        $response->setStatusCode(200);
-        $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
-        $response->setContent(\GuzzleHttp\json_encode(['status' => 'Pending']));
+        // Needs 11 digits so if 10 zero pad on the left
+        $internalLpaId = "A" . (count($lpaId) < 11 ? str_pad($lpaId, 11, '0', 'STR_PAD_LEFT') : $lpaId);
+        
+        $client = new LambdaClient([
+            'region' => 'eu-west-1',
+            'version' => 'latest',
+            'credentials' => [
+                'key'    => getenv('HACK_AWS_ACCESS_KEY_ID'),
+                'secret' => getenv('HACK_AWS_SECRET_ACCESS_KEY'),
+
+            ],
+        ]);
+
+        try {
+            $result = $client->invoke([
+                'FunctionName' => 'get_function',
+                'Payload' => json_encode([
+                    "toolId" => $internalLpaId
+                ]),
+            ]);
+
+            $payload = json_decode((string)$result->get('Payload'));
+
+            if ($payload->code == 200) {
+                $response->setStatusCode(200);
+                $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+                // TODO - Get actual status from aws payload
+                $response->setContent(\GuzzleHttp\json_encode(['status' => 'Pending', 'found' => true]));
+            } elseif ($payload->code == 404) {
+                $response->setStatusCode(200);
+                $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+                $response->setContent(\GuzzleHttp\json_encode(['status' => 'Unknown', 'found' => false]));
+            } else {
+                // TODO - Redo log and handle error
+                error_log('Did not understand response');
+
+                $response->setStatusCode(200);
+                $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+                $response->setContent(\GuzzleHttp\json_encode(['status' => 'Unknown', 'found' => false]));
+            }
+        } catch (AwsException $e) {
+            // output error message if fails
+            error_log($e->getMessage());
+
+            $response->setStatusCode(500);
+            $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+            $response->setContent(\GuzzleHttp\json_encode(['status' => 'Pending', 'found' => false]));
+        }
 
         return $response;
     }
