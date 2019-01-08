@@ -241,9 +241,21 @@ class DashboardController extends AbstractAuthenticatedController
             if ($payload->code == 200) {
                 $message = json_decode($payload->message);
 
+                $map = [
+                    'Pending' => 'Received',
+                    'Perfect' => 'Checking',
+                    'Imperfect' => 'Checking',
+                    'Invalid' => 'Completed',
+                    'Rejected' => 'Completed',
+                    'Withdrawn' => 'Completed',
+                    'Registered' => 'Completed',
+                    'Cancelled' => 'Completed',
+                    'Revoked' => 'Completed',
+                ];
+
                 $response->setStatusCode(200);
                 $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
-                $response->setContent(\GuzzleHttp\json_encode(['status' => $message->status, 'found' => true]));
+                $response->setContent(\GuzzleHttp\json_encode(['status' => $map[$message->status], 'found' => true]));
             } elseif ($payload->code == 404) {
                 $response->setStatusCode(200);
                 $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
