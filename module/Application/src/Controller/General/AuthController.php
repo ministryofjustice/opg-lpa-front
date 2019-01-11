@@ -7,6 +7,7 @@ use Application\Form\User\Login as LoginForm;
 use Application\Model\FormFlowChecker;
 use Application\Model\Service\Lpa\Application as LpaApplicationService;
 use Opg\Lpa\DataModel\Lpa\Lpa;
+use Zend\Http\Response;
 use Zend\Session\Container;
 use Zend\View\Model\ViewModel;
 
@@ -153,6 +154,30 @@ class AuthController extends AbstractBaseController
         $form->setAttribute('action', $this->url()->fromRoute('login'));
 
         return $form;
+    }
+
+    /**
+     * Get session state without refreshing the session
+     *
+     * @return Response 200 with { "$remainingSeconds": <int Seconds until session expires> }
+     * for live session, otherwise 204
+     */
+    public function sessionExpiryAction()
+    {
+        $response =  new Response();
+
+        $remainingMs = $this->getAuthenticationService()->getSessionExpiry();
+
+        if (!$remainingMs) {
+            $response->setStatusCode(204);
+
+            return $response;
+        }
+
+        $response->setStatusCode(200);
+        $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+        $response->setContent(\GuzzleHttp\json_encode(['remainingSeconds' => $remainingMs]));
+        return $response;
     }
 
     /**
