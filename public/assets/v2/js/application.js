@@ -22028,12 +22028,6 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
       checkbox: '[data-target] > input[type="checkbox"]'
     }
 
-    // Escape name attribute for use in DOM selector
-    function escapeElementName (str) {
-      var result = str.replace('[', '\\[').replace(']', '\\]')
-      return result
-    }
-
     // Adds ARIA attributes to control + associated content
     function initToggledContent () {
       var $control = $(this)
@@ -22093,7 +22087,7 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
     // Handle radio show/hide
     function handleRadioContent ($control, $content) {
       // All radios in this group which control content
-      var selector = selectors.radio + '[name=' + escapeElementName($control.attr('name')) + '][aria-controls]'
+      var selector = selectors.radio + '[name="' + $control.attr('name') + '"][aria-controls]'
       var $form = $control.closest('form')
       var $radios = $form.length ? $form.find(selector) : $(selector)
 
@@ -22396,6 +22390,7 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
   GoogleAnalyticsUniversalTracker.prototype.trackEvent = function (category, action, options) {
     options = options || {}
     var value
+    var trackerName = ''
     var evt = {
       hitType: 'event',
       eventCategory: category,
@@ -22419,6 +22414,12 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
       delete options.value
     }
 
+    // trackerName is optional
+    if (typeof options.trackerName === 'string') {
+      trackerName = options.trackerName + '.'
+      delete options.trackerName
+    }
+
     // Prevents an event from affecting bounce rate
     // https://developers.google.com/analytics/devguides/collection/analyticsjs/events#implementation
     if (options.nonInteraction) {
@@ -22429,7 +22430,7 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
       $.extend(evt, options)
     }
 
-    sendToGa('send', evt)
+    sendToGa(trackerName + 'send', evt)
   }
 
   /*
@@ -22454,11 +22455,13 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
 
   /*
    https://developers.google.com/analytics/devguides/collection/analyticsjs/cross-domain
-   trackerId - the UA account code to track the domain against
-   name      - name for the tracker
-   domain    - the domain to track
+   trackerId    - the UA account code to track the domain against
+   name         - name for the tracker
+   domain       - the domain to track
+   sendPageView - optional argument which controls the legacy behaviour of sending a pageview
+                  on creation of the linked domain.
   */
-  GoogleAnalyticsUniversalTracker.prototype.addLinkedTrackerDomain = function (trackerId, name, domain) {
+  GoogleAnalyticsUniversalTracker.prototype.addLinkedTrackerDomain = function (trackerId, name, domain, sendPageView) {
     sendToGa('create',
              trackerId,
              'auto',
@@ -22473,7 +22476,10 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
 
     sendToGa(name + '.set', 'anonymizeIp', true)
     sendToGa(name + '.set', 'displayFeaturesTask', null)
-    sendToGa(name + '.send', 'pageview')
+
+    if (typeof sendPageView === 'undefined' || sendPageView === true) {
+      sendToGa(name + '.send', 'pageview')
+    }
   }
 
   // https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets
@@ -22776,22 +22782,36 @@ GOVUK.performance.sendGoogleAnalyticsEvent = function (category, event, label) {
   };
 
 })(jQuery);;
-/* jshint unused: false */
-/* globals $, window, document */
-// SESSION TIMEOUT POPUP LOGIC  
+/* globals $, window, document, GOVUK */
+/* exported SessionTimeoutDialog */
+// SESSION TIMEOUT POPUP LOGIC
 /**
- * @param element
- * @param sessionExpiresMs
- * @param sessionPopupShowAfterMs
- * @param refreshUrl
+ * @param {Object} options
+ * @param {Object} options.element The element that is acting as the warning
+ * @param {int} options.warningPeriodMs Number of Milliseconds prior to session expiry to show the warning
+ * @param {string} [options.remainingTimeUrl] Url to GET the remaining seconds for the current session
+ * @param {string} [options.keepSessionAliveUrl] Url to GET if the user wants to continue their session
+ * @param {int} [options.initialSessionTimeoutMs] Initial number of Milliseconds until the session expires (just used to
+ *        kick off the first countdown to checking if a warning needs to be displayed)
  */
 var SessionTimeoutDialog = function (options) {
+    'use strict';
+
     var that = this;
+
+    if (typeof options.element === 'undefined') {
+        throw 'Popup element not provided';
+    }
+    
+    if (typeof options.warningPeriodMs === 'undefined') {
+        throw 'Timeout warning in Milliseconds not provided';
+    }
+
     this.element = options.element;
-    this.sessionExpiresMs = options.sessionExpiresMs;
-    this.sessionPopupShowAfterMs = options.sessionPopupShowAfterMs;
-    this.keepSessionAliveUrl = options.keepSessionAliveUrl;
-    this.redirectAfterMs = 3000;
+    this.warningPeriodMs = options.warningPeriodMs;
+    this.remainingTimeUrl = options.remainingTimeUrl ? options.remainingTimeUrl : '/session-state';
+    this.keepSessionAliveUrl = options.keepSessionAliveUrl ? options.keepSessionAliveUrl : '/session-keep-alive';
+    var initialSessionTimeoutMs = options.initialSessionTimeoutMs ? options.initialSessionTimeoutMs : 0;
 
     var continueButton = $('#session-timeout-continue'),
         logoutButton = $('#session-timeout-logout'),
@@ -22805,42 +22825,79 @@ var SessionTimeoutDialog = function (options) {
         GOVUK.performance.sendGoogleAnalyticsEvent('timeout warning', 'continue clicked');
     });
 
-    this.startCountdown = function () {
+    this.showWarning = function () {
+        that.element.css('visibility', 'visible');
+        that.element.show();
+        underlay.css({
+            'visibility': 'visible',
+            'height': $(document).height() + 'px'
+        });
+        underlay.show();
+        that.trapNavigation();
+        continueButton.focus();
+
+        GOVUK.performance.sendGoogleAnalyticsEvent('timeout warning', 'warning popup');
+    };
+
+    this.hideWarning = function () {
+        this.element.hide();
+        underlay.hide();
+    };
+
+    // Checks how much time is remaining on the session and show/hides the warning as appropriate as well as scheduling
+    // another check, refreshes page on timeout
+    this.checkSessionState = function () {
+        $.ajax({
+            url: that.remainingTimeUrl,
+            data: {},
+            complete: function (data) {
+                if (data.status === 204) {
+                    // If timed out, refresh page and let the server do the redirect to the timeout page
+                    window.location.reload();
+                } else if (data.status === 200) {
+                    // Check how much time left
+                    var remainingMs = data.responseJSON.remainingSeconds * 1000;
+
+                    if (remainingMs <= that.warningPeriodMs) {
+                        // If less time remaining than the warning period then show the warning and check again just
+                        // after the session should have expired
+                        that.showWarning();
+                        that.startExpiryCheckCountdown(remainingMs + 1000);
+                    } else {
+                        // If more time than the warning period then check again when it we're back in the warning
+                        // period
+                        that.hideWarning();
+                        that.startExpiryCheckCountdown(remainingMs - that.warningPeriodMs);
+                    }
+
+                }
+            },
+            error: function () {
+                // Assume it was a temporary error and check again in 1 minute
+                that.startExpiryCheckCountdown(60000);
+            }
+        });
+    };
+
+    this.startExpiryCheckCountdown = function (ms) {
+        window.clearTimeout(that.checkSessionState);
+
         this.countDownPopup = window.setTimeout(function () {
-            that.element.css('visibility', 'visible');
-            that.element.show();
-            underlay.css(
-                {
-                    'visibility': 'visible',
-                    'height': $(document).height() + 'px'
-                });
-            underlay.show();
-            that.trapNavigation();
-            continueButton.focus();
-
-            GOVUK.performance.sendGoogleAnalyticsEvent('timeout warning', 'warning popup');
-        }, this.sessionPopupShowAfterMs);
-
-        this.countDownLogout = window.setTimeout(function () {
-            window.location.reload();
-        }, this.sessionExpiresMs + this.redirectAfterMs);
-
+            that.checkSessionState();
+        }, ms < 0 ? 0 : ms);
     };
 
     this.hidePopupAndRestartCountdown = function () {
-        this.element.hide();
-        underlay.hide();
+        this.hideWarning();
 
-        this.keepSessionAlive();
+        // Keep the session alive
+        $.get(this.keepSessionAliveUrl)
+            .complete(function () {
+                // restart countdown to get new session expiry in one minute
+                that.checkSessionState();
+            });
 
-        // restart countdown
-        window.clearTimeout(this.countDownLogout);
-        this.startCountdown();
         this.releaseNavigation();
-    };
-
-    this.keepSessionAlive = function () {
-        $.get(this.keepSessionAliveUrl);
     };
 
     this.trapNavigation = function () {
@@ -22863,6 +22920,8 @@ var SessionTimeoutDialog = function (options) {
         logoutButton.off('keydown');
     };
 
+    // Start countdown
+    this.startExpiryCheckCountdown(initialSessionTimeoutMs - this.warningPeriodMs);
 };
 ;
 (function () {

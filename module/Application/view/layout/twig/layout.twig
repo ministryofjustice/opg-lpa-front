@@ -4,7 +4,6 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <title>{% block htmlTitle %}{% endblock %}Make a lasting power of attorney - GOV.UK</title>
-    <meta http-equiv="refresh" content="4800">
 
     <!--[if gt IE 8]><!--><link href="{{ StaticAssetPath( '/assets/v2/css/govuk-template.css', { 'minify':true } ) }}" rel="stylesheet" type="text/css"/><!--<![endif]-->
     <!--[if IE 8]><link href="{{ StaticAssetPath( '/assets/v2/css/govuk-template-ie8.css', { 'minify':true } ) }}" rel="stylesheet" type="text/css"/><![endif]-->
@@ -161,10 +160,12 @@
     </script>
 
     <script src="/assets/v2/js/libs/jquery.min.js"></script>
-    <script src="{{ StaticAssetPath( '/assets/v2/js/application.js', { 'minify':true } ) }}"></script>
+    <script src="{{ StaticAssetPath( '/assets/v2/js/application.js', { 'minify':false } ) }}"></script>
     <script>
         GOVUK.performance.stageprompt.setupForGoogleAnalytics();
     </script>
+
+    {% include 'layout/partials/timeout.twig' %}
 
 </body>
 </html>
