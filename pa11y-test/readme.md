@@ -25,3 +25,5 @@ Example: `node pa11y -h lpa-front.local -r /lpa/52609468319/type -e abc@def.com 
 Note: HTTP Auth should be switched off for this to work as of now.
 
 You can view the title in the output to know if you’ve hit the right page or not.
+
+The email (e) / password (p) is only required if testing a page behind login. The user must be previously registered and logged in with details entered. The LPA should also be registered up to the required URL. - Logging in was tested but only works if HTTP Auth is turned off, which is the default state it’s left in. There may be a way to make it work in future versions or with a reconfiguration. The basic code has been put in place anyway in the script so can be further explored.
