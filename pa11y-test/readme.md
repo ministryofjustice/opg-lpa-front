@@ -1,10 +1,10 @@
-#Pa11y test for accessibility
+# Pa11y test for accessibility
 
 Note: This is to be done outside of containers, on your system.
 
 Package details: https://github.com/pa11y/pa11y
 
-#Steps to setup
+# Steps to setup
 
 1. Ensure you have Node version 8+ (node -v), or install it:
 
