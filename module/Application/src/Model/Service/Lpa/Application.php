@@ -170,6 +170,8 @@ class Application extends AbstractService implements ApiClientAwareInterface
 
         $trackFromDate = new DateTime($this->getConfig()['processing-status']['track-from-date']);
 
+        $result['trackFromDate'] = $this->getConfig()['processing-status']['track-from-date'];
+
         //  Loop through the applications in the result, enhance the data and set it in an array object
         foreach ($result['applications'] as $applicationIdx => $applicationData) {
             $lpa = new Lpa($applicationData);
@@ -203,7 +205,9 @@ class Application extends AbstractService implements ApiClientAwareInterface
                     // If we already have a processing status use that instead of "Waiting" status
                     $metadata = $lpa->getMetadata();
 
-                    if ($metadata != null && array_key_exists(Lpa::SIRIUS_PROCESSING_STATUS, $metadata)) {
+                    if ($metadata != null &&
+                        array_key_exists(Lpa::SIRIUS_PROCESSING_STATUS, $metadata) &&
+                        $metadata[Lpa::SIRIUS_PROCESSING_STATUS] != null) {
                         $progress = $metadata[Lpa::SIRIUS_PROCESSING_STATUS];
                     }
 

@@ -3,6 +3,7 @@
 namespace Application\Controller\Authenticated;
 
 use Application\Controller\AbstractAuthenticatedController;
+use DateTime;
 use Opg\Lpa\DataModel\Lpa\Lpa;
 use Zend\View\Model\JsonModel;
 use Zend\View\Model\ViewModel;
@@ -21,6 +22,7 @@ class DashboardController extends AbstractAuthenticatedController
         $lpasSummary = $this->getLpaApplicationService()->getLpaSummaries($search, $page, $lpasPerPage);
         $lpas = $lpasSummary['applications'];
         $lpasTotalCount = $lpasSummary['total'];
+        $trackFromDate = $lpasSummary['trackFromDate'];
 
         //  If there are no LPAs and this is NOT a query, redirect them to create one...
         if (is_null($search) && count($lpas) == 0) {
@@ -40,6 +42,7 @@ class DashboardController extends AbstractAuthenticatedController
             'user'                  => [
                 'lastLogin' => $this->getIdentity()->lastLogin(),
             ],
+            'trackFromDate' => $trackFromDate,
         ]);
     }
 

@@ -33,7 +33,10 @@
     </div>
 </div>
 
-{% if shortList %}
+    <h2>Tracking from {{ trackFromDate }}</h2>
+
+
+    {% if shortList %}
 {# With less than 6 LPAs, no search is displayed #}
     {% if lpaTotalCount == 0 %}
         <h2 class="heading-large flush--ends">You have no LPAs</h2>

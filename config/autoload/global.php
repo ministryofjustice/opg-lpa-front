@@ -184,7 +184,7 @@ return array(
     'sendFeedbackEmailTo' => 'LPADigitalFeedback@PublicGuardian.gov.uk',
 
     'processing-status' => [
-        'track-from-date' => getenv('OPG_LPA_TRACK_FROM_DATE')?: '2030-01-01',
+        'track-from-date' => getenv('OPG_LPA_TRACK_FROM_DATE') ?: '2018-01-01',
         'endpoint' => getenv('OPG_LPA_PROCESSING_STATUS_ENDPOINT') ?: 'http://gateway:5000/v1/lpa-online-tool/lpas/'
     ]
 
