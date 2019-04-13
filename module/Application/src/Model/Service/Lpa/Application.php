@@ -169,8 +169,10 @@ class Application extends AbstractService implements ApiClientAwareInterface
         }
 
         $trackFromDate = new DateTime($this->getConfig()['processing-status']['track-from-date']);
+        $trackingEnabled = $trackFromDate <= new DateTime('now');
 
         $result['trackFromDate'] = $this->getConfig()['processing-status']['track-from-date'];
+        $result['trackingEnabled'] = $trackingEnabled;
 
         //  Loop through the applications in the result, enhance the data and set it in an array object
         foreach ($result['applications'] as $applicationIdx => $applicationData) {
@@ -199,7 +201,7 @@ class Application extends AbstractService implements ApiClientAwareInterface
             if ($lpa->getCompletedAt() instanceof DateTime) {
                 $progress = 'Completed';
 
-                if ($trackFromDate <= new DateTime('now') && $trackFromDate <= $lpa->getCompletedAt()) {
+                if ($trackingEnabled && $trackFromDate <= $lpa->getCompletedAt()) {
                     $progress = 'Waiting';
 
                     // If we already have a processing status use that instead of "Waiting" status
