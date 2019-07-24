@@ -42,6 +42,8 @@ class StatusController extends AbstractLpaController
         //  Determine what statuses should trigger the current status to display as 'done'
         $doneStatuses = array_slice($statuses, 0, array_search($lpaStatus, $statuses));
 
+//        var_dump($lpa);
+//        die;
         return new ViewModel([
             'lpa'          => $lpa,
             'status'       => $lpaStatus,
