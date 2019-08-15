@@ -350,7 +350,7 @@ class Details extends AbstractEmailService implements ApiClientAwareInterface
         } catch (ApiException $ex) {
             if ($ex->getMessage() == 'username-already-exists') {
                 return 'address-already-registered';
-            }
+        }
 
             return $ex->getMessage();
         }
