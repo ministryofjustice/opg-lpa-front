@@ -121,6 +121,8 @@ class Client
 
         $response = $this->httpClient->sendRequest($request);
 
+        $this->getLogger()->info($response->getStatusCode());
+
         switch ($response->getStatusCode()) {
             case 200:
             case 201:

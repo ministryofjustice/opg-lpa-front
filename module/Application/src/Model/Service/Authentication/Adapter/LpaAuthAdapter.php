@@ -80,6 +80,8 @@ class LpaAuthAdapter implements AdapterInterface
                 'password' => $this->password,
             ]);
 
+
+
             $response = AuthResponse::buildFromResponse($result);
         } catch (ApiException $ex) {
             switch ($ex->getMessage()) {
